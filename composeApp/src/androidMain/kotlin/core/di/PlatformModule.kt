@@ -12,7 +12,10 @@ actual val platformModule: Module = module {
         Room.databaseBuilder<AppDatabase>(
             context = androidContext(),
             name = dbFile.absolutePath
-        ).build()
+        )
+            .fallbackToDestructiveMigration(true)
+            .build()
     }
     single { get<AppDatabase>().contentDao() }
+    single { get<AppDatabase>().mutationDao() }
 }

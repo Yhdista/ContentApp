@@ -5,9 +5,12 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "content_items")
 data class ContentEntity(
-    @PrimaryKey val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val title: String,
     val description: String,
-    val imageUrl: String,
-    val tags: String
+    val value: Int = 1,
+    val category: String = "General",
+    val syncStatus: String = "PENDING", // PENDING, SYNCED, ERROR
+    val updatedAt: Long = 0L,
+    val clientUuid: String = ""
 )

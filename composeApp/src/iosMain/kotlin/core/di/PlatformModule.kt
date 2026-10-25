@@ -19,6 +19,7 @@ actual val platformModule: Module = module {
         ).build()
     }
     single { get<AppDatabase>().contentDao() }
+    single { get<AppDatabase>().mutationDao() }
 }
 
 @OptIn(ExperimentalForeignApi::class)
