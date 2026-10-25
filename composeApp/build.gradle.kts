@@ -10,6 +10,8 @@ plugins {
 kotlin {
     androidTarget()
     
+    jvm("desktop")
+    
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -69,6 +71,15 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
 
+        val desktopMain by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.androidx.sqlite.bundled)
+                implementation(libs.ktor.client.okhttp)
+            }
+        }
+
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
@@ -91,6 +102,18 @@ android {
     }
 }
 
+compose.desktop {
+    application {
+        mainClass = "MainKt"
+        nativeDistributions {
+            targetFormats(org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg)
+            packageName = "com.yhdista.contentapp"
+            packageVersion = "1.0.0"
+        }
+    }
+}
+
 dependencies {
     "ksp"(libs.androidx.room.compiler)
+    "kspDesktop"(libs.androidx.room.compiler)
 }
