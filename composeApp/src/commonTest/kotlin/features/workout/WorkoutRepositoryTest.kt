@@ -25,14 +25,14 @@ class WorkoutRepositoryTest {
 
     private lateinit var fakeDao: FakeWorkoutDao
     private lateinit var fakeMutationDao: FakeMutationDao
-    private lateinit var fakeClock: FakeClock
+    private lateinit var fakeClock: RepoFakeClock
     private lateinit var repository: WorkoutRepository
 
     @BeforeTest
     fun setup() {
         fakeDao = FakeWorkoutDao()
         fakeMutationDao = FakeMutationDao()
-        fakeClock = FakeClock(time = 1000000L)
+        fakeClock = RepoFakeClock(time = 1000000L)
         repository = WorkoutRepositoryImpl(
             workoutDao = fakeDao,
             mutationDao = fakeMutationDao,
@@ -81,7 +81,7 @@ class WorkoutRepositoryTest {
     }
 }
 
-private class FakeClock(var time: Long) : AppClock {
+private class RepoFakeClock(var time: Long) : AppClock {
     override fun nowMillis(): Long = time
 }
 

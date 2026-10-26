@@ -9,6 +9,7 @@ import core.repository.ContentRepositoryImpl
 import core.sync.SyncManager
 import features.content.ContentListViewModel
 import features.universal.UniversalViewModel
+import features.workout.active.ActiveWorkoutViewModel
 import features.workout.data.WorkoutRepositoryImpl
 import features.workout.domain.WorkoutRepository
 import org.koin.core.context.startKoin
@@ -29,6 +30,7 @@ val commonModule = module {
     // ViewModely
     factory { ContentListViewModel(get()) }
     factory { UniversalViewModel(get(), get(), get(), get()) }
+    factory { ActiveWorkoutViewModel(get(), get(), get()) }
 }
 
 expect val platformModule: Module
