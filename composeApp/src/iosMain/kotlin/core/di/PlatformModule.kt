@@ -5,6 +5,8 @@ import core.database.AppDatabase
 import core.database.AppDatabaseConstructor
 import core.feedback.IosPlatformFeedback
 import core.feedback.PlatformFeedback
+import core.platform.IosPlatformClipboard
+import core.platform.PlatformClipboard
 import kotlinx.cinterop.ExperimentalForeignApi
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -24,6 +26,7 @@ actual val platformModule: Module = module {
     single { get<AppDatabase>().mutationDao() }
     single { get<AppDatabase>().workoutDao() }
     single<PlatformFeedback> { IosPlatformFeedback() }
+    single<PlatformClipboard> { IosPlatformClipboard() }
 }
 
 @OptIn(ExperimentalForeignApi::class)

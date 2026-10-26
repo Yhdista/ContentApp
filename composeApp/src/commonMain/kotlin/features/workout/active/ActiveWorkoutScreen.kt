@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import features.workout.domain.WorkoutSet
 import features.workout.ui.components.ExerciseCard
 import features.workout.ui.components.ExercisePickerSheet
+import features.workout.ui.components.ExerciseStatsSheet
 import features.workout.ui.components.PlateCalculatorSheet
 import features.workout.ui.components.RestTimerBar
 import features.workout.ui.components.WorkoutThumbBar
@@ -197,6 +198,7 @@ fun ActiveWorkoutScreen(
                             onRpeChange = { set, rpe -> onIntent(ActiveWorkoutContract.Intent.UpdateRpe(set, rpe)) },
                             onDeleteSet = { set -> onIntent(ActiveWorkoutContract.Intent.DeleteSet(set)) },
                             onRemoveExercise = { onIntent(ActiveWorkoutContract.Intent.RemoveExerciseFromWorkout(exercise.id)) },
+                            onShowStats = { onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(exercise)) },
                             onOpenPlateCalculator = { set ->
                                 selectedSetForCalculator = set
                                 isPlateCalculatorOpen = true
@@ -208,6 +210,15 @@ fun ActiveWorkoutScreen(
                 item {
                     Spacer(modifier = Modifier.height(AppSpacing.xxl))
                 }
+            }
+
+            // Bottom sheet pro statistiky a graf cviku
+            if (state.selectedStatsExercise != null) {
+                ExerciseStatsSheet(
+                    exercise = state.selectedStatsExercise,
+                    stats = state.exerciseStats,
+                    onDismiss = { onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(null)) }
+                )
             }
 
             // Bottom sheet pro výběr cviku

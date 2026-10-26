@@ -290,6 +290,13 @@ private class FakeWorkoutDao : WorkoutDao {
     override suspend fun deleteTemplate(templateId: String) {
         templates.value = templates.value.filter { it.id != templateId }
     }
+
+    override suspend fun getAllExercisesList(): List<ExerciseEntity> = exercises.value
+    override suspend fun getAllSessionsList(): List<WorkoutSessionEntity> = sessions.value
+    override fun getAllCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSetEntity>> =
+        sets.map { list -> list.filter { it.exerciseId == exerciseId && it.isCompleted } }
+    override suspend fun getAllCompletedSets(): List<WorkoutSetEntity> =
+        sets.value.filter { it.isCompleted }
 }
 
 private class FakeMutationDao : MutationDao {

@@ -18,6 +18,9 @@ interface WorkoutDao {
     @Query("SELECT * FROM exercises ORDER BY name ASC")
     fun getAllExercises(): Flow<List<ExerciseEntity>>
 
+    @Query("SELECT * FROM exercises ORDER BY name ASC")
+    suspend fun getAllExercisesList(): List<ExerciseEntity>
+
     @Query("SELECT * FROM exercises WHERE id = :id LIMIT 1")
     suspend fun getExerciseById(id: String): ExerciseEntity?
 
@@ -39,6 +42,9 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM workout_sessions WHERE isCompleted = 1 ORDER BY startTimeEpochMs DESC")
     fun getCompletedSessions(): Flow<List<WorkoutSessionEntity>>
+
+    @Query("SELECT * FROM workout_sessions ORDER BY startTimeEpochMs DESC")
+    suspend fun getAllSessionsList(): List<WorkoutSessionEntity>
 
     @Query("SELECT * FROM workout_sessions WHERE id = :sessionId LIMIT 1")
     suspend fun getSessionById(sessionId: String): WorkoutSessionEntity?
@@ -70,6 +76,12 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM workout_sets WHERE exerciseId = :exerciseId AND isCompleted = 1 AND sessionId != :currentSessionId")
     suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity>
+
+    @Query("SELECT * FROM workout_sets WHERE exerciseId = :exerciseId AND isCompleted = 1 ORDER BY id ASC")
+    fun getAllCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSetEntity>>
+
+    @Query("SELECT * FROM workout_sets WHERE isCompleted = 1 ORDER BY sessionId, exerciseId, setNumber ASC")
+    suspend fun getAllCompletedSets(): List<WorkoutSetEntity>
 
     // Šablony (Templates)
     @Query("SELECT * FROM workout_templates ORDER BY name ASC")

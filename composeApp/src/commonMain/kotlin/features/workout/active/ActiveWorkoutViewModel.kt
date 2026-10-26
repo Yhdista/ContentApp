@@ -29,6 +29,7 @@ class ActiveWorkoutViewModel(
 
     private var restTimerJob: Job? = null
     private var workoutTimerJob: Job? = null
+    private var statsJob: Job? = null
     private val selectedExercises = mutableListOf<Exercise>()
 
     init {
@@ -39,6 +40,7 @@ class ActiveWorkoutViewModel(
         when (intent) {
             is ActiveWorkoutContract.Intent.LoadWorkout -> loadWorkout()
             is ActiveWorkoutContract.Intent.OpenExercisePicker -> updateState { copy(isPickerVisible = intent.isOpen) }
+            is ActiveWorkoutContract.Intent.OpenExerciseStats -> openExerciseStats(intent.exercise)
             is ActiveWorkoutContract.Intent.AddExerciseToWorkout -> addExercise(intent.exercise)
             is ActiveWorkoutContract.Intent.CreateCustomExercise -> createCustomExercise(
                 intent.name,
@@ -135,6 +137,24 @@ class ActiveWorkoutViewModel(
         viewModelScope.launch {
             val exercise = workoutRepository.createCustomExercise(name, muscleGroup, defaultRestSeconds)
             addExercise(exercise)
+        }
+    }
+
+    private fun openExerciseStats(exercise: Exercise?) {
+        statsJob?.cancel()
+        if (exercise == null) {
+            updateState { copy(selectedStatsExercise = null, exerciseStats = null) }
+            return
+        }
+        updateState { copy(selectedStatsExercise = exercise, exerciseStats = null) }
+        statsJob = viewModelScope.launch {
+            workoutRepository.getExerciseStats(exercise.id).collect { stats ->
+                updateState {
+                    if (selectedStatsExercise?.id == exercise.id) {
+                        copy(exerciseStats = stats)
+                    } else this
+                }
+            }
         }
     }
 

@@ -19,6 +19,8 @@ class ActiveWorkoutContract {
         val restTimerRemainingSeconds: Int = 0,
         val restTimerTotalSeconds: Int = 90,
         val workoutElapsedSeconds: Long = 0L,
+        val selectedStatsExercise: Exercise? = null,
+        val exerciseStats: features.workout.domain.ExerciseStats? = null,
         val isLoading: Boolean = false,
         val error: String? = null
     ) : UiState
@@ -26,6 +28,7 @@ class ActiveWorkoutContract {
     sealed class Intent : UiIntent {
         data object LoadWorkout : Intent()
         data class OpenExercisePicker(val isOpen: Boolean) : Intent()
+        data class OpenExerciseStats(val exercise: Exercise?) : Intent()
         data class AddExerciseToWorkout(val exercise: Exercise) : Intent()
         data class CreateCustomExercise(
             val name: String,

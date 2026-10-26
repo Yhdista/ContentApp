@@ -4,6 +4,8 @@ import androidx.room.Room
 import core.database.AppDatabase
 import core.feedback.AndroidPlatformFeedback
 import core.feedback.PlatformFeedback
+import core.platform.AndroidPlatformClipboard
+import core.platform.PlatformClipboard
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -22,4 +24,5 @@ actual val platformModule: Module = module {
     single { get<AppDatabase>().mutationDao() }
     single { get<AppDatabase>().workoutDao() }
     single<PlatformFeedback> { AndroidPlatformFeedback(androidContext()) }
+    single<PlatformClipboard> { AndroidPlatformClipboard(androidContext()) }
 }

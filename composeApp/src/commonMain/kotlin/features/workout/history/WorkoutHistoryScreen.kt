@@ -27,12 +27,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.IconButton
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import core.model.ItemSyncStatus
 import features.workout.domain.WorkoutSession
+import features.workout.ui.components.ExercisePickerSheet
+import features.workout.ui.components.ExerciseStatsSheet
 import features.workout.ui.components.TemplatePickerSheet
+import features.workout.ui.components.WorkoutExportDialog
 import ui.designsystem.atoms.feedback.StatusBadge
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
@@ -43,10 +48,12 @@ import ui.designsystem.templates.UniversalScreenTemplate
 fun WorkoutHistoryScreen(
     state: WorkoutHistoryContract.State,
     onIntent: (WorkoutHistoryContract.Intent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHost: (@Composable () -> Unit)? = null
 ) {
     UniversalScreenTemplate(
         modifier = modifier,
+        snackbarHost = snackbarHost,
         topBar = {
             TopAppBar(
                 title = {
@@ -65,11 +72,30 @@ fun WorkoutHistoryScreen(
                     }
                 },
                 actions = {
-                    Box(modifier = Modifier.padding(end = AppSpacing.md)) {
-                        if (state.pendingSyncCount > 0) {
-                            StatusBadge(status = ItemSyncStatus.PENDING)
-                        } else {
-                            StatusBadge(status = ItemSyncStatus.SYNCED)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                    ) {
+                        IconButton(
+                            onClick = { onIntent(WorkoutHistoryContract.Intent.OpenExerciseCatalog) },
+                            modifier = Modifier.size(AppSpacing.minInteractiveTouchTarget)
+                        ) {
+                            Text("📈", fontSize = 18.sp)
+                        }
+
+                        IconButton(
+                            onClick = { onIntent(WorkoutHistoryContract.Intent.OpenExportDialog) },
+                            modifier = Modifier.size(AppSpacing.minInteractiveTouchTarget)
+                        ) {
+                            Text("💾", fontSize = 18.sp)
+                        }
+
+                        Box(modifier = Modifier.padding(end = AppSpacing.sm)) {
+                            if (state.pendingSyncCount > 0) {
+                                StatusBadge(status = ItemSyncStatus.PENDING)
+                            } else {
+                                StatusBadge(status = ItemSyncStatus.SYNCED)
+                            }
                         }
                     }
                 },
@@ -315,6 +341,39 @@ fun WorkoutHistoryScreen(
             templates = state.templates,
             onSelectTemplate = { onIntent(WorkoutHistoryContract.Intent.StartWorkoutFromTemplate(it)) },
             onDismiss = { onIntent(WorkoutHistoryContract.Intent.CloseTemplatePicker) }
+        )
+    }
+
+    if (state.isExerciseCatalogOpen) {
+        ExercisePickerSheet(
+            isVisible = true,
+            exercises = state.allExercises,
+            onSelectExercise = { exercise ->
+                onIntent(WorkoutHistoryContract.Intent.CloseExerciseCatalog)
+                onIntent(WorkoutHistoryContract.Intent.OpenExerciseStats(exercise))
+            },
+            onDismissRequest = { onIntent(WorkoutHistoryContract.Intent.CloseExerciseCatalog) }
+        )
+    }
+
+    if (state.isExerciseStatsOpen && state.selectedStatsExercise != null) {
+        ExerciseStatsSheet(
+            exercise = state.selectedStatsExercise,
+            stats = state.exerciseStats,
+            onDismiss = { onIntent(WorkoutHistoryContract.Intent.CloseExerciseStats) }
+        )
+    }
+
+    if (state.isExportDialogOpen) {
+        WorkoutExportDialog(
+            csvData = state.exportCsvData,
+            jsonData = state.exportJsonData,
+            sessionsCount = state.exportSessionsCount,
+            setsCount = state.exportSetsCount,
+            onCopyToClipboard = { text, isJson ->
+                onIntent(WorkoutHistoryContract.Intent.CopyExportData(text, isJson))
+            },
+            onDismiss = { onIntent(WorkoutHistoryContract.Intent.CloseExportDialog) }
         )
     }
 }

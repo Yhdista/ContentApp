@@ -10,14 +10,18 @@ import features.workout.data.entity.WorkoutSetEntity
 import features.workout.data.entity.WorkoutTemplateEntity
 import features.workout.data.entity.WorkoutTemplateExerciseEntity
 import features.workout.domain.Exercise
+import features.workout.domain.ExerciseStats
+import features.workout.domain.ExerciseStatsCalculator
 import features.workout.domain.MuscleGroup
 import features.workout.domain.PersonalRecordCalculator
+import features.workout.domain.WorkoutDataExporter
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutTemplate
 import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -384,5 +388,36 @@ class WorkoutRepositoryImpl(
             description = "Vytvořeno z tréninku",
             exercises = templateExercises
         )
+    }
+
+    override fun getExerciseStats(exerciseId: String): Flow<ExerciseStats?> {
+        return combine(
+            getExercises(),
+            getCompletedSessions(),
+            workoutDao.getAllCompletedSetsForExercise(exerciseId)
+        ) { exercises, sessions, setEntities ->
+            val exercise = exercises.firstOrNull { it.id == exerciseId } ?: return@combine null
+            val sets = setEntities.map { it.toDomain() }
+            ExerciseStatsCalculator.calculate(exercise, sessions, sets)
+        }
+    }
+
+    override suspend fun getAllCompletedSets(): List<WorkoutSet> {
+        return workoutDao.getAllCompletedSets().map { it.toDomain() }
+    }
+
+    override suspend fun exportWorkoutDataCsv(): String {
+        val sessions = workoutDao.getAllSessionsList().map { it.toDomain() }
+        val exercises = workoutDao.getAllExercisesList().map { it.toDomain() }
+        val sets = workoutDao.getAllCompletedSets().map { it.toDomain() }
+        return WorkoutDataExporter.exportToCsv(sessions, exercises, sets)
+    }
+
+    override suspend fun exportWorkoutDataJson(): String {
+        val sessions = workoutDao.getAllSessionsList().map { it.toDomain() }
+        val exercises = workoutDao.getAllExercisesList().map { it.toDomain() }
+        val sets = workoutDao.getAllCompletedSets().map { it.toDomain() }
+        val templates = workoutDao.getAllTemplates().first().map { it.toDomain() }
+        return WorkoutDataExporter.exportToJson(sessions, exercises, sets, templates)
     }
 }

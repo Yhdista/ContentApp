@@ -42,6 +42,7 @@ fun ExerciseCard(
     onDeleteSet: (WorkoutSet) -> Unit,
     onRemoveExercise: () -> Unit,
     onOpenPlateCalculator: ((WorkoutSet) -> Unit)? = null,
+    onShowStats: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -95,20 +96,38 @@ fun ExerciseCard(
                 }
             }
 
-            // Odebrat cvik
-            Box(
-                modifier = Modifier
-                    .minimumInteractiveComponentSize()
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable(role = Role.Button, onClick = onRemoveExercise)
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "✕",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = AppColors.OnSurfaceVariant
-                )
+            // Akce v hlavičce cviku (Statistiky, Odebrat)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (onShowStats != null) {
+                    Box(
+                        modifier = Modifier
+                            .minimumInteractiveComponentSize()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable(role = Role.Button, onClick = onShowStats)
+                            .padding(horizontal = 6.dp, vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "📈",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .minimumInteractiveComponentSize()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable(role = Role.Button, onClick = onRemoveExercise)
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "✕",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = AppColors.OnSurfaceVariant
+                    )
+                }
             }
         }
 

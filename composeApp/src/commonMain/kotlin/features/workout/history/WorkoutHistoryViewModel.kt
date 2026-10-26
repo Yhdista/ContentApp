@@ -1,13 +1,19 @@
 package features.workout.history
 
 import androidx.lifecycle.viewModelScope
+import core.platform.NoOpPlatformClipboard
+import core.platform.PlatformClipboard
 import core.viewmodel.BaseViewModel
+import features.workout.domain.Exercise
 import features.workout.domain.WorkoutRepository
+import features.workout.domain.WorkoutSession
+import features.workout.domain.WorkoutTemplate
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class WorkoutHistoryViewModel(
-    private val workoutRepository: WorkoutRepository
+    private val workoutRepository: WorkoutRepository,
+    private val platformClipboard: PlatformClipboard = NoOpPlatformClipboard()
 ) : BaseViewModel<WorkoutHistoryContract.State, WorkoutHistoryContract.Intent, WorkoutHistoryContract.Effect>(
     WorkoutHistoryContract.State()
 ) {
@@ -33,6 +39,21 @@ class WorkoutHistoryViewModel(
             is WorkoutHistoryContract.Intent.WorkoutClicked -> {
                 sendEffect(WorkoutHistoryContract.Effect.NavigateToDetail(intent.sessionId))
             }
+            is WorkoutHistoryContract.Intent.OpenExportDialog -> openExportDialog()
+            is WorkoutHistoryContract.Intent.CloseExportDialog -> {
+                updateState { copy(isExportDialogOpen = false) }
+            }
+            is WorkoutHistoryContract.Intent.CopyExportData -> copyExportData(intent.text, intent.isJson)
+            is WorkoutHistoryContract.Intent.OpenExerciseCatalog -> {
+                updateState { copy(isExerciseCatalogOpen = true) }
+            }
+            is WorkoutHistoryContract.Intent.CloseExerciseCatalog -> {
+                updateState { copy(isExerciseCatalogOpen = false) }
+            }
+            is WorkoutHistoryContract.Intent.OpenExerciseStats -> openExerciseStats(intent.exercise)
+            is WorkoutHistoryContract.Intent.CloseExerciseStats -> {
+                updateState { copy(isExerciseStatsOpen = false, selectedStatsExercise = null, exerciseStats = null) }
+            }
         }
     }
 
@@ -46,16 +67,18 @@ class WorkoutHistoryViewModel(
                 workoutRepository.getCompletedSessions(),
                 workoutRepository.getActiveSession(),
                 workoutRepository.getPendingSyncMutationsCount(),
-                workoutRepository.getTemplates()
-            ) { completed, active, pendingCount, templates ->
+                workoutRepository.getTemplates(),
+                workoutRepository.getExercises()
+            ) { completed, active, pendingCount, templates, exercises ->
                 val totalVolume = completed.sumOf { it.totalVolumeKg }
-                HistoryData(completed, active, pendingCount, templates, totalVolume)
+                HistoryData(completed, active, pendingCount, templates, exercises, totalVolume)
             }.collect { data ->
                 updateState {
                     copy(
                         completedSessions = data.completed,
                         activeSession = data.active,
                         templates = data.templates,
+                        allExercises = data.exercises,
                         totalVolumeAllTimeKg = data.totalVolume,
                         totalWorkoutsCount = data.completed.size,
                         pendingSyncCount = data.pendingCount,
@@ -67,10 +90,11 @@ class WorkoutHistoryViewModel(
     }
 
     private data class HistoryData(
-        val completed: List<features.workout.domain.WorkoutSession>,
-        val active: features.workout.domain.WorkoutSession?,
+        val completed: List<WorkoutSession>,
+        val active: WorkoutSession?,
         val pendingCount: Int,
-        val templates: List<features.workout.domain.WorkoutTemplate>,
+        val templates: List<WorkoutTemplate>,
+        val exercises: List<Exercise>,
         val totalVolume: Double
     )
 
@@ -88,10 +112,52 @@ class WorkoutHistoryViewModel(
             if (uiState.value.activeSession == null) {
                 workoutRepository.startWorkoutFromTemplate(templateId)
                 updateState { copy(isTemplatePickerOpen = false) }
-                sendEffect(WorkoutHistoryContract.Effect.NavigateToActiveWorkout)
-            } else {
-                updateState { copy(isTemplatePickerOpen = false) }
-                sendEffect(WorkoutHistoryContract.Effect.ShowSnackbar("Již probíhá aktivní trénink. Dokončete jej nebo zrušte."))
+            }
+            sendEffect(WorkoutHistoryContract.Effect.NavigateToActiveWorkout)
+        }
+    }
+
+    private fun openExportDialog() {
+        viewModelScope.launch {
+            val csv = workoutRepository.exportWorkoutDataCsv()
+            val json = workoutRepository.exportWorkoutDataJson()
+            val completedSets = workoutRepository.getAllCompletedSets()
+            updateState {
+                copy(
+                    isExportDialogOpen = true,
+                    exportCsvData = csv,
+                    exportJsonData = json,
+                    exportSessionsCount = completedSessions.size,
+                    exportSetsCount = completedSets.size
+                )
+            }
+        }
+    }
+
+    private fun copyExportData(text: String, isJson: Boolean) {
+        platformClipboard.copyToClipboard("Workout Data", text)
+        sendEffect(
+            WorkoutHistoryContract.Effect.ShowSnackbar(
+                if (isJson) "✓ JSON záloha zkopírována do schránky!" else "✓ CSV export zkopírován do schránky!"
+            )
+        )
+    }
+
+    private fun openExerciseStats(exercise: Exercise) {
+        updateState {
+            copy(
+                isExerciseStatsOpen = true,
+                selectedStatsExercise = exercise,
+                exerciseStats = null
+            )
+        }
+        viewModelScope.launch {
+            workoutRepository.getExerciseStats(exercise.id).collect { stats ->
+                updateState {
+                    if (selectedStatsExercise?.id == exercise.id) {
+                        copy(exerciseStats = stats)
+                    } else this
+                }
             }
         }
     }

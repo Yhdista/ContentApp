@@ -24,4 +24,8 @@ interface WorkoutRepository {
     suspend fun createTemplate(name: String, description: String, exercises: List<WorkoutTemplateExercise>): WorkoutTemplate
     suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession
     suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate
+    fun getExerciseStats(exerciseId: String): Flow<ExerciseStats?>
+    suspend fun getAllCompletedSets(): List<WorkoutSet>
+    suspend fun exportWorkoutDataCsv(): String
+    suspend fun exportWorkoutDataJson(): String
 }

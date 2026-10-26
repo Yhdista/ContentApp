@@ -28,11 +28,13 @@ fun UniversalScreenTemplate(
     timerBar: (@Composable () -> Unit)? = null,
     content: @Composable (PaddingValues) -> Unit,
     thumbActionZone: (@Composable () -> Unit)? = null,
+    snackbarHost: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = topBar,
+        snackbarHost = { snackbarHost?.invoke() },
         containerColor = AppColors.Background
     ) { innerPadding ->
         Column(

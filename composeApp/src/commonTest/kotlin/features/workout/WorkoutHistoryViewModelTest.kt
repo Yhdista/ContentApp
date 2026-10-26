@@ -35,13 +35,15 @@ class WorkoutHistoryViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var fakeRepository: HistoryFakeWorkoutRepository
+    private lateinit var fakeClipboard: FakePlatformClipboard
     private lateinit var viewModel: WorkoutHistoryViewModel
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         fakeRepository = HistoryFakeWorkoutRepository()
-        viewModel = WorkoutHistoryViewModel(fakeRepository)
+        fakeClipboard = FakePlatformClipboard()
+        viewModel = WorkoutHistoryViewModel(fakeRepository, fakeClipboard)
     }
 
     @AfterTest
@@ -133,6 +135,55 @@ class WorkoutHistoryViewModelTest {
         assertFalse(viewModel.uiState.value.isTemplatePickerOpen)
         job.cancel()
     }
+
+    @Test
+    fun testOpenExportDialogFetchesCsvAndJson() = runTest(testDispatcher) {
+        viewModel.onIntent(WorkoutHistoryContract.Intent.OpenExportDialog)
+        testScheduler.runCurrent()
+
+        assertTrue(viewModel.uiState.value.isExportDialogOpen)
+        assertEquals("header\nrow1", viewModel.uiState.value.exportCsvData)
+        assertEquals("{\"count\": 1}", viewModel.uiState.value.exportJsonData)
+
+        viewModel.onIntent(WorkoutHistoryContract.Intent.CloseExportDialog)
+        testScheduler.runCurrent()
+        assertFalse(viewModel.uiState.value.isExportDialogOpen)
+    }
+
+    @Test
+    fun testCopyExportDataCopiesToClipboardAndSendsSnackbar() = runTest(testDispatcher) {
+        var effectReceived: WorkoutHistoryContract.Effect? = null
+        val job = backgroundScope.launch(testDispatcher) {
+            viewModel.effect.collect { effectReceived = it }
+        }
+
+        viewModel.onIntent(WorkoutHistoryContract.Intent.CopyExportData("csv-data-here", isJson = false))
+        testScheduler.runCurrent()
+
+        assertEquals("csv-data-here", fakeClipboard.lastCopiedText)
+        assertTrue(effectReceived is WorkoutHistoryContract.Effect.ShowSnackbar)
+        assertEquals("✓ CSV export zkopírován do schránky!", (effectReceived as WorkoutHistoryContract.Effect.ShowSnackbar).message)
+        job.cancel()
+    }
+
+    @Test
+    fun testOpenExerciseCatalogAndOpenStats() = runTest(testDispatcher) {
+        viewModel.onIntent(WorkoutHistoryContract.Intent.OpenExerciseCatalog)
+        testScheduler.runCurrent()
+        assertTrue(viewModel.uiState.value.isExerciseCatalogOpen)
+
+        val exercise = Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, 120)
+        viewModel.onIntent(WorkoutHistoryContract.Intent.OpenExerciseStats(exercise))
+        testScheduler.runCurrent()
+
+        assertTrue(viewModel.uiState.value.isExerciseStatsOpen)
+        assertEquals(exercise, viewModel.uiState.value.selectedStatsExercise)
+
+        viewModel.onIntent(WorkoutHistoryContract.Intent.CloseExerciseStats)
+        testScheduler.runCurrent()
+        assertFalse(viewModel.uiState.value.isExerciseStatsOpen)
+        assertNull(viewModel.uiState.value.selectedStatsExercise)
+    }
 }
 
 private class HistoryFakeWorkoutRepository : WorkoutRepository {
@@ -193,4 +244,17 @@ private class HistoryFakeWorkoutRepository : WorkoutRepository {
         return startWorkout("Push Day")
     }
     override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = error("Not needed")
+    override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
+    override suspend fun getAllCompletedSets(): List<WorkoutSet> = emptyList()
+    override suspend fun exportWorkoutDataCsv(): String = "header\nrow1"
+    override suspend fun exportWorkoutDataJson(): String = "{\"count\": 1}"
+}
+
+private class FakePlatformClipboard : core.platform.PlatformClipboard {
+    var lastCopiedLabel: String? = null
+    var lastCopiedText: String? = null
+    override fun copyToClipboard(label: String, text: String) {
+        lastCopiedLabel = label
+        lastCopiedText = text
+    }
 }

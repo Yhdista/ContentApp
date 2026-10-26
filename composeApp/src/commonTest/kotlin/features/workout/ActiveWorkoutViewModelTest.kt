@@ -248,6 +248,22 @@ class ActiveWorkoutViewModelTest {
         vm.cancelTimers()
         job.cancel()
     }
+
+    @Test
+    fun testOpenExerciseStatsUpdatesState() = runTest(testDispatcher) {
+        val bench = Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, 120)
+
+        viewModel.onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(bench))
+        testScheduler.runCurrent()
+
+        assertEquals(bench, viewModel.uiState.value.selectedStatsExercise)
+
+        viewModel.onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(null))
+        testScheduler.runCurrent()
+
+        kotlin.test.assertNull(viewModel.uiState.value.selectedStatsExercise)
+        viewModel.cancelTimers()
+    }
 }
 
 private class FakePlatformFeedback : PlatformFeedback {
@@ -370,4 +386,8 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
     override suspend fun createTemplate(name: String, description: String, exercises: List<WorkoutTemplateExercise>): WorkoutTemplate = error("Not needed")
     override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession = startWorkout("From template")
     override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = error("Not needed")
+    override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
+    override suspend fun getAllCompletedSets(): List<WorkoutSet> = sets.value.filter { it.isCompleted }
+    override suspend fun exportWorkoutDataCsv(): String = ""
+    override suspend fun exportWorkoutDataJson(): String = ""
 }

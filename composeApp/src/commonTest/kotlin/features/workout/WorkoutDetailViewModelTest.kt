@@ -204,4 +204,8 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
         savedTemplates.add(tmpl)
         return tmpl
     }
+    override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
+    override suspend fun getAllCompletedSets(): List<WorkoutSet> = sets.value.filter { it.isCompleted }
+    override suspend fun exportWorkoutDataCsv(): String = ""
+    override suspend fun exportWorkoutDataJson(): String = ""
 }
