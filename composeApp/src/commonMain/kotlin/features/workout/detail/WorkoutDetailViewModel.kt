@@ -16,11 +16,20 @@ class WorkoutDetailViewModel(
         when (intent) {
             is WorkoutDetailContract.Intent.LoadDetail -> loadDetail(intent.sessionId)
             is WorkoutDetailContract.Intent.BackClicked -> sendEffect(WorkoutDetailContract.Effect.NavigateBack)
+            is WorkoutDetailContract.Intent.SaveAsTemplate -> saveAsTemplate(intent.templateName)
         }
     }
 
     fun load(sessionId: String) {
         onIntent(WorkoutDetailContract.Intent.LoadDetail(sessionId))
+    }
+
+    private fun saveAsTemplate(templateName: String) {
+        val currentSession = uiState.value.session ?: return
+        viewModelScope.launch {
+            workoutRepository.saveSessionAsTemplate(currentSession.id, templateName)
+            sendEffect(WorkoutDetailContract.Effect.ShowSnackbar("Šablona '$templateName' byla úspěšně uložena."))
+        }
     }
 
     private fun loadDetail(sessionId: String) {

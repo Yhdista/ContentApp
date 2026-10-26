@@ -6,6 +6,8 @@ import features.workout.domain.Exercise
 import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutTemplate
+import features.workout.domain.WorkoutTemplateExercise
 
 @Entity(tableName = "exercises")
 data class ExerciseEntity(
@@ -71,7 +73,8 @@ data class WorkoutSetEntity(
     val reps: Int,
     val rpe: Double?,
     val isCompleted: Boolean,
-    val previousPerformance: String?
+    val previousPerformance: String?,
+    val isPersonalRecord: Boolean = false
 ) {
     fun toDomain(): WorkoutSet = WorkoutSet(
         id = id,
@@ -82,7 +85,8 @@ data class WorkoutSetEntity(
         reps = reps,
         rpe = rpe,
         isCompleted = isCompleted,
-        previousPerformance = previousPerformance
+        previousPerformance = previousPerformance,
+        isPersonalRecord = isPersonalRecord
     )
 
     companion object {
@@ -95,7 +99,67 @@ data class WorkoutSetEntity(
             reps = set.reps,
             rpe = set.rpe,
             isCompleted = set.isCompleted,
-            previousPerformance = set.previousPerformance
+            previousPerformance = set.previousPerformance,
+            isPersonalRecord = set.isPersonalRecord
         )
     }
 }
+
+@Entity(tableName = "workout_templates")
+data class WorkoutTemplateEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val description: String
+) {
+    fun toDomain(exercises: List<WorkoutTemplateExercise> = emptyList()): WorkoutTemplate = WorkoutTemplate(
+        id = id,
+        name = name,
+        description = description,
+        exercises = exercises
+    )
+
+    companion object {
+        fun fromDomain(template: WorkoutTemplate): WorkoutTemplateEntity = WorkoutTemplateEntity(
+            id = template.id,
+            name = template.name,
+            description = template.description
+        )
+    }
+}
+
+@Entity(
+    tableName = "workout_template_exercises",
+    primaryKeys = ["templateId", "exerciseId", "orderIndex"]
+)
+data class WorkoutTemplateExerciseEntity(
+    val templateId: String,
+    val exerciseId: String,
+    val exerciseName: String,
+    val targetSets: Int,
+    val defaultWeightKg: Double,
+    val defaultReps: Int,
+    val orderIndex: Int
+) {
+    fun toDomain(): WorkoutTemplateExercise = WorkoutTemplateExercise(
+        exerciseId = exerciseId,
+        exerciseName = exerciseName,
+        targetSets = targetSets,
+        defaultWeightKg = defaultWeightKg,
+        defaultReps = defaultReps,
+        orderIndex = orderIndex
+    )
+
+    companion object {
+        fun fromDomain(templateId: String, exercise: WorkoutTemplateExercise): WorkoutTemplateExerciseEntity =
+            WorkoutTemplateExerciseEntity(
+                templateId = templateId,
+                exerciseId = exercise.exerciseId,
+                exerciseName = exercise.exerciseName,
+                targetSets = exercise.targetSets,
+                defaultWeightKg = exercise.defaultWeightKg,
+                defaultReps = exercise.defaultReps,
+                orderIndex = exercise.orderIndex
+            )
+    }
+}
+

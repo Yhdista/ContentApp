@@ -25,9 +25,11 @@ class WorkoutDetailContract {
     sealed class Intent : UiIntent {
         data class LoadDetail(val sessionId: String) : Intent()
         data object BackClicked : Intent()
+        data class SaveAsTemplate(val templateName: String) : Intent()
     }
 
     sealed class Effect : UiEffect {
         data object NavigateBack : Effect()
+        data class ShowSnackbar(val message: String) : Effect()
     }
 }

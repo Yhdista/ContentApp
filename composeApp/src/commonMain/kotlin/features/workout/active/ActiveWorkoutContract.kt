@@ -39,6 +39,7 @@ class ActiveWorkoutContract {
         data class UpdateReps(val set: WorkoutSet, val reps: Int) : Intent()
         data class UpdateRpe(val set: WorkoutSet, val rpe: Double?) : Intent()
         data class DeleteSet(val set: WorkoutSet) : Intent()
+        data class StartRestTimer(val seconds: Int = 90) : Intent()
         data class AdjustRestTimer(val deltaSeconds: Int) : Intent()
         data object SkipRestTimer : Intent()
         data object FinishWorkout : Intent()

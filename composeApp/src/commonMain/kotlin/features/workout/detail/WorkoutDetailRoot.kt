@@ -25,6 +25,9 @@ fun WorkoutDetailRoot(
                 is WorkoutDetailContract.Effect.NavigateBack -> {
                     onNavigateBack()
                 }
+                is WorkoutDetailContract.Effect.ShowSnackbar -> {
+                    // Feedback message
+                }
             }
         }
     }

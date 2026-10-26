@@ -99,10 +99,10 @@ fun SetRowItem(
             )
         }
 
-        // 2. Předchozí výkon (např. 80 kg × 8)
-        Box(
+        // 2. Předchozí výkon (např. 80 kg × 8) + PR odznak
+        Column(
             modifier = Modifier.width(64.dp),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = set.previousPerformance ?: "—",
@@ -110,6 +110,15 @@ fun SetRowItem(
                 color = AppColors.OnSurfaceVariant,
                 maxLines = 1
             )
+            if (set.isPersonalRecord && set.isCompleted) {
+                Text(
+                    text = "🏆 PR",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFFFBBF24),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 10.sp
+                )
+            }
         }
 
         // 3. Vstup pro Váhu (kg)

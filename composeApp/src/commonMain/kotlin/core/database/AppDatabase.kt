@@ -8,6 +8,8 @@ import features.workout.data.dao.WorkoutDao
 import features.workout.data.entity.ExerciseEntity
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
+import features.workout.data.entity.WorkoutTemplateEntity
+import features.workout.data.entity.WorkoutTemplateExerciseEntity
 
 @Database(
     entities = [
@@ -15,9 +17,11 @@ import features.workout.data.entity.WorkoutSetEntity
         SyncMutationEntity::class,
         ExerciseEntity::class,
         WorkoutSessionEntity::class,
-        WorkoutSetEntity::class
+        WorkoutSetEntity::class,
+        WorkoutTemplateEntity::class,
+        WorkoutTemplateExerciseEntity::class
     ],
-    version = 3
+    version = 4
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

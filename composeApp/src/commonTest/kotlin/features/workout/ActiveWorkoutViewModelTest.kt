@@ -2,6 +2,7 @@ package features.workout
 
 import core.common.AppClock
 import core.common.ApplicationScope
+import core.feedback.PlatformFeedback
 import features.workout.active.ActiveWorkoutContract
 import features.workout.active.ActiveWorkoutViewModel
 import features.workout.domain.Exercise
@@ -9,9 +10,12 @@ import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutTemplate
+import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -203,6 +207,60 @@ class ActiveWorkoutViewModelTest {
         assertEquals(listOf(1, 2), setsAfter.map { it.setNumber })
         viewModel.cancelTimers()
     }
+
+    @Test
+    fun testRestTimerCompletionTriggersFeedbackAndSnackbar() = runTest(testDispatcher) {
+        val fakeFeedback = FakePlatformFeedback()
+        val vm = ActiveWorkoutViewModel(
+            workoutRepository = fakeRepository,
+            appScope = appScope,
+            clock = fakeClock,
+            platformFeedback = fakeFeedback
+        )
+        testScheduler.runCurrent()
+
+        var effectReceived: ActiveWorkoutContract.Effect? = null
+        val job = backgroundScope.launch(testDispatcher) {
+            vm.effect.collect { effectReceived = it }
+        }
+
+        // Start timer for 2 seconds
+        vm.onIntent(ActiveWorkoutContract.Intent.StartRestTimer(2))
+        testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isRestTimerActive)
+        assertEquals(2, vm.uiState.value.restTimerRemainingSeconds)
+
+        // Advance 1s -> 1s remaining
+        advanceTimeBy(1000)
+        testScheduler.runCurrent()
+        assertEquals(1, vm.uiState.value.restTimerRemainingSeconds)
+        assertEquals(0, fakeFeedback.vibrateCount)
+
+        // Advance 1s -> 0s remaining -> Triggers vibration, sound, and snackbar!
+        advanceTimeBy(1000)
+        testScheduler.runCurrent()
+        assertEquals(0, vm.uiState.value.restTimerRemainingSeconds)
+        assertFalse(vm.uiState.value.isRestTimerActive)
+        assertEquals(1, fakeFeedback.vibrateCount)
+        assertEquals(1, fakeFeedback.soundCount)
+        assertTrue(effectReceived is ActiveWorkoutContract.Effect.ShowSnackbar)
+
+        vm.cancelTimers()
+        job.cancel()
+    }
+}
+
+private class FakePlatformFeedback : PlatformFeedback {
+    var vibrateCount = 0
+    var soundCount = 0
+
+    override fun vibrateTimerComplete() {
+        vibrateCount++
+    }
+
+    override fun playTimerSound() {
+        soundCount++
+    }
 }
 
 private class WorkoutVmFakeClock(var time: Long) : AppClock {
@@ -305,4 +363,11 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
     }
 
     override suspend fun getLastPerformance(exerciseId: String): String? = "80 kg × 8"
+    override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double = 0.0
+
+    override fun getTemplates(): Flow<List<WorkoutTemplate>> = MutableStateFlow(emptyList())
+    override suspend fun ensureDefaultTemplates() {}
+    override suspend fun createTemplate(name: String, description: String, exercises: List<WorkoutTemplateExercise>): WorkoutTemplate = error("Not needed")
+    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession = startWorkout("From template")
+    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = error("Not needed")
 }

@@ -12,5 +12,6 @@ data class WorkoutSet(
     val reps: Int,
     val rpe: Double? = null,
     val isCompleted: Boolean = false,
-    val previousPerformance: String? = null
+    val previousPerformance: String? = null,
+    val isPersonalRecord: Boolean = false
 )

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import core.model.ItemSyncStatus
 import features.workout.domain.WorkoutSession
+import features.workout.ui.components.TemplatePickerSheet
 import ui.designsystem.atoms.feedback.StatusBadge
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
@@ -104,24 +105,50 @@ fun WorkoutHistoryScreen(
                         )
                     }
                 } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .minimumInteractiveComponentSize()
-                            .height(52.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(AppColors.Primary)
-                            .clickable(role = Role.Button) {
-                                onIntent(WorkoutHistoryContract.Intent.StartNewWorkout)
-                            },
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
-                        Text(
-                            text = "+ Začít nový trénink 🏋️",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.OnPrimary
-                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1.3f)
+                                .minimumInteractiveComponentSize()
+                                .height(52.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(AppColors.Primary)
+                                .clickable(role = Role.Button) {
+                                    onIntent(WorkoutHistoryContract.Intent.StartNewWorkout)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "+ Nový trénink",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.OnPrimary
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .minimumInteractiveComponentSize()
+                                .height(52.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(AppColors.Surface)
+                                .border(1.dp, AppColors.Outline, RoundedCornerShape(14.dp))
+                                .clickable(role = Role.Button) {
+                                    onIntent(WorkoutHistoryContract.Intent.OpenTemplatePicker)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "📋 Šablony",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.OnSurface
+                            )
+                        }
                     }
                 }
             }
@@ -282,6 +309,14 @@ fun WorkoutHistoryScreen(
             }
         }
     )
+
+    if (state.isTemplatePickerOpen) {
+        TemplatePickerSheet(
+            templates = state.templates,
+            onSelectTemplate = { onIntent(WorkoutHistoryContract.Intent.StartWorkoutFromTemplate(it)) },
+            onDismiss = { onIntent(WorkoutHistoryContract.Intent.CloseTemplatePicker) }
+        )
+    }
 }
 
 @Composable

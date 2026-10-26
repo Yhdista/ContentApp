@@ -7,11 +7,16 @@ import features.workout.data.dao.WorkoutDao
 import features.workout.data.entity.ExerciseEntity
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
+import features.workout.data.entity.WorkoutTemplateEntity
+import features.workout.data.entity.WorkoutTemplateExerciseEntity
 import features.workout.domain.Exercise
 import features.workout.domain.MuscleGroup
+import features.workout.domain.PersonalRecordCalculator
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutTemplate
+import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -166,7 +171,19 @@ class WorkoutRepositoryImpl(
     }
 
     override suspend fun updateSet(set: WorkoutSet) {
-        workoutDao.insertOrUpdateSet(WorkoutSetEntity.fromDomain(set))
+        val isPR = if (set.isCompleted && set.weightKg > 0.0 && set.reps > 0) {
+            val historical = workoutDao.getHistoricalCompletedSets(set.exerciseId, set.sessionId)
+            if (historical.isEmpty()) {
+                true
+            } else {
+                val max1RM = historical.maxOfOrNull { PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps) } ?: 0.0
+                PersonalRecordCalculator.isPersonalRecord(set.weightKg, set.reps, max1RM)
+            }
+        } else {
+            false
+        }
+        val setWithPR = set.copy(isPersonalRecord = isPR)
+        workoutDao.insertOrUpdateSet(WorkoutSetEntity.fromDomain(setWithPR))
         val now = clock.nowMillis()
         mutationDao.insertMutation(
             SyncMutationEntity(
@@ -174,10 +191,15 @@ class WorkoutRepositoryImpl(
                 entityName = "workout_set",
                 recordId = set.id,
                 operation = "UPDATE",
-                payloadJson = "{\"weight\":${set.weightKg},\"reps\":${set.reps},\"rpe\":${set.rpe},\"isCompleted\":${set.isCompleted}}",
+                payloadJson = "{\"weight\":${set.weightKg},\"reps\":${set.reps},\"rpe\":${set.rpe},\"isCompleted\":${set.isCompleted},\"isPR\":$isPR}",
                 createdAt = now
             )
         )
+    }
+
+    override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double {
+        val historical = workoutDao.getHistoricalCompletedSets(exerciseId, currentSessionId)
+        return historical.maxOfOrNull { PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps) } ?: 0.0
     }
 
     override suspend fun deleteSet(setId: String) {
@@ -227,5 +249,140 @@ class WorkoutRepositoryImpl(
         val last = workoutDao.getLastPerformanceForExercise(exerciseId) ?: return null
         val weightStr = if (last.weightKg % 1.0 == 0.0) last.weightKg.toInt().toString() else last.weightKg.toString()
         return "$weightStr kg × ${last.reps}"
+    }
+
+    override fun getTemplates(): Flow<List<WorkoutTemplate>> {
+        return workoutDao.getAllTemplates().map { list ->
+            list.map { entity ->
+                val exercises = workoutDao.getTemplateExercises(entity.id).map { it.toDomain() }
+                entity.toDomain(exercises)
+            }
+        }
+    }
+
+    override suspend fun ensureDefaultTemplates() {
+        if (workoutDao.getTemplatesCount() == 0) {
+            val tPush = WorkoutTemplate(
+                id = "tmpl_push",
+                name = "Push Day (Hrudník & Ramena)",
+                description = "Trénink zaměřený na tlakové cviky: Bench press a tlaky na ramena.",
+                exercises = listOf(
+                    WorkoutTemplateExercise("ex_bench", "Bench press", targetSets = 3, defaultWeightKg = 60.0, defaultReps = 10, orderIndex = 0),
+                    WorkoutTemplateExercise("ex_ohp", "Tlaky na ramena (OHP)", targetSets = 3, defaultWeightKg = 40.0, defaultReps = 10, orderIndex = 1)
+                )
+            )
+            val tPull = WorkoutTemplate(
+                id = "tmpl_pull",
+                name = "Pull Day (Záda & Biceps)",
+                description = "Tahový trénink: Mrtvý tah a shyby na hrazdě.",
+                exercises = listOf(
+                    WorkoutTemplateExercise("ex_deadlift", "Mrtvý tah", targetSets = 3, defaultWeightKg = 100.0, defaultReps = 6, orderIndex = 0),
+                    WorkoutTemplateExercise("ex_pullup", "Shyby na hrazdě", targetSets = 3, defaultWeightKg = 0.0, defaultReps = 8, orderIndex = 1),
+                    WorkoutTemplateExercise("ex_biceps", "Bicepsový zdvih", targetSets = 3, defaultWeightKg = 25.0, defaultReps = 12, orderIndex = 2)
+                )
+            )
+            val tLegs = WorkoutTemplate(
+                id = "tmpl_legs",
+                name = "Leg Day (Nohy & Core)",
+                description = "Komplexní trénink nohou: Dřepy a plank.",
+                exercises = listOf(
+                    WorkoutTemplateExercise("ex_squat", "Dřep s činkou", targetSets = 4, defaultWeightKg = 80.0, defaultReps = 8, orderIndex = 0),
+                    WorkoutTemplateExercise("ex_plank", "Plank", targetSets = 3, defaultWeightKg = 0.0, defaultReps = 60, orderIndex = 1)
+                )
+            )
+
+            for (tmpl in listOf(tPush, tPull, tLegs)) {
+                workoutDao.insertTemplate(WorkoutTemplateEntity.fromDomain(tmpl))
+                workoutDao.insertTemplateExercises(tmpl.exercises.map { WorkoutTemplateExerciseEntity.fromDomain(tmpl.id, it) })
+            }
+        }
+    }
+
+    override suspend fun createTemplate(
+        name: String,
+        description: String,
+        exercises: List<WorkoutTemplateExercise>
+    ): WorkoutTemplate {
+        val now = clock.nowMillis()
+        val templateId = "tmpl-$now-${(1000..9999).random()}"
+        val template = WorkoutTemplate(
+            id = templateId,
+            name = name.trim(),
+            description = description.trim(),
+            exercises = exercises.mapIndexed { idx, ex -> ex.copy(orderIndex = idx) }
+        )
+        workoutDao.insertTemplate(WorkoutTemplateEntity.fromDomain(template))
+        workoutDao.insertTemplateExercises(template.exercises.map { WorkoutTemplateExerciseEntity.fromDomain(templateId, it) })
+
+        mutationDao.insertMutation(
+            SyncMutationEntity(
+                id = "mut-$templateId",
+                entityName = "workout_template",
+                recordId = templateId,
+                operation = "INSERT",
+                payloadJson = "{\"name\":\"${name.trim()}\",\"exercisesCount\":${exercises.size}}",
+                createdAt = now
+            )
+        )
+        return template
+    }
+
+    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession {
+        val templateEntity = workoutDao.getTemplateById(templateId)
+        val templateExercises = workoutDao.getTemplateExercises(templateId)
+        val title = templateEntity?.name ?: "Trénink ze šablony"
+        val session = startWorkout(title = title)
+
+        for (ex in templateExercises) {
+            val lastPerf = getLastPerformance(ex.exerciseId)
+            val weight = if (ex.defaultWeightKg > 0.0) ex.defaultWeightKg else 20.0
+            val reps = if (ex.defaultReps > 0) ex.defaultReps else 10
+            for (i in 1..ex.targetSets) {
+                val setId = "set-${session.id}-${ex.exerciseId}-$i-${clock.nowMillis()}"
+                val setEntity = WorkoutSetEntity(
+                    id = setId,
+                    sessionId = session.id,
+                    exerciseId = ex.exerciseId,
+                    setNumber = i,
+                    weightKg = weight,
+                    reps = reps,
+                    rpe = null,
+                    isCompleted = false,
+                    previousPerformance = lastPerf
+                )
+                workoutDao.insertOrUpdateSet(setEntity)
+            }
+        }
+        return session
+    }
+
+    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate {
+        val sessionSets = workoutDao.getSetsForSession(sessionId).first()
+        val exercisesMap = sessionSets.groupBy { it.exerciseId }
+        val templateExercises = mutableListOf<WorkoutTemplateExercise>()
+
+        var orderIndex = 0
+        for ((exerciseId, sets) in exercisesMap) {
+            val exEntity = workoutDao.getExerciseById(exerciseId)
+            val exName = exEntity?.name ?: "Cvik"
+            val avgWeight = sets.map { it.weightKg }.average().let { if (it.isNaN()) 20.0 else it }
+            val avgReps = sets.map { it.reps }.average().toInt().coerceAtLeast(1)
+            templateExercises.add(
+                WorkoutTemplateExercise(
+                    exerciseId = exerciseId,
+                    exerciseName = exName,
+                    targetSets = sets.size.coerceAtLeast(1),
+                    defaultWeightKg = avgWeight,
+                    defaultReps = avgReps,
+                    orderIndex = orderIndex++
+                )
+            )
+        }
+
+        return createTemplate(
+            name = templateName,
+            description = "Vytvořeno z tréninku",
+            exercises = templateExercises
+        )
     }
 }

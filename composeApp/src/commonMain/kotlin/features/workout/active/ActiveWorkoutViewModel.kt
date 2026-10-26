@@ -3,6 +3,8 @@ package features.workout.active
 import androidx.lifecycle.viewModelScope
 import core.common.AppClock
 import core.common.ApplicationScope
+import core.feedback.NoOpPlatformFeedback
+import core.feedback.PlatformFeedback
 import core.viewmodel.BaseViewModel
 import features.workout.domain.Exercise
 import features.workout.domain.MuscleGroup
@@ -19,7 +21,8 @@ import kotlinx.coroutines.launch
 class ActiveWorkoutViewModel(
     private val workoutRepository: WorkoutRepository,
     private val appScope: ApplicationScope,
-    private val clock: AppClock
+    private val clock: AppClock,
+    private val platformFeedback: PlatformFeedback = NoOpPlatformFeedback()
 ) : BaseViewModel<ActiveWorkoutContract.State, ActiveWorkoutContract.Intent, ActiveWorkoutContract.Effect>(
     ActiveWorkoutContract.State()
 ) {
@@ -49,6 +52,7 @@ class ActiveWorkoutViewModel(
             is ActiveWorkoutContract.Intent.UpdateReps -> updateReps(intent.set, intent.reps)
             is ActiveWorkoutContract.Intent.UpdateRpe -> updateRpe(intent.set, intent.rpe)
             is ActiveWorkoutContract.Intent.DeleteSet -> deleteSet(intent.set)
+            is ActiveWorkoutContract.Intent.StartRestTimer -> startRestTimer(intent.seconds)
             is ActiveWorkoutContract.Intent.AdjustRestTimer -> adjustRestTimer(intent.deltaSeconds)
             is ActiveWorkoutContract.Intent.SkipRestTimer -> skipRestTimer()
             is ActiveWorkoutContract.Intent.FinishWorkout -> finishWorkout()
@@ -193,12 +197,17 @@ class ActiveWorkoutViewModel(
         restTimerJob = viewModelScope.launch {
             while (isActive && uiState.value.restTimerRemainingSeconds > 0) {
                 delay(1000)
+                val remaining = uiState.value.restTimerRemainingSeconds - 1
                 updateState {
-                    val remaining = restTimerRemainingSeconds - 1
                     copy(
                         restTimerRemainingSeconds = remaining,
                         isRestTimerActive = remaining > 0
                     )
+                }
+                if (remaining == 0) {
+                    platformFeedback.vibrateTimerComplete()
+                    platformFeedback.playTimerSound()
+                    sendEffect(ActiveWorkoutContract.Effect.ShowSnackbar("Odpočet dokončen! Jdeme na další sérii! 💪"))
                 }
             }
         }

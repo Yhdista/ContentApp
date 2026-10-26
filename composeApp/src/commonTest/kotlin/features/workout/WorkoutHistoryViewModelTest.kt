@@ -5,6 +5,8 @@ import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutTemplate
+import features.workout.domain.WorkoutTemplateExercise
 import features.workout.history.WorkoutHistoryContract
 import features.workout.history.WorkoutHistoryViewModel
 import kotlinx.coroutines.Dispatchers
@@ -112,12 +114,32 @@ class WorkoutHistoryViewModelTest {
 
         assertEquals(3, viewModel.uiState.value.pendingSyncCount)
     }
+
+    @Test
+    fun testStartWorkoutFromTemplateStartsActiveSessionAndNavigates() = runTest(testDispatcher) {
+        viewModel.onIntent(WorkoutHistoryContract.Intent.OpenTemplatePicker)
+        testScheduler.runCurrent()
+        assertTrue(viewModel.uiState.value.isTemplatePickerOpen)
+
+        var effectReceived: WorkoutHistoryContract.Effect? = null
+        val job = backgroundScope.launch(testDispatcher) {
+            viewModel.effect.collect { effectReceived = it }
+        }
+
+        viewModel.onIntent(WorkoutHistoryContract.Intent.StartWorkoutFromTemplate("t1"))
+        testScheduler.runCurrent()
+
+        assertEquals(WorkoutHistoryContract.Effect.NavigateToActiveWorkout, effectReceived)
+        assertFalse(viewModel.uiState.value.isTemplatePickerOpen)
+        job.cancel()
+    }
 }
 
 private class HistoryFakeWorkoutRepository : WorkoutRepository {
     private val completed = MutableStateFlow<List<WorkoutSession>>(emptyList())
     private val active = MutableStateFlow<WorkoutSession?>(null)
     private val pendingMutations = MutableStateFlow(0)
+    private val templates = MutableStateFlow<List<WorkoutTemplate>>(emptyList())
 
     fun setCompletedSessions(list: List<WorkoutSession>) {
         completed.value = list
@@ -156,4 +178,19 @@ private class HistoryFakeWorkoutRepository : WorkoutRepository {
     override suspend fun completeWorkout(sessionId: String): WorkoutSession? = null
     override suspend fun cancelWorkout(sessionId: String) {}
     override suspend fun getLastPerformance(exerciseId: String): String? = null
+    override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double = 0.0
+
+    override fun getTemplates(): Flow<List<WorkoutTemplate>> = templates.asStateFlow()
+    override suspend fun ensureDefaultTemplates() {
+        if (templates.value.isEmpty()) {
+            templates.value = listOf(
+                WorkoutTemplate("t1", "Push Day", "Tlaky", emptyList())
+            )
+        }
+    }
+    override suspend fun createTemplate(name: String, description: String, exercises: List<WorkoutTemplateExercise>): WorkoutTemplate = error("Not needed")
+    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession {
+        return startWorkout("Push Day")
+    }
+    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = error("Not needed")
 }

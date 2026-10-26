@@ -8,6 +8,8 @@ import features.workout.data.dao.WorkoutDao
 import features.workout.data.entity.ExerciseEntity
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
+import features.workout.data.entity.WorkoutTemplateEntity
+import features.workout.data.entity.WorkoutTemplateExerciseEntity
 import features.workout.domain.WorkoutRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -114,6 +116,80 @@ class WorkoutRepositoryTest {
         val mutations = fakeMutationDao.mutations
         assertTrue(mutations.any { it.recordId == session.id && it.operation == "COMPLETE" })
     }
+
+    @Test
+    fun testEnsureDefaultTemplatesSeedsWhenEmpty() = runTest {
+        assertEquals(0, fakeDao.getTemplatesCount())
+        repository.ensureDefaultTemplates()
+        val templates = repository.getTemplates().first()
+        assertTrue(templates.isNotEmpty())
+        assertTrue(templates.any { it.name.startsWith("Push Day") })
+        assertTrue(templates.any { it.name.startsWith("Pull Day") })
+        assertTrue(templates.any { it.name.startsWith("Leg Day") })
+    }
+
+    @Test
+    fun testStartWorkoutFromTemplatePrepopulatesExercisesAndSets() = runTest {
+        repository.ensureDefaultTemplates()
+        val templates = repository.getTemplates().first()
+        val pushDay = templates.first { it.id == "tmpl_push" }
+
+        val session = repository.startWorkoutFromTemplate(pushDay.id)
+        assertNotNull(session)
+        assertEquals(pushDay.name, session.title)
+
+        val sets = repository.getSetsForSession(session.id).first()
+        assertTrue(sets.isNotEmpty())
+        // Push Day má 2 cviky po 3 sériích -> 6 sérií
+        assertEquals(6, sets.size)
+        assertTrue(sets.all { !it.isCompleted })
+        assertEquals(listOf(1, 2, 3), sets.filter { it.exerciseId == "ex_bench" }.map { it.setNumber })
+        assertEquals(listOf(1, 2, 3), sets.filter { it.exerciseId == "ex_ohp" }.map { it.setNumber })
+    }
+
+    @Test
+    fun testSaveSessionAsTemplate() = runTest {
+        val session = repository.startWorkout("Full Body")
+        repository.addSet(session.id, "ex_bench", weightKg = 70.0, reps = 8)
+        repository.addSet(session.id, "ex_bench", weightKg = 70.0, reps = 8)
+        repository.addSet(session.id, "ex_squat", weightKg = 90.0, reps = 5)
+
+        val template = repository.saveSessionAsTemplate(session.id, "Moje Full Body")
+        assertNotNull(template)
+        assertEquals("Moje Full Body", template.name)
+        assertEquals(2, template.exercises.size)
+        val benchEx = template.exercises.first { it.exerciseId == "ex_bench" }
+        assertEquals(2, benchEx.targetSets)
+        assertEquals(70.0, benchEx.defaultWeightKg)
+        assertEquals(8, benchEx.defaultReps)
+    }
+
+    @Test
+    fun testUpdateSetDetectsPersonalRecord() = runTest {
+        // Sezení 1: Bench 80 kg × 8 reps (~101.3 kg 1RM)
+        val session1 = repository.startWorkout("Bench Day 1")
+        val set1 = repository.addSet(session1.id, "ex_bench", 80.0, 8)
+        repository.updateSet(set1.copy(isCompleted = true))
+        repository.completeWorkout(session1.id)
+
+        // Sezení 2: Bench 90 kg × 8 reps (~114 kg 1RM) -> Překonává sezení 1 -> PR!
+        val session2 = repository.startWorkout("Bench Day 2")
+        val set2 = repository.addSet(session2.id, "ex_bench", 90.0, 8)
+        repository.updateSet(set2.copy(isCompleted = true))
+
+        val setsSess2 = repository.getSetsForSession(session2.id).first()
+        val completedSet2 = setsSess2.first { it.id == set2.id }
+        assertTrue(completedSet2.isPersonalRecord)
+
+        // Sezení 3: Bench 70 kg × 5 reps (~81.6 kg 1RM) -> Menší než minulé výkony -> Není PR
+        val session3 = repository.startWorkout("Bench Day 3")
+        val set3 = repository.addSet(session3.id, "ex_bench", 70.0, 5)
+        repository.updateSet(set3.copy(isCompleted = true))
+
+        val setsSess3 = repository.getSetsForSession(session3.id).first()
+        val completedSet3 = setsSess3.first { it.id == set3.id }
+        kotlin.test.assertFalse(completedSet3.isPersonalRecord)
+    }
 }
 
 private class RepoFakeClock(var time: Long) : AppClock {
@@ -124,6 +200,8 @@ private class FakeWorkoutDao : WorkoutDao {
     private val exercises = MutableStateFlow<List<ExerciseEntity>>(emptyList())
     private val sessions = MutableStateFlow<List<WorkoutSessionEntity>>(emptyList())
     private val sets = MutableStateFlow<List<WorkoutSetEntity>>(emptyList())
+    private val templates = MutableStateFlow<List<WorkoutTemplateEntity>>(emptyList())
+    private val templateExercises = MutableStateFlow<List<WorkoutTemplateExerciseEntity>>(emptyList())
 
     override fun getAllExercises(): Flow<List<ExerciseEntity>> = exercises.asStateFlow()
 
@@ -183,6 +261,35 @@ private class FakeWorkoutDao : WorkoutDao {
 
     override suspend fun getLastPerformanceForExercise(exerciseId: String): WorkoutSetEntity? =
         sets.value.filter { it.exerciseId == exerciseId && it.isCompleted }.maxByOrNull { it.id }
+
+    override suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity> =
+        sets.value.filter { it.exerciseId == exerciseId && it.isCompleted && it.sessionId != currentSessionId }
+
+    override fun getAllTemplates(): Flow<List<WorkoutTemplateEntity>> = templates.asStateFlow()
+
+    override suspend fun getTemplateById(templateId: String): WorkoutTemplateEntity? =
+        templates.value.firstOrNull { it.id == templateId }
+
+    override suspend fun getTemplateExercises(templateId: String): List<WorkoutTemplateExerciseEntity> =
+        templateExercises.value.filter { it.templateId == templateId }.sortedBy { it.orderIndex }
+
+    override suspend fun getTemplatesCount(): Int = templates.value.size
+
+    override suspend fun insertTemplate(template: WorkoutTemplateEntity) {
+        templates.value = templates.value.filter { it.id != template.id } + template
+    }
+
+    override suspend fun insertTemplateExercises(exercises: List<WorkoutTemplateExerciseEntity>) {
+        templateExercises.value = templateExercises.value + exercises
+    }
+
+    override suspend fun deleteTemplateExercises(templateId: String) {
+        templateExercises.value = templateExercises.value.filter { it.templateId != templateId }
+    }
+
+    override suspend fun deleteTemplate(templateId: String) {
+        templates.value = templates.value.filter { it.id != templateId }
+    }
 }
 
 private class FakeMutationDao : MutationDao {

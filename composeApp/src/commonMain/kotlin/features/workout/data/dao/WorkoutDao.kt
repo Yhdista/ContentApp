@@ -7,6 +7,8 @@ import androidx.room.Query
 import features.workout.data.entity.ExerciseEntity
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
+import features.workout.data.entity.WorkoutTemplateEntity
+import features.workout.data.entity.WorkoutTemplateExerciseEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -65,4 +67,32 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM workout_sets WHERE exerciseId = :exerciseId AND isCompleted = 1 ORDER BY id DESC LIMIT 1")
     suspend fun getLastPerformanceForExercise(exerciseId: String): WorkoutSetEntity?
+
+    @Query("SELECT * FROM workout_sets WHERE exerciseId = :exerciseId AND isCompleted = 1 AND sessionId != :currentSessionId")
+    suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity>
+
+    // Šablony (Templates)
+    @Query("SELECT * FROM workout_templates ORDER BY name ASC")
+    fun getAllTemplates(): Flow<List<WorkoutTemplateEntity>>
+
+    @Query("SELECT * FROM workout_templates WHERE id = :templateId LIMIT 1")
+    suspend fun getTemplateById(templateId: String): WorkoutTemplateEntity?
+
+    @Query("SELECT * FROM workout_template_exercises WHERE templateId = :templateId ORDER BY orderIndex ASC")
+    suspend fun getTemplateExercises(templateId: String): List<WorkoutTemplateExerciseEntity>
+
+    @Query("SELECT COUNT(*) FROM workout_templates")
+    suspend fun getTemplatesCount(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTemplate(template: WorkoutTemplateEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTemplateExercises(exercises: List<WorkoutTemplateExerciseEntity>)
+
+    @Query("DELETE FROM workout_template_exercises WHERE templateId = :templateId")
+    suspend fun deleteTemplateExercises(templateId: String)
+
+    @Query("DELETE FROM workout_templates WHERE id = :templateId")
+    suspend fun deleteTemplate(templateId: String)
 }

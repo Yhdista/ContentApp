@@ -8,6 +8,8 @@ import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutTemplate
+import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -110,12 +112,41 @@ class WorkoutDetailViewModelTest {
         assertEquals(WorkoutDetailContract.Effect.NavigateBack, effectReceived)
         job.cancel()
     }
+
+    @Test
+    fun testSaveAsTemplateSendsSnackbarEffect() = runTest(testDispatcher) {
+        val session = WorkoutSession(
+            id = "sess-1",
+            title = "Bench Day",
+            startTimeEpochMs = 1000L,
+            endTimeEpochMs = 2000L,
+            isCompleted = true,
+            totalVolumeKg = 500.0
+        )
+        fakeRepository.setSession(session)
+        viewModel.onIntent(WorkoutDetailContract.Intent.LoadDetail("sess-1"))
+        testScheduler.runCurrent()
+
+        var effectReceived: WorkoutDetailContract.Effect? = null
+        val job = launch {
+            viewModel.effect.collect { effectReceived = it }
+        }
+
+        viewModel.onIntent(WorkoutDetailContract.Intent.SaveAsTemplate("Moje Šablona"))
+        testScheduler.runCurrent()
+
+        assertTrue(effectReceived is WorkoutDetailContract.Effect.ShowSnackbar)
+        assertEquals(1, fakeRepository.savedTemplates.size)
+        assertEquals("Moje Šablona", fakeRepository.savedTemplates.first().name)
+        job.cancel()
+    }
 }
 
 private class DetailFakeWorkoutRepository : WorkoutRepository {
     val benchExercise = Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, defaultRestSeconds = 120)
     val squatExercise = Exercise("ex_squat", "Dřep", MuscleGroup.LEGS, defaultRestSeconds = 180)
 
+    val savedTemplates = mutableListOf<WorkoutTemplate>()
     private val exercises = MutableStateFlow(listOf(benchExercise, squatExercise))
     private val sessions = MutableStateFlow<Map<String, WorkoutSession>>(emptyMap())
     private val sets = MutableStateFlow<List<WorkoutSet>>(emptyList())
@@ -158,4 +189,19 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
     override suspend fun completeWorkout(sessionId: String): WorkoutSession? = null
     override suspend fun cancelWorkout(sessionId: String) {}
     override suspend fun getLastPerformance(exerciseId: String): String? = null
+    override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double = 0.0
+
+    override fun getTemplates(): Flow<List<WorkoutTemplate>> = MutableStateFlow(emptyList())
+    override suspend fun ensureDefaultTemplates() {}
+    override suspend fun createTemplate(name: String, description: String, exercises: List<WorkoutTemplateExercise>): WorkoutTemplate {
+        val tmpl = WorkoutTemplate("t-saved", name, description, exercises)
+        savedTemplates.add(tmpl)
+        return tmpl
+    }
+    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession = error("Not needed")
+    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate {
+        val tmpl = WorkoutTemplate("t-saved", templateName, "From session", emptyList())
+        savedTemplates.add(tmpl)
+        return tmpl
+    }
 }

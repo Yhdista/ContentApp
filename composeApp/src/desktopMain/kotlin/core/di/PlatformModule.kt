@@ -4,6 +4,8 @@ import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import core.database.AppDatabase
 import core.database.AppDatabaseConstructor
+import core.feedback.DesktopPlatformFeedback
+import core.feedback.PlatformFeedback
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -29,4 +31,5 @@ actual val platformModule: Module = module {
     single { get<AppDatabase>().contentDao() }
     single { get<AppDatabase>().mutationDao() }
     single { get<AppDatabase>().workoutDao() }
+    single<PlatformFeedback> { DesktopPlatformFeedback() }
 }
