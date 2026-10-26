@@ -65,6 +65,7 @@ class ActiveWorkoutViewModelTest {
 
     @Test
     fun testInitialLoadLoadsActiveSessionAndExercises() = runTest(testDispatcher) {
+        fakeRepository.startWorkout("Leg Day")
         viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
         testScheduler.runCurrent()
 
@@ -76,6 +77,7 @@ class ActiveWorkoutViewModelTest {
 
     @Test
     fun testToggleSetCompleteTriggersRestTimer() = runTest(testDispatcher) {
+        fakeRepository.startWorkout("Upper Body")
         viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
         testScheduler.runCurrent()
 
@@ -104,6 +106,7 @@ class ActiveWorkoutViewModelTest {
 
     @Test
     fun testRestTimerAdjustAndSkip() = runTest(testDispatcher) {
+        fakeRepository.startWorkout("Upper Body")
         viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
         testScheduler.runCurrent()
 
@@ -130,6 +133,7 @@ class ActiveWorkoutViewModelTest {
 
     @Test
     fun testFinishWorkoutCompletesSessionInApplicationScope() = runTest(testDispatcher) {
+        fakeRepository.startWorkout("Upper Body")
         viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
         testScheduler.runCurrent()
 
@@ -178,6 +182,8 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
         sets.map { list -> list.filter { it.sessionId == sessionId } }
 
     override suspend fun startWorkout(title: String): WorkoutSession {
+        val existing = activeSession.value
+        if (existing != null) return existing
         val session = WorkoutSession(
             id = "sess-1",
             title = title,

@@ -104,6 +104,9 @@ private class FakeWorkoutDao : WorkoutDao {
     override fun getActiveSession(): Flow<WorkoutSessionEntity?> =
         sessions.map { list -> list.firstOrNull { !it.isCompleted } }
 
+    override suspend fun getActiveSessionSync(): WorkoutSessionEntity? =
+        sessions.value.firstOrNull { !it.isCompleted }
+
     override fun getCompletedSessions(): Flow<List<WorkoutSessionEntity>> =
         sessions.map { list -> list.filter { it.isCompleted }.sortedByDescending { it.startTimeEpochMs } }
 

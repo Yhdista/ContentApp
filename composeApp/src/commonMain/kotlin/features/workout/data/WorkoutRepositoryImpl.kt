@@ -60,6 +60,10 @@ class WorkoutRepositoryImpl(
     }
 
     override suspend fun startWorkout(title: String): WorkoutSession {
+        val existing = workoutDao.getActiveSessionSync()
+        if (existing != null) {
+            return existing.toDomain()
+        }
         val now = clock.nowMillis()
         val sessionId = "workout-$now-${(1000..9999).random()}"
         val session = WorkoutSession(

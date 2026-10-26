@@ -62,28 +62,34 @@ class ActiveWorkoutViewModel(
                 }
             }
 
-            // Načtení nebo založení aktivního tréninku
-            val active = workoutRepository.getActiveSession().firstOrNull() ?: workoutRepository.startWorkout()
-            updateState { copy(session = active, isLoading = false) }
+            // Sledování aktivního sezení a jeho sérií
+            var setsCollectorJob: Job? = null
+            workoutRepository.getActiveSession().collect { active ->
+                updateState { copy(session = active, isLoading = false) }
+                if (active != null) {
+                    startWorkoutTimer(active.startTimeEpochMs)
+                    setsCollectorJob?.cancel()
+                    setsCollectorJob = launch {
+                        workoutRepository.getSetsForSession(active.id).collect { sessionSets ->
+                            val allEx = uiState.value.availableExercises
+                            val exerciseIds = sessionSets.map { it.exerciseId }.distinct()
+                            val exercisesInWorkout = exerciseIds.mapNotNull { id -> allEx.find { it.id == id } }
 
-            // Spuštění stopek tréninku
-            startWorkoutTimer(active.startTimeEpochMs)
+                            selectedExercises.clear()
+                            selectedExercises.addAll(exercisesInWorkout)
 
-            // Sledování sérií aktivního tréninku
-            workoutRepository.getSetsForSession(active.id).collect { sessionSets ->
-                val allEx = uiState.value.availableExercises
-                // Aktualizace seznamu cviků v tréninku
-                val exerciseIds = sessionSets.map { it.exerciseId }.distinct()
-                val exercisesInWorkout = exerciseIds.mapNotNull { id -> allEx.find { it.id == id } }
-                
-                selectedExercises.clear()
-                selectedExercises.addAll(exercisesInWorkout)
-
-                updateState {
-                    copy(
-                        sets = sessionSets,
-                        workoutExercises = selectedExercises.toList()
-                    )
+                            updateState {
+                                copy(
+                                    sets = sessionSets,
+                                    workoutExercises = selectedExercises.toList()
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    setsCollectorJob?.cancel()
+                    selectedExercises.clear()
+                    updateState { copy(sets = emptyList(), workoutExercises = emptyList()) }
                 }
             }
         }
@@ -248,6 +254,7 @@ class ActiveWorkoutViewModel(
     private fun finishWorkout() {
         val session = uiState.value.session ?: return
         cancelTimers()
+        updateState { copy(session = null) }
 
         // Uložení chráněno v ApplicationScope pro přežití navigace a zničení ViewModelu
         appScope.launch {
