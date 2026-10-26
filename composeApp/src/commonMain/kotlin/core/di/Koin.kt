@@ -9,6 +9,8 @@ import core.repository.ContentRepositoryImpl
 import core.sync.SyncManager
 import features.content.ContentListViewModel
 import features.universal.UniversalViewModel
+import features.workout.data.WorkoutRepositoryImpl
+import features.workout.domain.WorkoutRepository
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
@@ -21,6 +23,7 @@ val commonModule = module {
 
     // Repozitář & Sync
     single<ContentRepository> { ContentRepositoryImpl(get(), get(), get(), get()) }
+    single<WorkoutRepository> { WorkoutRepositoryImpl(get(), get(), get()) }
     single { SyncManager(get(), get(), get()) }
 
     // ViewModely
