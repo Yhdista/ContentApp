@@ -12,6 +12,7 @@ import features.universal.UniversalViewModel
 import features.workout.active.ActiveWorkoutViewModel
 import features.workout.data.WorkoutRepositoryImpl
 import features.workout.domain.WorkoutRepository
+import features.workout.history.WorkoutHistoryViewModel
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
@@ -31,6 +32,7 @@ val commonModule = module {
     factory { ContentListViewModel(get()) }
     factory { UniversalViewModel(get(), get(), get(), get()) }
     factory { ActiveWorkoutViewModel(get(), get(), get()) }
+    factory { WorkoutHistoryViewModel(get()) }
 }
 
 expect val platformModule: Module

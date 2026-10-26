@@ -4,10 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.lifecycle.viewmodel.compose.viewModel
-import features.universal.UniversalRoot
-import features.universal.UniversalViewModel
-import org.koin.compose.getKoin
+import features.workout.navigation.WorkoutAppNavHost
 import ui.designsystem.nucleus.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,11 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppTheme(darkTheme = true) {
-                val koin = getKoin()
-                val viewModel: UniversalViewModel = viewModel { koin.get() }
-                UniversalRoot(
-                    viewModel = viewModel
-                )
+                WorkoutAppNavHost()
             }
         }
     }
