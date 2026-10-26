@@ -153,6 +153,56 @@ class ActiveWorkoutViewModelTest {
         val completed = fakeRepository.getCompletedSessions().first()
         assertTrue(completed.isNotEmpty())
     }
+
+    @Test
+    fun testCreateCustomExerciseAddsToAvailableAndWorkoutExercises() = runTest(testDispatcher) {
+        fakeRepository.startWorkout("Arms Day")
+        viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
+        testScheduler.runCurrent()
+
+        viewModel.onIntent(
+            ActiveWorkoutContract.Intent.CreateCustomExercise(
+                name = "Tricepsový klik",
+                muscleGroup = MuscleGroup.ARMS,
+                defaultRestSeconds = 60
+            )
+        )
+        testScheduler.runCurrent()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.workoutExercises.any { it.name == "Tricepsový klik" })
+        assertTrue(state.availableExercises.any { it.name == "Tricepsový klik" })
+        assertTrue(state.sets.any { set -> state.workoutExercises.any { it.id == set.exerciseId } })
+        viewModel.cancelTimers()
+    }
+
+    @Test
+    fun testDeleteSetRemovesAndRenumbersRemainingSets() = runTest(testDispatcher) {
+        fakeRepository.startWorkout("Chest Day")
+        viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
+        testScheduler.runCurrent()
+
+        val bench = fakeRepository.benchExercise
+        viewModel.onIntent(ActiveWorkoutContract.Intent.AddExerciseToWorkout(bench))
+        // Add second and third set
+        viewModel.onIntent(ActiveWorkoutContract.Intent.AddSet(bench.id))
+        viewModel.onIntent(ActiveWorkoutContract.Intent.AddSet(bench.id))
+        testScheduler.runCurrent()
+
+        val setsBefore = viewModel.uiState.value.sets
+        assertEquals(3, setsBefore.size)
+        assertEquals(listOf(1, 2, 3), setsBefore.map { it.setNumber })
+
+        // Delete set 2
+        val setToDelete = setsBefore[1]
+        viewModel.onIntent(ActiveWorkoutContract.Intent.DeleteSet(setToDelete))
+        testScheduler.runCurrent()
+
+        val setsAfter = viewModel.uiState.value.sets
+        assertEquals(2, setsAfter.size)
+        assertEquals(listOf(1, 2), setsAfter.map { it.setNumber })
+        viewModel.cancelTimers()
+    }
 }
 
 private class WorkoutVmFakeClock(var time: Long) : AppClock {
@@ -173,6 +223,18 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
     override suspend fun ensureDefaultExercises() {
         // default already initialized
     }
+
+    override suspend fun createCustomExercise(
+        name: String,
+        muscleGroup: MuscleGroup,
+        defaultRestSeconds: Int
+    ): Exercise {
+        val ex = Exercise("ex_custom_${exercises.value.size + 1}", name, muscleGroup, defaultRestSeconds)
+        exercises.value = exercises.value + ex
+        return ex
+    }
+
+    override fun getPendingSyncMutationsCount(): Flow<Int> = MutableStateFlow(0)
 
     override fun getActiveSession(): Flow<WorkoutSession?> = activeSession.asStateFlow()
 

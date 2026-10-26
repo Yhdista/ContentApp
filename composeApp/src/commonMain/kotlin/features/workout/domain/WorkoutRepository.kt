@@ -5,8 +5,10 @@ import kotlinx.coroutines.flow.Flow
 interface WorkoutRepository {
     fun getExercises(): Flow<List<Exercise>>
     suspend fun ensureDefaultExercises()
+    suspend fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int = 90): Exercise
     fun getActiveSession(): Flow<WorkoutSession?>
     fun getCompletedSessions(): Flow<List<WorkoutSession>>
+    fun getPendingSyncMutationsCount(): Flow<Int>
     suspend fun getSessionById(sessionId: String): WorkoutSession?
     fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>>
     suspend fun startWorkout(title: String = "Trénink"): WorkoutSession

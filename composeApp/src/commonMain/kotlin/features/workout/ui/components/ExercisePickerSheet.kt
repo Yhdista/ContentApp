@@ -52,9 +52,14 @@ fun ExercisePickerSheet(
     exercises: List<Exercise>,
     onSelectExercise: (Exercise) -> Unit,
     onDismissRequest: () -> Unit,
+    onCreateCustomExercise: (name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) -> Unit = { _, _, _ -> },
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     if (!isVisible) return
+
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedMuscleGroup by remember { mutableStateOf<MuscleGroup?>(null) }
+    var isCreateDialogOpen by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -72,9 +77,6 @@ fun ExercisePickerSheet(
             )
         }
     ) {
-        var searchQuery by remember { mutableStateOf("") }
-        var selectedMuscleGroup by remember { mutableStateOf<MuscleGroup?>(null) }
-
         val filteredExercises = remember(exercises, searchQuery, selectedMuscleGroup) {
             exercises.filter { exercise ->
                 val matchesQuery = searchQuery.isBlank() || exercise.name.contains(searchQuery, ignoreCase = true)
@@ -90,12 +92,35 @@ fun ExercisePickerSheet(
                 .padding(horizontal = AppSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
-            Text(
-                text = "Přidat cvik",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = AppColors.OnBackground
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Přidat cvik",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.OnBackground
+                )
+
+                Box(
+                    modifier = Modifier
+                        .minimumInteractiveComponentSize()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(AppColors.PrimaryContainer.copy(alpha = 0.4f))
+                        .clickable(role = Role.Button) { isCreateDialogOpen = true }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "+ Vlastní cvik",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.Primary
+                    )
+                }
+            }
 
             // Vyhledávací pole
             Box(
@@ -218,7 +243,40 @@ fun ExercisePickerSheet(
                         )
                     }
                 }
+
+                // Tlačítko pro vytvoření vlastního cviku
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .minimumInteractiveComponentSize()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(AppColors.SurfaceVariant.copy(alpha = 0.5f))
+                            .border(1.dp, AppColors.Primary.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                            .clickable(role = Role.Button) { isCreateDialogOpen = true }
+                            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "+ Vytvořit nový cvik${if (searchQuery.isNotBlank()) " \"$searchQuery\"" else ""}",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.Primary
+                        )
+                    }
+                }
             }
         }
+    }
+
+    if (isCreateDialogOpen) {
+        CreateCustomExerciseDialog(
+            initialName = searchQuery,
+            onDismiss = { isCreateDialogOpen = false },
+            onConfirm = { name, muscleGroup, restSeconds ->
+                isCreateDialogOpen = false
+                onCreateCustomExercise(name, muscleGroup, restSeconds)
+            }
+        )
     }
 }

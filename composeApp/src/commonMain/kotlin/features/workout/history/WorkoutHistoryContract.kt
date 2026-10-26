@@ -11,6 +11,7 @@ class WorkoutHistoryContract {
         val activeSession: WorkoutSession? = null,
         val totalVolumeAllTimeKg: Double = 0.0,
         val totalWorkoutsCount: Int = 0,
+        val pendingSyncCount: Int = 0,
         val isLoading: Boolean = false,
         val error: String? = null
     ) : UiState

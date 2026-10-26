@@ -104,22 +104,37 @@ class WorkoutHistoryViewModelTest {
         assertEquals(WorkoutHistoryContract.Effect.NavigateToDetail("sess-xyz"), effectReceived)
         job.cancel()
     }
+
+    @Test
+    fun testLoadHistoryObservesPendingSyncMutationsCount() = runTest(testDispatcher) {
+        fakeRepository.setPendingMutationsCount(3)
+        testScheduler.runCurrent()
+
+        assertEquals(3, viewModel.uiState.value.pendingSyncCount)
+    }
 }
 
 private class HistoryFakeWorkoutRepository : WorkoutRepository {
     private val completed = MutableStateFlow<List<WorkoutSession>>(emptyList())
     private val active = MutableStateFlow<WorkoutSession?>(null)
+    private val pendingMutations = MutableStateFlow(0)
 
     fun setCompletedSessions(list: List<WorkoutSession>) {
         completed.value = list
+    }
+
+    fun setPendingMutationsCount(count: Int) {
+        pendingMutations.value = count
     }
 
     fun getActiveSessionSync(): WorkoutSession? = active.value
 
     override fun getExercises(): Flow<List<Exercise>> = MutableStateFlow(emptyList())
     override suspend fun ensureDefaultExercises() {}
+    override suspend fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int): Exercise = error("Not needed")
     override fun getActiveSession(): Flow<WorkoutSession?> = active.asStateFlow()
     override fun getCompletedSessions(): Flow<List<WorkoutSession>> = completed.asStateFlow()
+    override fun getPendingSyncMutationsCount(): Flow<Int> = pendingMutations.asStateFlow()
     override suspend fun getSessionById(sessionId: String): WorkoutSession? =
         completed.value.firstOrNull { it.id == sessionId } ?: active.value?.takeIf { it.id == sessionId }
     override fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>> = MutableStateFlow(emptyList())

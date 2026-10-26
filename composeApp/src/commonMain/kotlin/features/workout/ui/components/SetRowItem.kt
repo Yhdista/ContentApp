@@ -35,6 +35,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.window.Dialog
 import features.workout.domain.WorkoutSet
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
@@ -47,6 +49,7 @@ fun SetRowItem(
     onRepsChange: (Int) -> Unit,
     onRpeChange: (Double?) -> Unit,
     onDelete: () -> Unit,
+    onOpenPlateCalculator: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var weightText by remember(set.weightKg) {
@@ -56,6 +59,7 @@ fun SetRowItem(
     var repsText by remember(set.reps) {
         mutableStateOf(set.reps.toString())
     }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val rowBackground = if (set.isCompleted) {
         AppColors.Surface.copy(alpha = 0.6f)
@@ -77,12 +81,14 @@ fun SetRowItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // 1. Číslo série (1, 2, 3...)
+        // 1. Číslo série (kliknutím lze smazat sérii)
         Box(
             modifier = Modifier
-                .size(28.dp)
+                .minimumInteractiveComponentSize()
+                .size(32.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(if (set.isCompleted) AppColors.StatusSynced.copy(alpha = 0.15f) else AppColors.SurfaceVariant),
+                .background(if (set.isCompleted) AppColors.StatusSynced.copy(alpha = 0.15f) else AppColors.SurfaceVariant)
+                .clickable(role = Role.Button) { showDeleteDialog = true },
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -214,6 +220,74 @@ fun SetRowItem(
                 fontWeight = FontWeight.ExtraBold,
                 color = if (set.isCompleted) AppColors.OnStatusSynced else AppColors.OnSurfaceVariant
             )
+        }
+    }
+
+    if (showDeleteDialog) {
+        Dialog(onDismissRequest = { showDeleteDialog = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(AppColors.Surface)
+                    .border(1.dp, AppColors.Outline, RoundedCornerShape(16.dp))
+                    .padding(AppSpacing.lg),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+            ) {
+                Text(
+                    text = "Smazat sérii č. ${set.setNumber}?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.OnSurface
+                )
+                Text(
+                    text = "Tato akce odebere sérii (${set.weightKg} kg × ${set.reps} reps) z aktuálního tréninku.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppColors.OnSurfaceVariant
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .minimumInteractiveComponentSize()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(AppColors.SurfaceVariant)
+                            .clickable(role = Role.Button) { showDeleteDialog = false },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Zrušit",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.OnSurface
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .minimumInteractiveComponentSize()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(AppColors.StatusError)
+                            .clickable(role = Role.Button) {
+                                showDeleteDialog = false
+                                onDelete()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Smazat",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
         }
     }
 }

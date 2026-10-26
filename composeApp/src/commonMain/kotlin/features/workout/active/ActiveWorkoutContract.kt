@@ -4,6 +4,7 @@ import core.mvi.UiEffect
 import core.mvi.UiIntent
 import core.mvi.UiState
 import features.workout.domain.Exercise
+import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
 
@@ -26,6 +27,11 @@ class ActiveWorkoutContract {
         data object LoadWorkout : Intent()
         data class OpenExercisePicker(val isOpen: Boolean) : Intent()
         data class AddExerciseToWorkout(val exercise: Exercise) : Intent()
+        data class CreateCustomExercise(
+            val name: String,
+            val muscleGroup: MuscleGroup,
+            val defaultRestSeconds: Int = 90
+        ) : Intent()
         data class RemoveExerciseFromWorkout(val exerciseId: String) : Intent()
         data class AddSet(val exerciseId: String) : Intent()
         data class ToggleSetComplete(val set: WorkoutSet) : Intent()

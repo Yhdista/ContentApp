@@ -30,7 +30,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import core.model.ItemSyncStatus
 import features.workout.domain.WorkoutSession
+import ui.designsystem.atoms.feedback.StatusBadge
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 import ui.designsystem.templates.UniversalScreenTemplate
@@ -59,6 +61,15 @@ fun WorkoutHistoryScreen(
                             style = MaterialTheme.typography.labelSmall,
                             color = AppColors.OnSurfaceVariant
                         )
+                    }
+                },
+                actions = {
+                    Box(modifier = Modifier.padding(end = AppSpacing.md)) {
+                        if (state.pendingSyncCount > 0) {
+                            StatusBadge(status = ItemSyncStatus.PENDING)
+                        } else {
+                            StatusBadge(status = ItemSyncStatus.SYNCED)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

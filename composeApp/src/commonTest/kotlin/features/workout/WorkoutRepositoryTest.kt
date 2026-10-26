@@ -71,6 +71,32 @@ class WorkoutRepositoryTest {
     }
 
     @Test
+    fun testCreateCustomExerciseInsertsEntityAndLogsMutation() = runTest {
+        val created = repository.createCustomExercise(
+            name = "Incline Dumbbell Press",
+            muscleGroup = features.workout.domain.MuscleGroup.CHEST,
+            defaultRestSeconds = 90
+        )
+        assertNotNull(created.id)
+        assertEquals("Incline Dumbbell Press", created.name)
+        assertEquals(features.workout.domain.MuscleGroup.CHEST, created.muscleGroup)
+
+        val exercises = repository.getExercises().first()
+        assertTrue(exercises.any { it.id == created.id })
+
+        val mutations = fakeMutationDao.mutations
+        assertTrue(mutations.any { it.recordId == created.id && it.entityName == "exercise" })
+    }
+
+    @Test
+    fun testGetPendingSyncMutationsCountReflectsOutbox() = runTest {
+        assertEquals(0, repository.getPendingSyncMutationsCount().first())
+
+        val session = repository.startWorkout("Back Day")
+        assertTrue(repository.getPendingSyncMutationsCount().first() > 0)
+    }
+
+    @Test
     fun testAddAndCompleteSetCalculatesVolumeAndLogsMutation() = runTest {
         val session = repository.startWorkout("Leg Day")
         val set1 = repository.addSet(sessionId = session.id, exerciseId = "ex_squat", weightKg = 100.0, reps = 5)
@@ -106,6 +132,10 @@ private class FakeWorkoutDao : WorkoutDao {
 
     override suspend fun insertExercises(exercises: List<ExerciseEntity>) {
         this.exercises.value = this.exercises.value + exercises
+    }
+
+    override suspend fun insertExercise(exercise: ExerciseEntity) {
+        this.exercises.value = this.exercises.value.filter { it.id != exercise.id } + exercise
     }
 
     override suspend fun getExercisesCount(): Int = exercises.value.size

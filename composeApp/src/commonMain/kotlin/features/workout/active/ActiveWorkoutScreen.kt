@@ -1,6 +1,7 @@
 package features.workout.active
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,15 +20,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import features.workout.domain.WorkoutSet
 import features.workout.ui.components.ExerciseCard
 import features.workout.ui.components.ExercisePickerSheet
+import features.workout.ui.components.PlateCalculatorSheet
 import features.workout.ui.components.RestTimerBar
 import features.workout.ui.components.WorkoutThumbBar
 import ui.designsystem.nucleus.AppColors
@@ -41,6 +50,9 @@ fun ActiveWorkoutScreen(
     onIntent: (ActiveWorkoutContract.Intent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var isPlateCalculatorOpen by remember { mutableStateOf(false) }
+    var selectedSetForCalculator by remember { mutableStateOf<WorkoutSet?>(null) }
+
     val elapsedMinutes = (state.workoutElapsedSeconds / 60).toString().padStart(2, '0')
     val elapsedSeconds = (state.workoutElapsedSeconds % 60).toString().padStart(2, '0')
     val timerText = "$elapsedMinutes:$elapsedSeconds"
@@ -50,22 +62,44 @@ fun ActiveWorkoutScreen(
         topBar = {
             TopAppBar(
                 title = {
+                    Column {
+                        Text(
+                            text = state.session?.title ?: "Trénink",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.OnBackground
+                        )
+                        Text(
+                            text = "Aktivní sezení (Hevy styl)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AppColors.OnSurfaceVariant
+                        )
+                    }
+                },
+                actions = {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(end = AppSpacing.lg),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = AppSpacing.sm)
                     ) {
-                        Column {
+                        // Tlačítko kalkulátoru kotoučů
+                        Box(
+                            modifier = Modifier
+                                .minimumInteractiveComponentSize()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(AppColors.SurfaceVariant)
+                                .clickable(role = Role.Button) {
+                                    selectedSetForCalculator = null
+                                    isPlateCalculatorOpen = true
+                                }
+                                .padding(horizontal = AppSpacing.sm, vertical = 6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                text = state.session?.title ?: "Trénink",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.OnBackground
-                            )
-                            Text(
-                                text = "Aktivní sezení (Hevy styl)",
+                                text = "🏋️ Kotouče",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.OnSurfaceVariant
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.OnSurface
                             )
                         }
 
@@ -162,7 +196,11 @@ fun ActiveWorkoutScreen(
                             onRepsChange = { set, reps -> onIntent(ActiveWorkoutContract.Intent.UpdateReps(set, reps)) },
                             onRpeChange = { set, rpe -> onIntent(ActiveWorkoutContract.Intent.UpdateRpe(set, rpe)) },
                             onDeleteSet = { set -> onIntent(ActiveWorkoutContract.Intent.DeleteSet(set)) },
-                            onRemoveExercise = { onIntent(ActiveWorkoutContract.Intent.RemoveExerciseFromWorkout(exercise.id)) }
+                            onRemoveExercise = { onIntent(ActiveWorkoutContract.Intent.RemoveExerciseFromWorkout(exercise.id)) },
+                            onOpenPlateCalculator = { set ->
+                                selectedSetForCalculator = set
+                                isPlateCalculatorOpen = true
+                            }
                         )
                     }
                 }
@@ -177,7 +215,25 @@ fun ActiveWorkoutScreen(
                 isVisible = state.isPickerVisible,
                 exercises = state.availableExercises,
                 onSelectExercise = { onIntent(ActiveWorkoutContract.Intent.AddExerciseToWorkout(it)) },
+                onCreateCustomExercise = { name, group, rest ->
+                    onIntent(ActiveWorkoutContract.Intent.CreateCustomExercise(name, group, rest))
+                },
                 onDismissRequest = { onIntent(ActiveWorkoutContract.Intent.OpenExercisePicker(false)) }
+            )
+
+            // Bottom sheet pro kalkulátor kotoučů
+            PlateCalculatorSheet(
+                isVisible = isPlateCalculatorOpen,
+                initialWeightKg = selectedSetForCalculator?.weightKg ?: 60.0,
+                onDismissRequest = {
+                    isPlateCalculatorOpen = false
+                    selectedSetForCalculator = null
+                },
+                onApplyWeight = selectedSetForCalculator?.let { targetSet ->
+                    { weight ->
+                        onIntent(ActiveWorkoutContract.Intent.UpdateWeight(targetSet, weight))
+                    }
+                }
             )
         }
     )

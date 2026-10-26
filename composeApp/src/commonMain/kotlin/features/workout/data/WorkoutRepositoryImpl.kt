@@ -43,6 +43,34 @@ class WorkoutRepositoryImpl(
         }
     }
 
+    override suspend fun createCustomExercise(
+        name: String,
+        muscleGroup: MuscleGroup,
+        defaultRestSeconds: Int
+    ): Exercise {
+        val now = clock.nowMillis()
+        val exerciseId = "custom-ex-$now-${(1000..9999).random()}"
+        val exercise = Exercise(
+            id = exerciseId,
+            name = name.trim(),
+            muscleGroup = muscleGroup,
+            defaultRestSeconds = defaultRestSeconds
+        )
+        workoutDao.insertExercise(ExerciseEntity.fromDomain(exercise))
+
+        mutationDao.insertMutation(
+            SyncMutationEntity(
+                id = "mut-$exerciseId",
+                entityName = "exercise",
+                recordId = exerciseId,
+                operation = "INSERT",
+                payloadJson = "{\"name\":\"${name.trim()}\",\"muscleGroup\":\"${muscleGroup.name}\",\"defaultRestSeconds\":$defaultRestSeconds}",
+                createdAt = now
+            )
+        )
+        return exercise
+    }
+
     override fun getActiveSession(): Flow<WorkoutSession?> {
         return workoutDao.getActiveSession().map { it?.toDomain() }
     }
@@ -51,6 +79,10 @@ class WorkoutRepositoryImpl(
         return workoutDao.getCompletedSessions().map { list ->
             list.map { it.toDomain() }
         }
+    }
+
+    override fun getPendingSyncMutationsCount(): Flow<Int> {
+        return mutationDao.getPendingMutations().map { it.size }
     }
 
     override suspend fun getSessionById(sessionId: String): WorkoutSession? {

@@ -41,6 +41,7 @@ fun ExerciseCard(
     onRpeChange: (WorkoutSet, Double?) -> Unit,
     onDeleteSet: (WorkoutSet) -> Unit,
     onRemoveExercise: () -> Unit,
+    onOpenPlateCalculator: ((WorkoutSet) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -179,7 +180,8 @@ fun ExerciseCard(
                 onWeightChange = { newWeight -> onWeightChange(set, newWeight) },
                 onRepsChange = { newReps -> onRepsChange(set, newReps) },
                 onRpeChange = { newRpe -> onRpeChange(set, newRpe) },
-                onDelete = { onDeleteSet(set) }
+                onDelete = { onDeleteSet(set) },
+                onOpenPlateCalculator = { onOpenPlateCalculator?.invoke(set) }
             )
         }
 

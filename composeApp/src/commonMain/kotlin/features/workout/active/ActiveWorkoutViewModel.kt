@@ -5,6 +5,7 @@ import core.common.AppClock
 import core.common.ApplicationScope
 import core.viewmodel.BaseViewModel
 import features.workout.domain.Exercise
+import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
@@ -36,6 +37,11 @@ class ActiveWorkoutViewModel(
             is ActiveWorkoutContract.Intent.LoadWorkout -> loadWorkout()
             is ActiveWorkoutContract.Intent.OpenExercisePicker -> updateState { copy(isPickerVisible = intent.isOpen) }
             is ActiveWorkoutContract.Intent.AddExerciseToWorkout -> addExercise(intent.exercise)
+            is ActiveWorkoutContract.Intent.CreateCustomExercise -> createCustomExercise(
+                intent.name,
+                intent.muscleGroup,
+                intent.defaultRestSeconds
+            )
             is ActiveWorkoutContract.Intent.RemoveExerciseFromWorkout -> removeExercise(intent.exerciseId)
             is ActiveWorkoutContract.Intent.AddSet -> addSet(intent.exerciseId)
             is ActiveWorkoutContract.Intent.ToggleSetComplete -> toggleSetComplete(intent.set)
@@ -119,6 +125,13 @@ class ActiveWorkoutViewModel(
             updateState { copy(isPickerVisible = false) }
         }
         addSet(exercise.id)
+    }
+
+    private fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) {
+        viewModelScope.launch {
+            val exercise = workoutRepository.createCustomExercise(name, muscleGroup, defaultRestSeconds)
+            addExercise(exercise)
+        }
     }
 
     private fun removeExercise(exerciseId: String) {
@@ -236,6 +249,15 @@ class ActiveWorkoutViewModel(
     private fun deleteSet(set: WorkoutSet) {
         viewModelScope.launch {
             workoutRepository.deleteSet(set.id)
+            val remaining = uiState.value.sets
+                .filter { it.sessionId == set.sessionId && it.exerciseId == set.exerciseId && it.id != set.id }
+                .sortedBy { it.setNumber }
+            remaining.forEachIndexed { index, item ->
+                val expectedNumber = index + 1
+                if (item.setNumber != expectedNumber) {
+                    workoutRepository.updateSet(item.copy(setNumber = expectedNumber))
+                }
+            }
         }
     }
 

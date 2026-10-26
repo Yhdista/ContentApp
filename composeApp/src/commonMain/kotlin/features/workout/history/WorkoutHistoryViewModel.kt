@@ -36,14 +36,16 @@ class WorkoutHistoryViewModel(
 
             combine(
                 workoutRepository.getCompletedSessions(),
-                workoutRepository.getActiveSession()
-            ) { completed, active ->
+                workoutRepository.getActiveSession(),
+                workoutRepository.getPendingSyncMutationsCount()
+            ) { completed, active, pendingCount ->
                 val totalVolume = completed.sumOf { it.totalVolumeKg }
                 WorkoutHistoryContract.State(
                     completedSessions = completed,
                     activeSession = active,
                     totalVolumeAllTimeKg = totalVolume,
                     totalWorkoutsCount = completed.size,
+                    pendingSyncCount = pendingCount,
                     isLoading = false
                 )
             }.collect { newState ->

@@ -132,6 +132,14 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
 
     override suspend fun ensureDefaultExercises() {}
 
+    override suspend fun createCustomExercise(
+        name: String,
+        muscleGroup: MuscleGroup,
+        defaultRestSeconds: Int
+    ): Exercise = error("Not needed")
+
+    override fun getPendingSyncMutationsCount(): Flow<Int> = MutableStateFlow(0)
+
     override fun getActiveSession(): Flow<WorkoutSession?> = MutableStateFlow(null)
 
     override fun getCompletedSessions(): Flow<List<WorkoutSession>> =
