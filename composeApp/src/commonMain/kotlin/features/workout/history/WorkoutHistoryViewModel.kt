@@ -23,6 +23,9 @@ class WorkoutHistoryViewModel(
             is WorkoutHistoryContract.Intent.ResumeActiveWorkout -> {
                 sendEffect(WorkoutHistoryContract.Effect.NavigateToActiveWorkout)
             }
+            is WorkoutHistoryContract.Intent.WorkoutClicked -> {
+                sendEffect(WorkoutHistoryContract.Effect.NavigateToDetail(intent.sessionId))
+            }
         }
     }
 

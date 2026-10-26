@@ -1,0 +1,33 @@
+package features.workout.detail
+
+import core.mvi.UiEffect
+import core.mvi.UiIntent
+import core.mvi.UiState
+import features.workout.domain.Exercise
+import features.workout.domain.WorkoutSession
+import features.workout.domain.WorkoutSet
+
+class WorkoutDetailContract {
+    data class ExerciseWithSets(
+        val exercise: Exercise,
+        val sets: List<WorkoutSet>,
+        val exerciseVolumeKg: Double
+    )
+
+    data class State(
+        val session: WorkoutSession? = null,
+        val exercisesWithSets: List<ExerciseWithSets> = emptyList(),
+        val durationFormatted: String = "—",
+        val isLoading: Boolean = false,
+        val error: String? = null
+    ) : UiState
+
+    sealed class Intent : UiIntent {
+        data class LoadDetail(val sessionId: String) : Intent()
+        data object BackClicked : Intent()
+    }
+
+    sealed class Effect : UiEffect {
+        data object NavigateBack : Effect()
+    }
+}

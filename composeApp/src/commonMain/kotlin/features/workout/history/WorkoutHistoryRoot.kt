@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 fun WorkoutHistoryRoot(
     viewModel: WorkoutHistoryViewModel,
     onNavigateToActiveWorkout: () -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -19,6 +20,9 @@ fun WorkoutHistoryRoot(
             when (effect) {
                 is WorkoutHistoryContract.Effect.NavigateToActiveWorkout -> {
                     onNavigateToActiveWorkout()
+                }
+                is WorkoutHistoryContract.Effect.NavigateToDetail -> {
+                    onNavigateToDetail(effect.sessionId)
                 }
                 is WorkoutHistoryContract.Effect.ShowSnackbar -> {
                     // Snackbar handling if needed

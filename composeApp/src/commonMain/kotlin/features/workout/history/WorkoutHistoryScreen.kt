@@ -258,7 +258,10 @@ fun WorkoutHistoryScreen(
                     }
                 } else {
                     items(state.completedSessions, key = { it.id }) { session ->
-                        WorkoutHistoryItemCard(session = session)
+                        WorkoutHistoryItemCard(
+                            session = session,
+                            onClick = { onIntent(WorkoutHistoryContract.Intent.WorkoutClicked(session.id)) }
+                        )
                     }
                 }
 
@@ -273,6 +276,7 @@ fun WorkoutHistoryScreen(
 @Composable
 private fun WorkoutHistoryItemCard(
     session: WorkoutSession,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val volumeFormatted = if (session.totalVolumeKg % 1.0 == 0.0) {
@@ -284,9 +288,11 @@ private fun WorkoutHistoryItemCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .minimumInteractiveComponentSize()
             .clip(RoundedCornerShape(14.dp))
             .background(AppColors.Surface)
             .border(1.dp, AppColors.OutlineVariant, RoundedCornerShape(14.dp))
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(AppSpacing.md),
         verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
     ) {

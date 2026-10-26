@@ -62,6 +62,15 @@ class WorkoutRepositoryTest {
     }
 
     @Test
+    fun testGetSessionById() = runTest {
+        val session = repository.startWorkout("Leg Day")
+        val fetched = repository.getSessionById(session.id)
+        assertNotNull(fetched)
+        assertEquals(session.id, fetched.id)
+        assertEquals("Leg Day", fetched.title)
+    }
+
+    @Test
     fun testAddAndCompleteSetCalculatesVolumeAndLogsMutation() = runTest {
         val session = repository.startWorkout("Leg Day")
         val set1 = repository.addSet(sessionId = session.id, exerciseId = "ex_squat", weightKg = 100.0, reps = 5)
@@ -95,8 +104,8 @@ private class FakeWorkoutDao : WorkoutDao {
     override suspend fun getExerciseById(id: String): ExerciseEntity? =
         exercises.value.firstOrNull { it.id == id }
 
-    override suspend fun insertExercises(newExercises: List<ExerciseEntity>) {
-        exercises.value = exercises.value + newExercises
+    override suspend fun insertExercises(exercises: List<ExerciseEntity>) {
+        this.exercises.value = this.exercises.value + exercises
     }
 
     override suspend fun getExercisesCount(): Int = exercises.value.size
@@ -109,6 +118,9 @@ private class FakeWorkoutDao : WorkoutDao {
 
     override fun getCompletedSessions(): Flow<List<WorkoutSessionEntity>> =
         sessions.map { list -> list.filter { it.isCompleted }.sortedByDescending { it.startTimeEpochMs } }
+
+    override suspend fun getSessionById(sessionId: String): WorkoutSessionEntity? =
+        sessions.value.firstOrNull { it.id == sessionId }
 
     override suspend fun insertSession(session: WorkoutSessionEntity) {
         sessions.value = sessions.value.filter { it.id != session.id } + session

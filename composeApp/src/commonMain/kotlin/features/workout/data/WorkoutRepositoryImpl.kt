@@ -53,6 +53,10 @@ class WorkoutRepositoryImpl(
         }
     }
 
+    override suspend fun getSessionById(sessionId: String): WorkoutSession? {
+        return workoutDao.getSessionById(sessionId)?.toDomain()
+    }
+
     override fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>> {
         return workoutDao.getSetsForSession(sessionId).map { list ->
             list.map { it.toDomain() }

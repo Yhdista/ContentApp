@@ -178,6 +178,9 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
 
     override fun getCompletedSessions(): Flow<List<WorkoutSession>> = completedSessions.asStateFlow()
 
+    override suspend fun getSessionById(sessionId: String): WorkoutSession? =
+        completedSessions.value.firstOrNull { it.id == sessionId } ?: activeSession.value?.takeIf { it.id == sessionId }
+
     override fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>> =
         sets.map { list -> list.filter { it.sessionId == sessionId } }
 

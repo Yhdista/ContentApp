@@ -19,10 +19,12 @@ class WorkoutHistoryContract {
         data object LoadHistory : Intent()
         data object StartNewWorkout : Intent()
         data object ResumeActiveWorkout : Intent()
+        data class WorkoutClicked(val sessionId: String) : Intent()
     }
 
     sealed class Effect : UiEffect {
         data object NavigateToActiveWorkout : Effect()
+        data class NavigateToDetail(val sessionId: String) : Effect()
         data class ShowSnackbar(val message: String) : Effect()
     }
 }
