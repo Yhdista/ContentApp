@@ -18,4 +18,5 @@ actual val platformModule: Module = module {
     }
     single { get<AppDatabase>().contentDao() }
     single { get<AppDatabase>().mutationDao() }
+    single { get<AppDatabase>().workoutDao() }
 }
