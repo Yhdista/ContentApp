@@ -2,6 +2,8 @@ package core.di
 
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import core.common.AppClock
+import core.common.DesktopAppClock
 import core.database.AppDatabase
 import core.database.AppDatabaseConstructor
 import core.feedback.DesktopPlatformFeedback
@@ -30,9 +32,9 @@ actual val platformModule: Module = module {
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
-    single { get<AppDatabase>().contentDao() }
     single { get<AppDatabase>().mutationDao() }
     single { get<AppDatabase>().workoutDao() }
+    single<AppClock> { DesktopAppClock() }
     single<PlatformFeedback> { DesktopPlatformFeedback() }
     single<PlatformClipboard> { DesktopPlatformClipboard() }
 }

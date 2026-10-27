@@ -89,4 +89,32 @@ class WeeklyActivityCalculatorTest {
         assertTrue(summary.days[1].hasWorkout)
         assertFalse(summary.days[2].hasWorkout)
     }
+
+    @Test
+    fun testWeeklyActivityRespectsTimeZoneOffset() {
+        // Trénink v 23:30 lokálního času (UTC+2 hodiny = posun +7_200_000 ms).
+        // V UTC čase je to 21:30 v pondělí (pondělí večer).
+        // Bez posunu by to bylo pondělí. S posunem do pásma UTC-3 (-10_800_000 ms) by to bylo ještě dříve,
+        // a pokud je trénink v UTC v 23:00 v pondělí (mondayMs + 23*3600*1000), v pásmu UTC+2 (+7_200_000) je to již úterý v 01:00!
+        val lateMondayUtcMs = mondayMs + 23 * 3600 * 1000L // UTC 23:00 v pondělí
+        val session = WorkoutSession("sLate", "Noční trénink", lateMondayUtcMs, lateMondayUtcMs + 3600000, isCompleted = true)
+
+        // V pásmu UTC (offset 0): den je pondělí (index 0)
+        val summaryUtc = WeeklyActivityCalculator.calculateWeeklyActivity(
+            nowEpochMs = tuesdayMs,
+            sessions = listOf(session),
+            timeZoneOffsetMs = 0L
+        )
+        assertTrue(summaryUtc.days[0].hasWorkout)
+        assertFalse(summaryUtc.days[1].hasWorkout)
+
+        // V pásmu UTC+2 (+7_200_000 ms): 23:00 + 2h = 01:00 v úterý (index 1)
+        val summaryPlusTwo = WeeklyActivityCalculator.calculateWeeklyActivity(
+            nowEpochMs = tuesdayMs,
+            sessions = listOf(session),
+            timeZoneOffsetMs = 2 * 3600 * 1000L
+        )
+        assertFalse(summaryPlusTwo.days[0].hasWorkout)
+        assertTrue(summaryPlusTwo.days[1].hasWorkout)
+    }
 }

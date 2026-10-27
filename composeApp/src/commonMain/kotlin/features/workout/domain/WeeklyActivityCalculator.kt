@@ -22,12 +22,15 @@ object WeeklyActivityCalculator {
     /**
      * Vypočítá týdenní přehled aktivity a aktuální streak tréninkových dnů.
      * Týden začíná v pondělí (ISO-8601).
+     * Podporuje posun časového pásma [timeZoneOffsetMs] pro přesné přiřazení k lokálnímu kalendářnímu dni.
      */
     fun calculateWeeklyActivity(
         nowEpochMs: Long,
-        sessions: List<WorkoutSession>
+        sessions: List<WorkoutSession>,
+        timeZoneOffsetMs: Long = 0L
     ): WeeklyActivitySummary {
-        val currentDayIndex = nowEpochMs / DAY_MS
+        val localNowMs = nowEpochMs + timeZoneOffsetMs
+        val currentDayIndex = localNowMs / DAY_MS
         // 1970-01-01 byl čtvrtek (hodnota 4 v cyklu 1..7: Po=1, Út=2, St=3, Čt=4, Pá=5, So=6, Ne=7)
         val dayOfWeekIso = (((currentDayIndex + 3) % 7 + 7) % 7 + 1).toInt()
         val mondayDayIndex = currentDayIndex - (dayOfWeekIso - 1)
@@ -42,9 +45,9 @@ object WeeklyActivityCalculator {
             "Ne" to "N"
         )
 
-        // Seskupení dokončených tréninků podle dne
+        // Seskupení dokončených tréninků podle lokálního dne
         val completedSessions = sessions.filter { it.isCompleted }
-        val sessionDays = completedSessions.groupBy { it.startTimeEpochMs / DAY_MS }
+        val sessionDays = completedSessions.groupBy { (it.startTimeEpochMs + timeZoneOffsetMs) / DAY_MS }
 
         val days = (0..6).map { offset ->
             val dayIdx = mondayDayIndex + offset

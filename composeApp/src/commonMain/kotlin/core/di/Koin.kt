@@ -1,14 +1,8 @@
 package core.di
 
-import core.common.AppClock
 import core.common.ApplicationScope
-import core.common.SystemAppClock
 import core.network.HttpClientFactory
-import core.repository.ContentRepository
-import core.repository.ContentRepositoryImpl
 import core.sync.SyncManager
-import features.content.ContentListViewModel
-import features.universal.UniversalViewModel
 import features.workout.active.ActiveWorkoutViewModel
 import features.workout.data.WorkoutRepositoryImpl
 import features.workout.detail.WorkoutDetailViewModel
@@ -21,17 +15,13 @@ import org.koin.dsl.module
 
 val commonModule = module {
     single { HttpClientFactory.create() }
-    single<AppClock> { SystemAppClock() }
     single { ApplicationScope() }
 
-    // Repozitář & Sync
-    single<ContentRepository> { ContentRepositoryImpl(get(), get(), get(), get()) }
+    // Repozitář & Sync (Outbox)
     single<WorkoutRepository> { WorkoutRepositoryImpl(get(), get(), get()) }
-    single { SyncManager(get(), get(), get()) }
+    single { SyncManager(get(), get()) }
 
     // ViewModely
-    factory { ContentListViewModel(get()) }
-    factory { UniversalViewModel(get(), get(), get(), get()) }
     factory { ActiveWorkoutViewModel(get(), get(), get(), get()) }
     factory { WorkoutHistoryViewModel(get(), get(), get()) }
     factory { WorkoutDetailViewModel(get()) }

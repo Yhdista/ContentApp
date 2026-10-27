@@ -13,7 +13,6 @@ import features.workout.data.entity.WorkoutTemplateExerciseEntity
 
 @Database(
     entities = [
-        ContentEntity::class,
         SyncMutationEntity::class,
         ExerciseEntity::class,
         WorkoutSessionEntity::class,
@@ -21,11 +20,10 @@ import features.workout.data.entity.WorkoutTemplateExerciseEntity
         WorkoutTemplateEntity::class,
         WorkoutTemplateExerciseEntity::class
     ],
-    version = 5
+    version = 6
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun contentDao(): ContentDao
     abstract fun mutationDao(): MutationDao
     abstract fun workoutDao(): WorkoutDao
 }

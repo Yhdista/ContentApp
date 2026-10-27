@@ -92,7 +92,8 @@ class WorkoutHistoryViewModel(
                     }
                 val weekly = WeeklyActivityCalculator.calculateWeeklyActivity(
                     nowEpochMs = appClock.nowMillis(),
-                    sessions = data.completed
+                    sessions = data.completed,
+                    timeZoneOffsetMs = appClock.timeZoneOffsetMillis()
                 )
 
                 updateState {

@@ -1,7 +1,6 @@
 package core.sync
 
 import core.common.ApplicationScope
-import core.database.ContentDao
 import core.database.MutationDao
 import core.database.SyncMutationEntity
 import io.github.aakira.napier.Napier
@@ -21,7 +20,6 @@ import kotlin.random.Random
  */
 class SyncManager(
     private val mutationDao: MutationDao,
-    private val contentDao: ContentDao,
     private val applicationScope: ApplicationScope
 ) {
     private val _isSyncing = MutableStateFlow(false)
@@ -47,30 +45,23 @@ class SyncManager(
     private suspend fun processMutation(mutation: SyncMutationEntity) {
         try {
             _lastSyncLog.value = "Odesílám mutaci: ${mutation.entityName} (id: ${mutation.id.take(8)}...)"
-            
+
             // Obaleno do withTimeout pro simulaci reálného síťového limitu
             val success = withTimeout(3000) {
                 simulateNetworkUpload(mutation)
             }
 
             if (success) {
-                // Po úspěchu: smazat z outbox fronty a přepnout stav entity na SYNCED
+                // Po úspěchu: smazat z outbox fronty (tím reaktivně klesne pending count)
                 mutationDao.deleteMutation(mutation.id)
-                val recordId = mutation.recordId.toIntOrNull()
-                if (recordId != null) {
-                    contentDao.updateSyncStatus(recordId, "SYNCED")
-                }
                 _lastSyncLog.value = "Synchronizováno OK: ${mutation.recordId}"
                 Napier.d("Sync úspěch pro mutaci ${mutation.id}")
             } else {
                 handleFailure(mutation, "Simulovaná chyba sítě (30% drop)")
             }
         } catch (e: TimeoutCancellationException) {
-            // Past #2: TimeoutCancellationException dědí z CancellationException!
-            // Nesmíme ji přeposlat dál, jinak zruší celou korutinu.
             handleFailure(mutation, "Timeout požadavku (>3s)")
         } catch (e: CancellationException) {
-            // Skutečné zrušení nadřazeného scopu
             throw e
         } catch (e: Exception) {
             handleFailure(mutation, e::class.simpleName ?: "Neznámá chyba")

@@ -1,6 +1,8 @@
 package core.di
 
 import androidx.room.Room
+import core.common.AppClock
+import core.common.IosAppClock
 import core.database.AppDatabase
 import core.database.AppDatabaseConstructor
 import core.feedback.IosPlatformFeedback
@@ -22,9 +24,9 @@ actual val platformModule: Module = module {
             factory = { AppDatabaseConstructor.initialize() }
         ).build()
     }
-    single { get<AppDatabase>().contentDao() }
     single { get<AppDatabase>().mutationDao() }
     single { get<AppDatabase>().workoutDao() }
+    single<AppClock> { IosAppClock() }
     single<PlatformFeedback> { IosPlatformFeedback() }
     single<PlatformClipboard> { IosPlatformClipboard() }
 }
