@@ -21,7 +21,7 @@ import features.workout.data.entity.WorkoutTemplateExerciseEntity
         WorkoutTemplateEntity::class,
         WorkoutTemplateExerciseEntity::class
     ],
-    version = 4
+    version = 5
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

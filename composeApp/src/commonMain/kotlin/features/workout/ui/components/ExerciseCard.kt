@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import features.workout.domain.Exercise
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutSetType
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
@@ -43,6 +44,7 @@ fun ExerciseCard(
     onRemoveExercise: () -> Unit,
     onOpenPlateCalculator: ((WorkoutSet) -> Unit)? = null,
     onShowStats: (() -> Unit)? = null,
+    onSetTypeChange: ((WorkoutSet, WorkoutSetType) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -200,7 +202,8 @@ fun ExerciseCard(
                 onRepsChange = { newReps -> onRepsChange(set, newReps) },
                 onRpeChange = { newRpe -> onRpeChange(set, newRpe) },
                 onDelete = { onDeleteSet(set) },
-                onOpenPlateCalculator = { onOpenPlateCalculator?.invoke(set) }
+                onOpenPlateCalculator = { onOpenPlateCalculator?.invoke(set) },
+                onSetTypeChange = { newType -> onSetTypeChange?.invoke(set, newType) }
             )
         }
 

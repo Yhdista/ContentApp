@@ -33,7 +33,7 @@ val commonModule = module {
     factory { ContentListViewModel(get()) }
     factory { UniversalViewModel(get(), get(), get(), get()) }
     factory { ActiveWorkoutViewModel(get(), get(), get(), get()) }
-    factory { WorkoutHistoryViewModel(get(), get()) }
+    factory { WorkoutHistoryViewModel(get(), get(), get()) }
     factory { WorkoutDetailViewModel(get()) }
 }
 

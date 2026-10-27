@@ -5,6 +5,7 @@ import core.mvi.UiIntent
 import core.mvi.UiState
 import features.workout.domain.Exercise
 import features.workout.domain.ExerciseStats
+import features.workout.domain.WeeklyActivitySummary
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutTemplate
 
@@ -28,11 +29,26 @@ class WorkoutHistoryContract {
         val exportCsvData: String = "",
         val exportJsonData: String = "",
         val exportSessionsCount: Int = 0,
-        val exportSetsCount: Int = 0
-    ) : UiState
+        val exportSetsCount: Int = 0,
+        val weeklyActivity: WeeklyActivitySummary? = null,
+        val searchQuery: String = "",
+        val sessionExerciseNames: Map<String, List<String>> = emptyMap()
+    ) : UiState {
+        val filteredCompletedSessions: List<WorkoutSession>
+            get() {
+                if (searchQuery.isBlank()) return completedSessions
+                val query = searchQuery.trim().lowercase()
+                return completedSessions.filter { session ->
+                    session.title.lowercase().contains(query) ||
+                    sessionExerciseNames[session.id]?.any { it.lowercase().contains(query) } == true
+                }
+            }
+    }
 
     sealed class Intent : UiIntent {
         data object LoadHistory : Intent()
+        data class UpdateSearchQuery(val query: String) : Intent()
+        data object ClearSearchQuery : Intent()
         data object StartNewWorkout : Intent()
         data object OpenTemplatePicker : Intent()
         data object CloseTemplatePicker : Intent()

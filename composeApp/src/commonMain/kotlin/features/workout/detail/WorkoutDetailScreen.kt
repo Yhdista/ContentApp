@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
+import features.workout.domain.WorkoutSetType
 import ui.designsystem.templates.UniversalScreenTemplate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -401,18 +402,41 @@ private fun ExerciseDetailCard(
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val (badgeText, badgeBg, badgeTextColor) = when (set.setType) {
+                        WorkoutSetType.NORMAL -> Triple(
+                            "${set.setNumber}",
+                            AppColors.SurfaceVariant,
+                            AppColors.OnSurface
+                        )
+                        WorkoutSetType.WARMUP -> Triple(
+                            "W",
+                            Color(0xFFF59E0B).copy(alpha = 0.2f),
+                            Color(0xFFF59E0B)
+                        )
+                        WorkoutSetType.DROPSET -> Triple(
+                            "D",
+                            Color(0xFF6366F1).copy(alpha = 0.2f),
+                            Color(0xFF818CF8)
+                        )
+                        WorkoutSetType.FAILURE -> Triple(
+                            "F",
+                            Color(0xFFEF4444).copy(alpha = 0.2f),
+                            Color(0xFFEF4444)
+                        )
+                    }
+
                     Box(
                         modifier = Modifier
                             .size(24.dp)
                             .clip(RoundedCornerShape(6.dp))
-                            .background(AppColors.SurfaceVariant),
+                            .background(badgeBg),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "${set.setNumber}",
+                            text = badgeText,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.OnSurface
+                            color = badgeTextColor
                         )
                     }
 

@@ -11,6 +11,7 @@ import features.workout.data.entity.WorkoutSetEntity
 import features.workout.data.entity.WorkoutTemplateEntity
 import features.workout.data.entity.WorkoutTemplateExerciseEntity
 import features.workout.domain.WorkoutRepository
+import features.workout.domain.WorkoutSetType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -189,6 +190,17 @@ class WorkoutRepositoryTest {
         val setsSess3 = repository.getSetsForSession(session3.id).first()
         val completedSet3 = setsSess3.first { it.id == set3.id }
         kotlin.test.assertFalse(completedSet3.isPersonalRecord)
+    }
+
+    @Test
+    fun testWarmupSetNeverMarkedAsPersonalRecord() = runTest {
+        val session = repository.startWorkout("Bench Day")
+        val set = repository.addSet(session.id, "ex_bench", 150.0, 10)
+        repository.updateSet(set.copy(isCompleted = true, setType = WorkoutSetType.WARMUP))
+
+        val sets = repository.getSetsForSession(session.id).first()
+        val completedSet = sets.first { it.id == set.id }
+        kotlin.test.assertFalse(completedSet.isPersonalRecord)
     }
 }
 

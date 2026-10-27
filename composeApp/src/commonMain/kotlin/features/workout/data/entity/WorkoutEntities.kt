@@ -6,6 +6,7 @@ import features.workout.domain.Exercise
 import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutSetType
 import features.workout.domain.WorkoutTemplate
 import features.workout.domain.WorkoutTemplateExercise
 
@@ -74,7 +75,8 @@ data class WorkoutSetEntity(
     val rpe: Double?,
     val isCompleted: Boolean,
     val previousPerformance: String?,
-    val isPersonalRecord: Boolean = false
+    val isPersonalRecord: Boolean = false,
+    val setType: String = WorkoutSetType.NORMAL.name
 ) {
     fun toDomain(): WorkoutSet = WorkoutSet(
         id = id,
@@ -86,7 +88,8 @@ data class WorkoutSetEntity(
         rpe = rpe,
         isCompleted = isCompleted,
         previousPerformance = previousPerformance,
-        isPersonalRecord = isPersonalRecord
+        isPersonalRecord = isPersonalRecord,
+        setType = runCatching { WorkoutSetType.valueOf(setType) }.getOrDefault(WorkoutSetType.NORMAL)
     )
 
     companion object {
@@ -100,7 +103,8 @@ data class WorkoutSetEntity(
             rpe = set.rpe,
             isCompleted = set.isCompleted,
             previousPerformance = set.previousPerformance,
-            isPersonalRecord = set.isPersonalRecord
+            isPersonalRecord = set.isPersonalRecord,
+            setType = set.setType.name
         )
     }
 }

@@ -11,7 +11,7 @@ object WorkoutDataExporter {
         val sessionMap = sessions.associateBy { it.id }
 
         val sb = StringBuilder()
-        sb.append("Datum,Trénink,Cvik,Partie,Série,Váha_kg,Opakování,RPE,Dokončeno,1RM_kg,Osobní_Rekord\n")
+        sb.append("Datum,Trénink,Cvik,Partie,Typ_Série,Série,Váha_kg,Opakování,RPE,Dokončeno,1RM_kg,Osobní_Rekord\n")
 
         val sortedSets = sets.sortedWith(
             compareBy<WorkoutSet> { sessionMap[it.sessionId]?.startTimeEpochMs ?: 0L }
@@ -39,7 +39,7 @@ object WorkoutDataExporter {
                 "0.0"
             }
 
-            sb.append("${escapeCsv(dateStr)},$sessionTitle,$exerciseName,$muscle,${set.setNumber},${set.weightKg},${set.reps},${set.rpe ?: ""},${if (set.isCompleted) 1 else 0},$oneRepMax,${if (set.isPersonalRecord) 1 else 0}\n")
+            sb.append("${escapeCsv(dateStr)},$sessionTitle,$exerciseName,$muscle,${set.setType.name},${set.setNumber},${set.weightKg},${set.reps},${set.rpe ?: ""},${if (set.isCompleted) 1 else 0},$oneRepMax,${if (set.isPersonalRecord) 1 else 0}\n")
         }
 
         return sb.toString()
@@ -91,6 +91,7 @@ object WorkoutDataExporter {
             sb.append("      \"id\": \"${escapeJson(st.id)}\",\n")
             sb.append("      \"sessionId\": \"${escapeJson(st.sessionId)}\",\n")
             sb.append("      \"exerciseId\": \"${escapeJson(st.exerciseId)}\",\n")
+            sb.append("      \"setType\": \"${st.setType.name}\",\n")
             sb.append("      \"setNumber\": ${st.setNumber},\n")
             sb.append("      \"weightKg\": ${st.weightKg},\n")
             sb.append("      \"reps\": ${st.reps},\n")

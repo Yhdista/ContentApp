@@ -197,6 +197,7 @@ fun ActiveWorkoutScreen(
                             onRepsChange = { set, reps -> onIntent(ActiveWorkoutContract.Intent.UpdateReps(set, reps)) },
                             onRpeChange = { set, rpe -> onIntent(ActiveWorkoutContract.Intent.UpdateRpe(set, rpe)) },
                             onDeleteSet = { set -> onIntent(ActiveWorkoutContract.Intent.DeleteSet(set)) },
+                            onSetTypeChange = { set, newType -> onIntent(ActiveWorkoutContract.Intent.ChangeSetType(set, newType)) },
                             onRemoveExercise = { onIntent(ActiveWorkoutContract.Intent.RemoveExerciseFromWorkout(exercise.id)) },
                             onShowStats = { onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(exercise)) },
                             onOpenPlateCalculator = { set ->

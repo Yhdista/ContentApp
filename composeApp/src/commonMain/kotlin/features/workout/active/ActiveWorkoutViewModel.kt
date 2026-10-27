@@ -11,6 +11,7 @@ import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutSetType
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -53,6 +54,7 @@ class ActiveWorkoutViewModel(
             is ActiveWorkoutContract.Intent.UpdateWeight -> updateWeight(intent.set, intent.weightKg)
             is ActiveWorkoutContract.Intent.UpdateReps -> updateReps(intent.set, intent.reps)
             is ActiveWorkoutContract.Intent.UpdateRpe -> updateRpe(intent.set, intent.rpe)
+            is ActiveWorkoutContract.Intent.ChangeSetType -> changeSetType(intent.set, intent.newType)
             is ActiveWorkoutContract.Intent.DeleteSet -> deleteSet(intent.set)
             is ActiveWorkoutContract.Intent.StartRestTimer -> startRestTimer(intent.seconds)
             is ActiveWorkoutContract.Intent.AdjustRestTimer -> adjustRestTimer(intent.deltaSeconds)
@@ -272,6 +274,12 @@ class ActiveWorkoutViewModel(
     private fun updateRpe(set: WorkoutSet, rpe: Double?) {
         viewModelScope.launch {
             workoutRepository.updateSet(set.copy(rpe = rpe))
+        }
+    }
+
+    private fun changeSetType(set: WorkoutSet, newType: WorkoutSetType) {
+        viewModelScope.launch {
+            workoutRepository.updateSet(set.copy(setType = newType))
         }
     }
 

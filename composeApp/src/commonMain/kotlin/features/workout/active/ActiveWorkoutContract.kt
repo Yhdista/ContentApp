@@ -7,6 +7,7 @@ import features.workout.domain.Exercise
 import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutSetType
 
 class ActiveWorkoutContract {
     data class State(
@@ -41,6 +42,7 @@ class ActiveWorkoutContract {
         data class UpdateWeight(val set: WorkoutSet, val weightKg: Double) : Intent()
         data class UpdateReps(val set: WorkoutSet, val reps: Int) : Intent()
         data class UpdateRpe(val set: WorkoutSet, val rpe: Double?) : Intent()
+        data class ChangeSetType(val set: WorkoutSet, val newType: WorkoutSetType) : Intent()
         data class DeleteSet(val set: WorkoutSet) : Intent()
         data class StartRestTimer(val seconds: Int = 90) : Intent()
         data class AdjustRestTimer(val deltaSeconds: Int) : Intent()

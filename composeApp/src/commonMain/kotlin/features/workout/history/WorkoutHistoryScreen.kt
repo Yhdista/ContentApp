@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
@@ -37,6 +40,7 @@ import features.workout.domain.WorkoutSession
 import features.workout.ui.components.ExercisePickerSheet
 import features.workout.ui.components.ExerciseStatsSheet
 import features.workout.ui.components.TemplatePickerSheet
+import features.workout.ui.components.WeeklyStreakCard
 import features.workout.ui.components.WorkoutExportDialog
 import ui.designsystem.atoms.feedback.StatusBadge
 import ui.designsystem.nucleus.AppColors
@@ -190,7 +194,14 @@ fun WorkoutHistoryScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
-                // 1. Statistika objemu (Hero Card)
+                // 1. Týdenní aktivita & streak (pokud je k dispozici)
+                state.weeklyActivity?.let { activity ->
+                    item {
+                        WeeklyStreakCard(summary = activity)
+                    }
+                }
+
+                // 2. Statistika objemu (Hero Card)
                 item {
                     Row(
                         modifier = Modifier
@@ -243,7 +254,7 @@ fun WorkoutHistoryScreen(
                     }
                 }
 
-                // 2. Banner pro aktivní trénink (pokud existuje)
+                // 3. Banner pro aktivní trénink (pokud existuje)
                 if (state.activeSession != null) {
                     item {
                         Row(
@@ -284,7 +295,7 @@ fun WorkoutHistoryScreen(
                     }
                 }
 
-                // 3. Hlavička sekce historie
+                // 4. Hlavička sekce historie a vyhledávání
                 item {
                     Text(
                         text = "HISTORIE DOKONČENÝCH TRÉNINKŮ",
@@ -295,7 +306,62 @@ fun WorkoutHistoryScreen(
                     )
                 }
 
-                // 4. Seznam dokončených tréninků
+                // 5. Pole vyhledávání (Filtrování historie tréninků)
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(AppColors.Surface)
+                            .border(1.dp, AppColors.OutlineVariant, RoundedCornerShape(12.dp))
+                            .padding(horizontal = AppSpacing.md, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                    ) {
+                        Text("🔍", fontSize = 16.sp)
+                        BasicTextField(
+                            value = state.searchQuery,
+                            onValueChange = { onIntent(WorkoutHistoryContract.Intent.UpdateSearchQuery(it)) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                                .padding(vertical = 12.dp),
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = AppColors.OnSurface),
+                            cursorBrush = SolidColor(AppColors.Primary),
+                            singleLine = true,
+                            decorationBox = { innerTextField ->
+                                if (state.searchQuery.isEmpty()) {
+                                    Text(
+                                        text = "Hledat trénink nebo cvik...",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = AppColors.OnSurfaceVariant.copy(alpha = 0.6f)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        )
+                        if (state.searchQuery.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(AppColors.SurfaceVariant)
+                                    .clickable { onIntent(WorkoutHistoryContract.Intent.ClearSearchQuery) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "✕",
+                                    fontSize = 12.sp,
+                                    color = AppColors.OnSurfaceVariant,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 6. Seznam dokončených tréninků (respektující vyhledávací filtr)
+                val displaySessions = state.filteredCompletedSessions
                 if (state.completedSessions.isEmpty()) {
                     item {
                         Box(
@@ -320,10 +386,42 @@ fun WorkoutHistoryScreen(
                             }
                         }
                     }
+                } else if (displaySessions.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(AppColors.Surface)
+                                .padding(AppSpacing.lg),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                            ) {
+                                Text(text = "🔍", fontSize = 28.sp)
+                                Text(
+                                    text = "Žádný trénink neodpovídá \"${state.searchQuery}\"",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.OnSurface
+                                )
+                                Text(
+                                    text = "Zkuste jiný název tréninku nebo cviku",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AppColors.OnSurfaceVariant
+                                )
+                            }
+                        }
+                    }
                 } else {
-                    items(state.completedSessions, key = { it.id }) { session ->
+                    items(displaySessions, key = { it.id }) { session ->
+                        val exerciseNames = state.sessionExerciseNames[session.id].orEmpty()
                         WorkoutHistoryItemCard(
                             session = session,
+                            exerciseNames = exerciseNames,
                             onClick = { onIntent(WorkoutHistoryContract.Intent.WorkoutClicked(session.id)) }
                         )
                     }
@@ -381,6 +479,7 @@ fun WorkoutHistoryScreen(
 @Composable
 private fun WorkoutHistoryItemCard(
     session: WorkoutSession,
+    exerciseNames: List<String> = emptyList(),
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -452,6 +551,41 @@ private fun WorkoutHistoryItemCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = AppColors.OnSurfaceVariant
             )
+        }
+
+        // Seznam obsažených cviků (tagy)
+        if (exerciseNames.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                exerciseNames.take(3).forEach { name ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(AppColors.SurfaceVariant.copy(alpha = 0.6f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AppColors.OnSurfaceVariant,
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+                if (exerciseNames.size > 3) {
+                    Text(
+                        text = "+${exerciseNames.size - 3}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AppColors.OnSurfaceVariant,
+                        fontSize = 10.sp
+                    )
+                }
+            }
         }
     }
 }

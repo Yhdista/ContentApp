@@ -10,6 +10,7 @@ import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutSetType
 import features.workout.domain.WorkoutTemplate
 import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.Dispatchers
@@ -264,6 +265,31 @@ class ActiveWorkoutViewModelTest {
         kotlin.test.assertNull(viewModel.uiState.value.selectedStatsExercise)
         viewModel.cancelTimers()
     }
+
+    @Test
+    fun testChangeSetTypeUpdatesWorkoutSet() = runTest(testDispatcher) {
+        fakeRepository.startWorkout()
+        val set = fakeRepository.addSet("sess-1", "ex_bench", 100.0, 5)
+        testScheduler.runCurrent()
+
+        assertEquals(WorkoutSetType.NORMAL, fakeRepository.getSetsList().first().setType)
+
+        viewModel.onIntent(ActiveWorkoutContract.Intent.ChangeSetType(set, WorkoutSetType.WARMUP))
+        testScheduler.runCurrent()
+
+        assertEquals(WorkoutSetType.WARMUP, fakeRepository.getSetsList().first().setType)
+
+        viewModel.onIntent(ActiveWorkoutContract.Intent.ChangeSetType(set, WorkoutSetType.DROPSET))
+        testScheduler.runCurrent()
+
+        assertEquals(WorkoutSetType.DROPSET, fakeRepository.getSetsList().first().setType)
+
+        viewModel.onIntent(ActiveWorkoutContract.Intent.ChangeSetType(set, WorkoutSetType.FAILURE))
+        testScheduler.runCurrent()
+
+        assertEquals(WorkoutSetType.FAILURE, fakeRepository.getSetsList().first().setType)
+        viewModel.cancelTimers()
+    }
 }
 
 private class FakePlatformFeedback : PlatformFeedback {
@@ -291,6 +317,8 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
     private val activeSession = MutableStateFlow<WorkoutSession?>(null)
     private val completedSessions = MutableStateFlow<List<WorkoutSession>>(emptyList())
     private val sets = MutableStateFlow<List<WorkoutSet>>(emptyList())
+
+    fun getSetsList(): List<WorkoutSet> = sets.value
 
     override fun getExercises(): Flow<List<Exercise>> = exercises.asStateFlow()
 

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Dialog
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutSetType
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
@@ -50,6 +51,7 @@ fun SetRowItem(
     onRpeChange: (Double?) -> Unit,
     onDelete: () -> Unit,
     onOpenPlateCalculator: () -> Unit = {},
+    onSetTypeChange: (WorkoutSetType) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var weightText by remember(set.weightKg) {
@@ -59,7 +61,7 @@ fun SetRowItem(
     var repsText by remember(set.reps) {
         mutableStateOf(set.reps.toString())
     }
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showOptionsDialog by remember { mutableStateOf(false) }
 
     val rowBackground = if (set.isCompleted) {
         AppColors.Surface.copy(alpha = 0.6f)
@@ -81,21 +83,44 @@ fun SetRowItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // 1. Číslo série (kliknutím lze smazat sérii)
+        // 1. Číslo a typ série (kliknutím se otevřou možnosti: typ série / smazat)
+        val (badgeText, badgeBg, badgeTextColor) = when (set.setType) {
+            WorkoutSetType.NORMAL -> Triple(
+                "${set.setNumber}",
+                if (set.isCompleted) AppColors.StatusSynced.copy(alpha = 0.15f) else AppColors.SurfaceVariant,
+                if (set.isCompleted) AppColors.StatusSynced else AppColors.OnSurface
+            )
+            WorkoutSetType.WARMUP -> Triple(
+                "W",
+                Color(0xFFF59E0B).copy(alpha = 0.2f),
+                Color(0xFFF59E0B)
+            )
+            WorkoutSetType.DROPSET -> Triple(
+                "D",
+                Color(0xFF6366F1).copy(alpha = 0.2f),
+                Color(0xFF818CF8)
+            )
+            WorkoutSetType.FAILURE -> Triple(
+                "F",
+                Color(0xFFEF4444).copy(alpha = 0.2f),
+                Color(0xFFEF4444)
+            )
+        }
+
         Box(
             modifier = Modifier
                 .minimumInteractiveComponentSize()
                 .size(32.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(if (set.isCompleted) AppColors.StatusSynced.copy(alpha = 0.15f) else AppColors.SurfaceVariant)
-                .clickable(role = Role.Button) { showDeleteDialog = true },
+                .background(badgeBg)
+                .clickable(role = Role.Button) { showOptionsDialog = true },
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "${set.setNumber}",
+                text = badgeText,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = if (set.isCompleted) AppColors.StatusSynced else AppColors.OnSurface
+                color = badgeTextColor
             )
         }
 
@@ -110,7 +135,7 @@ fun SetRowItem(
                 color = AppColors.OnSurfaceVariant,
                 maxLines = 1
             )
-            if (set.isPersonalRecord && set.isCompleted) {
+            if (set.isPersonalRecord && set.isCompleted && set.setType != WorkoutSetType.WARMUP) {
                 Text(
                     text = "🏆 PR",
                     style = MaterialTheme.typography.labelSmall,
@@ -232,8 +257,8 @@ fun SetRowItem(
         }
     }
 
-    if (showDeleteDialog) {
-        Dialog(onDismissRequest = { showDeleteDialog = false }) {
+    if (showOptionsDialog) {
+        Dialog(onDismissRequest = { showOptionsDialog = false }) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -244,19 +269,89 @@ fun SetRowItem(
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
                 Text(
-                    text = "Smazat sérii č. ${set.setNumber}?",
+                    text = "Možnosti série č. ${set.setNumber}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = AppColors.OnSurface
                 )
                 Text(
-                    text = "Tato akce odebere sérii (${set.weightKg} kg × ${set.reps} reps) z aktuálního tréninku.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Zvolte typ série (${set.weightKg} kg × ${set.reps} reps):",
+                    style = MaterialTheme.typography.bodySmall,
                     color = AppColors.OnSurfaceVariant
                 )
+
+                // Výběr typu série (Hevy styl)
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+                    WorkoutSetType.entries.forEach { type ->
+                        val isSelected = set.setType == type
+                        val (typeLetter, typeColor) = when (type) {
+                            WorkoutSetType.NORMAL -> "${set.setNumber}" to AppColors.OnSurface
+                            WorkoutSetType.WARMUP -> "W" to Color(0xFFF59E0B)
+                            WorkoutSetType.DROPSET -> "D" to Color(0xFF818CF8)
+                            WorkoutSetType.FAILURE -> "F" to Color(0xFFEF4444)
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .minimumInteractiveComponentSize()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (isSelected) AppColors.SurfaceVariant else Color.Transparent)
+                                .border(
+                                    1.dp,
+                                    if (isSelected) AppColors.Primary else AppColors.OutlineVariant,
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .clickable {
+                                    onSetTypeChange(type)
+                                    showOptionsDialog = false
+                                }
+                                .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(typeColor.copy(alpha = 0.2f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = typeLetter,
+                                        color = typeColor,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                                Text(
+                                    text = type.displayName,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = AppColors.OnSurface
+                                )
+                            }
+                            if (isSelected) {
+                                Text(
+                                    text = "✓",
+                                    color = AppColors.Primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Tlačítko zavřít a smazat sérii
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     Box(
                         modifier = Modifier
@@ -265,34 +360,36 @@ fun SetRowItem(
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(10.dp))
                             .background(AppColors.SurfaceVariant)
-                            .clickable(role = Role.Button) { showDeleteDialog = false },
+                            .clickable(role = Role.Button) { showOptionsDialog = false },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Zrušit",
+                            text = "Zavřít",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = AppColors.OnSurface
                         )
                     }
+
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp)
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(AppColors.StatusError)
+                            .background(AppColors.StatusError.copy(alpha = 0.15f))
+                            .border(1.dp, AppColors.StatusError, RoundedCornerShape(10.dp))
                             .clickable(role = Role.Button) {
-                                showDeleteDialog = false
+                                showOptionsDialog = false
                                 onDelete()
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Smazat",
+                            text = "Smazat sérii 🗑️",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = AppColors.StatusError
                         )
                     }
                 }

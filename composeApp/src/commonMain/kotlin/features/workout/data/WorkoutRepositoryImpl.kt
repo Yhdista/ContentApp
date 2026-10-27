@@ -18,6 +18,7 @@ import features.workout.domain.WorkoutDataExporter
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutSetType
 import features.workout.domain.WorkoutTemplate
 import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.flow.Flow
@@ -175,7 +176,7 @@ class WorkoutRepositoryImpl(
     }
 
     override suspend fun updateSet(set: WorkoutSet) {
-        val isPR = if (set.isCompleted && set.weightKg > 0.0 && set.reps > 0) {
+        val isPR = if (set.isCompleted && set.weightKg > 0.0 && set.reps > 0 && set.setType != WorkoutSetType.WARMUP) {
             val historical = workoutDao.getHistoricalCompletedSets(set.exerciseId, set.sessionId)
             if (historical.isEmpty()) {
                 true

@@ -1,10 +1,13 @@
 package features.workout.history
 
 import androidx.lifecycle.viewModelScope
+import core.common.AppClock
+import core.common.SystemAppClock
 import core.platform.NoOpPlatformClipboard
 import core.platform.PlatformClipboard
 import core.viewmodel.BaseViewModel
 import features.workout.domain.Exercise
+import features.workout.domain.WeeklyActivityCalculator
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutTemplate
@@ -13,7 +16,8 @@ import kotlinx.coroutines.launch
 
 class WorkoutHistoryViewModel(
     private val workoutRepository: WorkoutRepository,
-    private val platformClipboard: PlatformClipboard = NoOpPlatformClipboard()
+    private val platformClipboard: PlatformClipboard = NoOpPlatformClipboard(),
+    private val appClock: AppClock = SystemAppClock()
 ) : BaseViewModel<WorkoutHistoryContract.State, WorkoutHistoryContract.Intent, WorkoutHistoryContract.Effect>(
     WorkoutHistoryContract.State()
 ) {
@@ -25,6 +29,12 @@ class WorkoutHistoryViewModel(
     override fun handleIntent(intent: WorkoutHistoryContract.Intent) {
         when (intent) {
             is WorkoutHistoryContract.Intent.LoadHistory -> loadHistory()
+            is WorkoutHistoryContract.Intent.UpdateSearchQuery -> {
+                updateState { copy(searchQuery = intent.query) }
+            }
+            is WorkoutHistoryContract.Intent.ClearSearchQuery -> {
+                updateState { copy(searchQuery = "") }
+            }
             is WorkoutHistoryContract.Intent.StartNewWorkout -> startNewWorkout()
             is WorkoutHistoryContract.Intent.OpenTemplatePicker -> {
                 updateState { copy(isTemplatePickerOpen = true) }
@@ -73,6 +83,18 @@ class WorkoutHistoryViewModel(
                 val totalVolume = completed.sumOf { it.totalVolumeKg }
                 HistoryData(completed, active, pendingCount, templates, exercises, totalVolume)
             }.collect { data ->
+                val allSets = workoutRepository.getAllCompletedSets()
+                val exerciseMap = data.exercises.associateBy { it.id }
+                val sessionExerciseMap = allSets
+                    .groupBy { it.sessionId }
+                    .mapValues { (_, sets) ->
+                        sets.mapNotNull { exerciseMap[it.exerciseId]?.name }.distinct()
+                    }
+                val weekly = WeeklyActivityCalculator.calculateWeeklyActivity(
+                    nowEpochMs = appClock.nowMillis(),
+                    sessions = data.completed
+                )
+
                 updateState {
                     copy(
                         completedSessions = data.completed,
@@ -82,6 +104,8 @@ class WorkoutHistoryViewModel(
                         totalVolumeAllTimeKg = data.totalVolume,
                         totalWorkoutsCount = data.completed.size,
                         pendingSyncCount = data.pendingCount,
+                        sessionExerciseNames = sessionExerciseMap,
+                        weeklyActivity = weekly,
                         isLoading = false
                     )
                 }

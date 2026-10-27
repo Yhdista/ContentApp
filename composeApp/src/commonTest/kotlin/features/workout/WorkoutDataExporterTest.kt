@@ -38,12 +38,12 @@ class WorkoutDataExporterTest {
             sets = listOf(set)
         )
 
-        assertTrue(csv.contains("Datum,Trénink,Cvik,Partie,Série,Váha_kg,Opakování,RPE,Dokončeno,1RM_kg,Osobní_Rekord"))
+        assertTrue(csv.contains("Datum,Trénink,Cvik,Partie,Typ_Série,Série,Váha_kg,Opakování,RPE,Dokončeno,1RM_kg,Osobní_Rekord"))
         // Escaped title: "Bench, Day ""Heavy"""
         assertTrue(csv.contains("\"Bench, Day \"\"Heavy\"\"\""))
         assertTrue(csv.contains("Bench press"))
         assertTrue(csv.contains("Hrudník"))
-        assertTrue(csv.contains("100.0,5,8.5,1"))
+        assertTrue(csv.contains("NORMAL,1,100.0,5,8.5,1"))
         assertTrue(csv.contains(",1\n")) // PR = 1
     }
 

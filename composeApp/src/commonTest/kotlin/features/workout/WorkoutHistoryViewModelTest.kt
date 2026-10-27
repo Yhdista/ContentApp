@@ -184,6 +184,47 @@ class WorkoutHistoryViewModelTest {
         assertFalse(viewModel.uiState.value.isExerciseStatsOpen)
         assertNull(viewModel.uiState.value.selectedStatsExercise)
     }
+
+    @Test
+    fun testSearchQueryFilteringAndClear() = runTest(testDispatcher) {
+        val session1 = WorkoutSession("s1", "Push Day - Hrudník", 1000L, 2000L, isCompleted = true)
+        val session2 = WorkoutSession("s2", "Pull Day - Záda", 3000L, 4000L, isCompleted = true)
+        val session3 = WorkoutSession("s3", "Leg Day - Nohy", 5000L, 6000L, isCompleted = true)
+
+        fakeRepository.setCompletedSessions(listOf(session1, session2, session3))
+        testScheduler.runCurrent()
+
+        assertEquals(3, viewModel.uiState.value.filteredCompletedSessions.size)
+
+        // Hledání "push"
+        viewModel.onIntent(WorkoutHistoryContract.Intent.UpdateSearchQuery("push"))
+        testScheduler.runCurrent()
+        assertEquals(1, viewModel.uiState.value.filteredCompletedSessions.size)
+        assertEquals("s1", viewModel.uiState.value.filteredCompletedSessions.first().id)
+
+        // Hledání "záda"
+        viewModel.onIntent(WorkoutHistoryContract.Intent.UpdateSearchQuery("záda"))
+        testScheduler.runCurrent()
+        assertEquals(1, viewModel.uiState.value.filteredCompletedSessions.size)
+        assertEquals("s2", viewModel.uiState.value.filteredCompletedSessions.first().id)
+
+        // Vymazání filtru
+        viewModel.onIntent(WorkoutHistoryContract.Intent.ClearSearchQuery)
+        testScheduler.runCurrent()
+        assertEquals(3, viewModel.uiState.value.filteredCompletedSessions.size)
+        assertEquals("", viewModel.uiState.value.searchQuery)
+    }
+
+    @Test
+    fun testWeeklyActivitySummaryIsCalculatedInState() = runTest(testDispatcher) {
+        val session = WorkoutSession("s1", "Trénink", 1700000000000L, 1700003600000L, isCompleted = true)
+        fakeRepository.setCompletedSessions(listOf(session))
+        testScheduler.runCurrent()
+
+        val weekly = viewModel.uiState.value.weeklyActivity
+        assertNotNull(weekly)
+        assertEquals(7, weekly.days.size)
+    }
 }
 
 private class HistoryFakeWorkoutRepository : WorkoutRepository {
