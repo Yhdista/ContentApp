@@ -1,5 +1,10 @@
 package features.workout.domain
 
+enum class ExportFormat {
+    CSV,
+    JSON
+}
+
 object WorkoutDataExporter {
 
     fun exportToCsv(
@@ -57,6 +62,7 @@ object WorkoutDataExporter {
         sb.append("  \"sessionsCount\": ${sessions.size},\n")
         sb.append("  \"exercisesCount\": ${exercises.size},\n")
         sb.append("  \"setsCount\": ${sets.size},\n")
+        sb.append("  \"templatesCount\": ${templates.size},\n")
 
         // Sessions
         sb.append("  \"sessions\": [\n")
@@ -99,6 +105,30 @@ object WorkoutDataExporter {
             sb.append("      \"isCompleted\": ${st.isCompleted},\n")
             sb.append("      \"isPersonalRecord\": ${st.isPersonalRecord}\n")
             sb.append("    }${if (i < sets.size - 1) "," else ""}\n")
+        }
+        sb.append("  ],\n")
+
+        // Templates
+        sb.append("  \"templates\": [\n")
+        templates.forEachIndexed { i, tmpl ->
+            sb.append("    {\n")
+            sb.append("      \"id\": \"${escapeJson(tmpl.id)}\",\n")
+            sb.append("      \"name\": \"${escapeJson(tmpl.name)}\",\n")
+            sb.append("      \"description\": \"${escapeJson(tmpl.description)}\",\n")
+            sb.append("      \"exercisesCount\": ${tmpl.exercises.size},\n")
+            sb.append("      \"exercises\": [\n")
+            tmpl.exercises.forEachIndexed { j, tex ->
+                sb.append("        {\n")
+                sb.append("          \"exerciseId\": \"${escapeJson(tex.exerciseId)}\",\n")
+                sb.append("          \"exerciseName\": \"${escapeJson(tex.exerciseName)}\",\n")
+                sb.append("          \"orderIndex\": ${tex.orderIndex},\n")
+                sb.append("          \"targetSets\": ${tex.targetSets},\n")
+                sb.append("          \"defaultWeightKg\": ${tex.defaultWeightKg},\n")
+                sb.append("          \"defaultReps\": ${tex.defaultReps}\n")
+                sb.append("        }${if (j < tmpl.exercises.size - 1) "," else ""}\n")
+            }
+            sb.append("      ]\n")
+            sb.append("    }${if (i < templates.size - 1) "," else ""}\n")
         }
         sb.append("  ]\n")
 

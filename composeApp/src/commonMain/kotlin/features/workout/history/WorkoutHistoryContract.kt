@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import core.mvi.UiEffect
 import core.mvi.UiIntent
 import core.mvi.UiState
+import core.ui.UiText
 import features.workout.domain.Exercise
 import features.workout.domain.ExerciseStats
 import features.workout.domain.WeeklyActivitySummary
@@ -22,7 +23,7 @@ class WorkoutHistoryContract {
         val totalWorkoutsCount: Int = 0,
         val pendingSyncCount: Int = 0,
         val isLoading: Boolean = false,
-        val error: String? = null,
+        val error: UiText? = null,
         val allExercises: List<Exercise> = emptyList(),
         val isExerciseCatalogOpen: Boolean = false,
         val isExerciseStatsOpen: Boolean = false,

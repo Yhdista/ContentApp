@@ -132,7 +132,7 @@ class ActiveWorkoutViewModel(
     }
 
     private fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) {
-        viewModelScope.launch {
+        appScope.launch {
             val exercise = workoutRepository.createCustomExercise(name, muscleGroup, defaultRestSeconds)
             addExercise(exercise)
         }
@@ -157,6 +157,9 @@ class ActiveWorkoutViewModel(
     }
 
     private fun removeExercise(exerciseId: String) {
+        val sessionId = uiState.value.session?.id
+        val setsToDelete = uiState.value.sets.filter { it.sessionId == sessionId && it.exerciseId == exerciseId }
+
         updateState {
             copy(
                 workoutExercises = workoutExercises.filterNot { it.id == exerciseId },
@@ -164,9 +167,8 @@ class ActiveWorkoutViewModel(
             )
         }
 
-        val sessionId = uiState.value.session?.id ?: return
-        viewModelScope.launch {
-            val setsToDelete = uiState.value.sets.filter { it.sessionId == sessionId && it.exerciseId == exerciseId }
+        if (sessionId == null) return
+        appScope.launch {
             setsToDelete.forEach { set ->
                 workoutRepository.deleteSet(set.id)
             }
@@ -175,7 +177,7 @@ class ActiveWorkoutViewModel(
 
     private fun addSet(exerciseId: String) {
         val sessionId = uiState.value.session?.id ?: return
-        viewModelScope.launch {
+        appScope.launch {
             val existingSets = uiState.value.sets.filter { it.exerciseId == exerciseId }
             val lastSet = existingSets.lastOrNull()
             val weight = lastSet?.weightKg ?: 60.0
@@ -192,7 +194,7 @@ class ActiveWorkoutViewModel(
 
     private fun toggleSetComplete(set: WorkoutSet) {
         val targetComplete = !set.isCompleted
-        viewModelScope.launch {
+        appScope.launch {
             workoutRepository.updateSet(set.copy(isCompleted = targetComplete))
         }
 
@@ -260,31 +262,31 @@ class ActiveWorkoutViewModel(
     }
 
     private fun updateWeight(set: WorkoutSet, weightKg: Double) {
-        viewModelScope.launch {
+        appScope.launch {
             workoutRepository.updateSet(set.copy(weightKg = weightKg))
         }
     }
 
     private fun updateReps(set: WorkoutSet, reps: Int) {
-        viewModelScope.launch {
+        appScope.launch {
             workoutRepository.updateSet(set.copy(reps = reps))
         }
     }
 
     private fun updateRpe(set: WorkoutSet, rpe: Double?) {
-        viewModelScope.launch {
+        appScope.launch {
             workoutRepository.updateSet(set.copy(rpe = rpe))
         }
     }
 
     private fun changeSetType(set: WorkoutSet, newType: WorkoutSetType) {
-        viewModelScope.launch {
+        appScope.launch {
             workoutRepository.updateSet(set.copy(setType = newType))
         }
     }
 
     private fun deleteSet(set: WorkoutSet) {
-        viewModelScope.launch {
+        appScope.launch {
             workoutRepository.deleteSet(set.id)
             val remaining = uiState.value.sets
                 .filter { it.sessionId == set.sessionId && it.exerciseId == set.exerciseId && it.id != set.id }

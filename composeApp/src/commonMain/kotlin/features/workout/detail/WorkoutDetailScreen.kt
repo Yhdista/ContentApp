@@ -41,9 +41,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import core.common.formatCleanWeight
+import features.workout.domain.WorkoutSetType
+import features.workout.ui.components.toBadgeVisuals
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
-import features.workout.domain.WorkoutSetType
 import ui.designsystem.templates.UniversalScreenTemplate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -159,9 +161,7 @@ fun WorkoutDetailScreen(
             ) {
                 // 1. Souhrnná karta tréninku
                 item {
-                    val volumeFormatted = session?.let {
-                        if (it.totalVolumeKg % 1.0 == 0.0) it.totalVolumeKg.toInt().toString() else it.totalVolumeKg.toString()
-                    } ?: "0"
+                    val volumeFormatted = session?.totalVolumeKg?.formatCleanWeight() ?: "0"
 
                     Row(
                         modifier = Modifier
@@ -240,7 +240,7 @@ fun WorkoutDetailScreen(
                                 )
                             }
                             allPrSets.forEach { (exercise, set) ->
-                                val weightStr = if (set.weightKg % 1.0 == 0.0) set.weightKg.toInt().toString() else set.weightKg.toString()
+                                val weightStr = set.weightKg.formatCleanWeight()
                                 Text(
                                     text = "• ${exercise.name}: $weightStr kg × ${set.reps} opakování",
                                     style = MaterialTheme.typography.bodySmall,
@@ -346,11 +346,7 @@ private fun ExerciseDetailCard(
     item: WorkoutDetailContract.ExerciseWithSets,
     modifier: Modifier = Modifier
 ) {
-    val volumeFormatted = if (item.exerciseVolumeKg % 1.0 == 0.0) {
-        item.exerciseVolumeKg.toInt().toString()
-    } else {
-        item.exerciseVolumeKg.toString()
-    }
+    val volumeFormatted = item.exerciseVolumeKg.formatCleanWeight()
 
     Column(
         modifier = modifier
@@ -386,7 +382,7 @@ private fun ExerciseDetailCard(
 
         // Seznam sérií
         item.sets.forEach { set ->
-            val weightStr = if (set.weightKg % 1.0 == 0.0) set.weightKg.toInt().toString() else set.weightKg.toString()
+            val weightStr = set.weightKg.formatCleanWeight()
             val rpeStr = set.rpe?.let { " • @$it" } ?: ""
 
             Row(
@@ -402,41 +398,20 @@ private fun ExerciseDetailCard(
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val (badgeText, badgeBg, badgeTextColor) = when (set.setType) {
-                        WorkoutSetType.NORMAL -> Triple(
-                            "${set.setNumber}",
-                            AppColors.SurfaceVariant,
-                            AppColors.OnSurface
-                        )
-                        WorkoutSetType.WARMUP -> Triple(
-                            "W",
-                            Color(0xFFF59E0B).copy(alpha = 0.2f),
-                            Color(0xFFF59E0B)
-                        )
-                        WorkoutSetType.DROPSET -> Triple(
-                            "D",
-                            Color(0xFF6366F1).copy(alpha = 0.2f),
-                            Color(0xFF818CF8)
-                        )
-                        WorkoutSetType.FAILURE -> Triple(
-                            "F",
-                            Color(0xFFEF4444).copy(alpha = 0.2f),
-                            Color(0xFFEF4444)
-                        )
-                    }
+                    val badgeVisuals = set.setType.toBadgeVisuals(setNumber = set.setNumber)
 
                     Box(
                         modifier = Modifier
                             .size(24.dp)
                             .clip(RoundedCornerShape(6.dp))
-                            .background(badgeBg),
+                            .background(badgeVisuals.backgroundColor),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = badgeText,
+                            text = badgeVisuals.label,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = badgeTextColor
+                            color = badgeVisuals.contentColor
                         )
                     }
 

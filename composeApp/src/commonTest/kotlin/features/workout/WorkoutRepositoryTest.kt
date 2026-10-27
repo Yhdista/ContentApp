@@ -147,6 +147,10 @@ class WorkoutRepositoryTest {
         assertTrue(sets.all { !it.isCompleted })
         assertEquals(listOf(1, 2, 3), sets.filter { it.exerciseId == "ex_bench" }.map { it.setNumber })
         assertEquals(listOf(1, 2, 3), sets.filter { it.exerciseId == "ex_ohp" }.map { it.setNumber })
+
+        // Ověření zápisu všech 6 sérií ze šablony do Outboxu
+        val setInsertMutations = fakeMutationDao.mutations.filter { it.entityName == "workout_set" && it.operation == "INSERT" }
+        assertEquals(6, setInsertMutations.size)
     }
 
     @Test
@@ -202,6 +206,30 @@ class WorkoutRepositoryTest {
         val sets = repository.getSetsForSession(session.id).first()
         val completedSet = sets.first { it.id == set.id }
         kotlin.test.assertFalse(completedSet.isPersonalRecord)
+    }
+
+    @Test
+    fun testHeavyWarmupSetDoesNotBlockSubsequentWorkingSetPersonalRecord() = runTest {
+        // Sezení 1: Těžký zahřívací set (150 kg × 10 = 200 kg 1RM), který nesmí zablokovat pracovní PR!
+        val session1 = repository.startWorkout("Session 1")
+        val warmupSet = repository.addSet(session1.id, "ex_bench", 150.0, 10)
+        repository.updateSet(warmupSet.copy(isCompleted = true, setType = WorkoutSetType.WARMUP))
+
+        // Následný pracovní set ve stejném sezení (100 kg × 5 = ~116.7 kg 1RM) -> Musí být uznán jako PR!
+        val workingSet1 = repository.addSet(session1.id, "ex_bench", 100.0, 5)
+        repository.updateSet(workingSet1.copy(isCompleted = true, setType = WorkoutSetType.NORMAL))
+
+        val setsSess1 = repository.getSetsForSession(session1.id).first()
+        assertTrue(setsSess1.first { it.id == workingSet1.id }.isPersonalRecord)
+        repository.completeWorkout(session1.id)
+
+        // Sezení 2: Pracovní set (105 kg × 5 = 122.5 kg 1RM) překonává předchozí pracovní 100×5, ačkoliv je nižší než starý warmup 150×10
+        val session2 = repository.startWorkout("Session 2")
+        val workingSet2 = repository.addSet(session2.id, "ex_bench", 105.0, 5)
+        repository.updateSet(workingSet2.copy(isCompleted = true, setType = WorkoutSetType.NORMAL))
+
+        val setsSess2 = repository.getSetsForSession(session2.id).first()
+        assertTrue(setsSess2.first { it.id == workingSet2.id }.isPersonalRecord)
     }
 
     @Test

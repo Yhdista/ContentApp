@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import core.common.formatCleanWeight
 import core.model.ItemSyncStatus
 import features.workout.domain.WorkoutSession
 import features.workout.ui.components.ExercisePickerSheet
@@ -215,11 +216,7 @@ fun WorkoutHistoryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            val volumeFormatted = if (state.totalVolumeAllTimeKg % 1.0 == 0.0) {
-                                state.totalVolumeAllTimeKg.toInt().toString()
-                            } else {
-                                state.totalVolumeAllTimeKg.toString()
-                            }
+                            val volumeFormatted = state.totalVolumeAllTimeKg.formatCleanWeight()
                             Text(
                                 text = "$volumeFormatted kg",
                                 fontSize = 24.sp,
@@ -344,10 +341,11 @@ fun WorkoutHistoryScreen(
                         if (state.searchQuery.isNotEmpty()) {
                             Box(
                                 modifier = Modifier
+                                    .minimumInteractiveComponentSize()
                                     .size(28.dp)
                                     .clip(CircleShape)
                                     .background(AppColors.SurfaceVariant)
-                                    .clickable { onIntent(WorkoutHistoryContract.Intent.ClearSearchQuery) },
+                                    .clickable(role = Role.Button) { onIntent(WorkoutHistoryContract.Intent.ClearSearchQuery) },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(

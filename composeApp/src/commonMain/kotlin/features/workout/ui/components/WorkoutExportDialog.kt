@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import features.workout.domain.ExportFormat
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
@@ -48,8 +49,11 @@ fun WorkoutExportDialog(
     onCopyToClipboard: (text: String, isJson: Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var selectedFormat by remember { mutableStateOf("CSV") }
-    val currentContent = if (selectedFormat == "CSV") csvData else jsonData
+    var selectedFormat by remember { mutableStateOf(ExportFormat.CSV) }
+    val currentContent = when (selectedFormat) {
+        ExportFormat.CSV -> csvData
+        ExportFormat.JSON -> jsonData
+    }
     var copiedFeedback by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -85,9 +89,9 @@ fun WorkoutExportDialog(
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     FilterChip(
-                        selected = selectedFormat == "CSV",
+                        selected = selectedFormat == ExportFormat.CSV,
                         onClick = {
-                            selectedFormat = "CSV"
+                            selectedFormat = ExportFormat.CSV
                             copiedFeedback = false
                         },
                         label = { Text("CSV (Tabulka / Hevy)") },
@@ -99,9 +103,9 @@ fun WorkoutExportDialog(
                         )
                     )
                     FilterChip(
-                        selected = selectedFormat == "JSON",
+                        selected = selectedFormat == ExportFormat.JSON,
                         onClick = {
-                            selectedFormat = "JSON"
+                            selectedFormat = ExportFormat.JSON
                             copiedFeedback = false
                         },
                         label = { Text("JSON (Záloha)") },
@@ -168,7 +172,7 @@ fun WorkoutExportDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onCopyToClipboard(currentContent, selectedFormat == "JSON")
+                    onCopyToClipboard(currentContent, selectedFormat == ExportFormat.JSON)
                     copiedFeedback = true
                 },
                 colors = ButtonDefaults.buttonColors(

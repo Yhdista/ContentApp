@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import core.mvi.UiEffect
 import core.mvi.UiIntent
 import core.mvi.UiState
+import core.ui.UiText
 import features.workout.domain.Exercise
 import features.workout.domain.MuscleGroup
 import features.workout.domain.WorkoutSession
@@ -25,7 +26,7 @@ class ActiveWorkoutContract {
         val selectedStatsExercise: Exercise? = null,
         val exerciseStats: features.workout.domain.ExerciseStats? = null,
         val isLoading: Boolean = false,
-        val error: String? = null
+        val error: UiText? = null
     ) : UiState
 
     sealed class Intent : UiIntent {

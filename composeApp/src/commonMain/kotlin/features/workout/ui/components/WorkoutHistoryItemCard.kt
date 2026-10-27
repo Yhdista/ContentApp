@@ -21,6 +21,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import core.common.formatCleanWeight
 import features.workout.domain.WorkoutSession
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
@@ -32,11 +33,7 @@ fun WorkoutHistoryItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val volumeFormatted = if (session.totalVolumeKg % 1.0 == 0.0) {
-        session.totalVolumeKg.toInt().toString()
-    } else {
-        session.totalVolumeKg.toString()
-    }
+    val volumeFormatted = session.totalVolumeKg.formatCleanWeight()
 
     Column(
         modifier = modifier

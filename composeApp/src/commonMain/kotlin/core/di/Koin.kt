@@ -12,6 +12,9 @@ import features.workout.domain.WorkoutRepository
 import features.workout.history.WorkoutHistoryViewModel
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
@@ -21,15 +24,15 @@ val coreModule = module {
 }
 
 val workoutDataModule = module {
-    single<WorkoutLocalDataSource> { RoomWorkoutLocalDataSource(get()) }
-    single<WorkoutRepository> { OfflineFirstWorkoutRepository(get(), get(), get()) }
+    singleOf(::RoomWorkoutLocalDataSource) { bind<WorkoutLocalDataSource>() }
+    singleOf(::OfflineFirstWorkoutRepository) { bind<WorkoutRepository>() }
     single { SyncManager(get(), get()) }
 }
 
 val workoutPresentationModule = module {
-    factory { ActiveWorkoutViewModel(get(), get(), get(), get()) }
-    factory { WorkoutHistoryViewModel(get(), get(), get()) }
-    factory { WorkoutDetailViewModel(get()) }
+    factoryOf(::ActiveWorkoutViewModel)
+    factoryOf(::WorkoutHistoryViewModel)
+    factoryOf(::WorkoutDetailViewModel)
 }
 
 val commonModule = module {

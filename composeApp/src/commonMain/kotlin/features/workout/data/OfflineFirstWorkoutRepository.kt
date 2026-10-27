@@ -28,12 +28,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Offline-first implementace repozitáře tréninků koordinující:
  * 1. Lokální perzistenci přes hluboký modul [WorkoutLocalDataSource] (čisté doménové modely)
- * 2. Transakční outbox synchronizaci přes [MutationDao] s typově bezpečnou JSON serializací
+ * 2. Transakční outbox synchronizaci přes [MutationDao] s klientskými UUID a typově bezpečnou JSON serializací
  */
+@OptIn(ExperimentalUuidApi::class)
 class OfflineFirstWorkoutRepository(
     private val localDataSource: WorkoutLocalDataSource,
     private val mutationDao: MutationDao,
@@ -67,7 +70,7 @@ class OfflineFirstWorkoutRepository(
     ): Exercise {
         val now = clock.nowMillis()
         val trimmedName = name.trim()
-        val exerciseId = "custom-ex-$now-${(1000..9999).random()}"
+        val exerciseId = "custom-ex-${Uuid.random()}"
         val exercise = Exercise(
             id = exerciseId,
             name = trimmedName,
@@ -83,7 +86,7 @@ class OfflineFirstWorkoutRepository(
         )
         mutationDao.insertMutation(
             SyncMutationEntity(
-                id = "mut-$exerciseId",
+                id = "mut-${Uuid.random()}",
                 entityName = "exercise",
                 recordId = exerciseId,
                 operation = "INSERT",
@@ -115,7 +118,7 @@ class OfflineFirstWorkoutRepository(
             return existing
         }
         val now = clock.nowMillis()
-        val sessionId = "workout-$now-${(1000..9999).random()}"
+        val sessionId = "workout-${Uuid.random()}"
         val session = WorkoutSession(
             id = sessionId,
             title = title,
@@ -132,7 +135,7 @@ class OfflineFirstWorkoutRepository(
         )
         mutationDao.insertMutation(
             SyncMutationEntity(
-                id = "mut-$sessionId",
+                id = "mut-${Uuid.random()}",
                 entityName = "workout_session",
                 recordId = sessionId,
                 operation = "INSERT",
@@ -154,17 +157,18 @@ class OfflineFirstWorkoutRepository(
         val exerciseSets = currentSets.filter { it.exerciseId == exerciseId }
         val nextSetNumber = (exerciseSets.maxOfOrNull { it.setNumber } ?: 0) + 1
         val lastPerformance = getLastPerformance(exerciseId)
-
-        val previousSameExerciseSets = exerciseSets.filter { it.isCompleted }
-        val sessionMax1RM = previousSameExerciseSets.maxOfOrNull {
-            PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps)
-        } ?: 0.0
-        val historicalMax1RM = getHistoricalMax1RM(exerciseId, sessionId)
-        val overallBest1RM = maxOf(sessionMax1RM, historicalMax1RM)
-        val isPR = PersonalRecordCalculator.isPersonalRecord(weightKg, reps, overallBest1RM)
+        val isPR = evaluateIsPersonalRecord(
+            sessionSets = exerciseSets,
+            excludeSetId = null,
+            sessionId = sessionId,
+            exerciseId = exerciseId,
+            weightKg = weightKg,
+            reps = reps,
+            setType = WorkoutSetType.NORMAL
+        )
 
         val now = clock.nowMillis()
-        val setId = "set-$sessionId-$exerciseId-$nextSetNumber-$now"
+        val setId = "set-${Uuid.random()}"
         val workoutSet = WorkoutSet(
             id = setId,
             sessionId = sessionId,
@@ -179,40 +183,23 @@ class OfflineFirstWorkoutRepository(
             setType = WorkoutSetType.NORMAL
         )
         localDataSource.saveSet(workoutSet)
-
-        val payload = InsertSetSyncPayload(
-            sessionId = sessionId,
-            exerciseId = exerciseId,
-            setNumber = nextSetNumber,
-            weightKg = weightKg,
-            reps = reps,
-            setType = WorkoutSetType.NORMAL.name
-        )
-        mutationDao.insertMutation(
-            SyncMutationEntity(
-                id = "mut-$setId",
-                entityName = "workout_set",
-                recordId = setId,
-                operation = "INSERT",
-                payloadJson = json.encodeToString(payload),
-                createdAt = now
-            )
-        )
+        enqueueInsertSetMutation(workoutSet, now)
         return workoutSet
     }
 
     override suspend fun updateSet(set: WorkoutSet) {
         val currentSets = localDataSource.observeSetsForSession(set.sessionId).first()
-        val previousSameExerciseSets = currentSets
-            .filter { it.exerciseId == set.exerciseId && it.id != set.id && it.isCompleted }
-        val sessionMax1RM = previousSameExerciseSets.maxOfOrNull {
-            PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps)
-        } ?: 0.0
-        val historicalMax1RM = getHistoricalMax1RM(set.exerciseId, set.sessionId)
-        val overallBest1RM = maxOf(sessionMax1RM, historicalMax1RM)
-
-        val isPR = if (set.isCompleted && set.setType != WorkoutSetType.WARMUP) {
-            PersonalRecordCalculator.isPersonalRecord(set.weightKg, set.reps, overallBest1RM)
+        val exerciseSets = currentSets.filter { it.exerciseId == set.exerciseId }
+        val isPR = if (set.isCompleted) {
+            evaluateIsPersonalRecord(
+                sessionSets = exerciseSets,
+                excludeSetId = set.id,
+                sessionId = set.sessionId,
+                exerciseId = set.exerciseId,
+                weightKg = set.weightKg,
+                reps = set.reps,
+                setType = set.setType
+            )
         } else {
             false
         }
@@ -231,7 +218,7 @@ class OfflineFirstWorkoutRepository(
         )
         mutationDao.insertMutation(
             SyncMutationEntity(
-                id = "mut-upd-${set.id}-$now",
+                id = "mut-upd-${Uuid.random()}",
                 entityName = "workout_set",
                 recordId = set.id,
                 operation = "UPDATE",
@@ -241,12 +228,54 @@ class OfflineFirstWorkoutRepository(
         )
     }
 
+    private suspend fun evaluateIsPersonalRecord(
+        sessionSets: List<WorkoutSet>,
+        excludeSetId: String?,
+        sessionId: String,
+        exerciseId: String,
+        weightKg: Double,
+        reps: Int,
+        setType: WorkoutSetType
+    ): Boolean {
+        if (setType == WorkoutSetType.WARMUP) return false
+        val completedWorkingSetsInSession = sessionSets.filter {
+            it.id != excludeSetId && it.isCompleted && it.setType != WorkoutSetType.WARMUP
+        }
+        val sessionMax1RM = completedWorkingSetsInSession.maxOfOrNull {
+            PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps)
+        } ?: 0.0
+        val historicalMax1RM = getHistoricalMax1RM(exerciseId, sessionId)
+        val overallBest1RM = maxOf(sessionMax1RM, historicalMax1RM)
+        return PersonalRecordCalculator.isPersonalRecord(weightKg, reps, overallBest1RM)
+    }
+
+    private suspend fun enqueueInsertSetMutation(workoutSet: WorkoutSet, createdAt: Long) {
+        val payload = InsertSetSyncPayload(
+            sessionId = workoutSet.sessionId,
+            exerciseId = workoutSet.exerciseId,
+            setNumber = workoutSet.setNumber,
+            weightKg = workoutSet.weightKg,
+            reps = workoutSet.reps,
+            setType = workoutSet.setType.name
+        )
+        mutationDao.insertMutation(
+            SyncMutationEntity(
+                id = "mut-${Uuid.random()}",
+                entityName = "workout_set",
+                recordId = workoutSet.id,
+                operation = "INSERT",
+                payloadJson = json.encodeToString(payload),
+                createdAt = createdAt
+            )
+        )
+    }
+
     override suspend fun deleteSet(setId: String) {
         localDataSource.deleteSet(setId)
         val now = clock.nowMillis()
         mutationDao.insertMutation(
             SyncMutationEntity(
-                id = "mut-del-$setId-$now",
+                id = "mut-del-${Uuid.random()}",
                 entityName = "workout_set",
                 recordId = setId,
                 operation = "DELETE",
@@ -271,7 +300,7 @@ class OfflineFirstWorkoutRepository(
         )
         mutationDao.insertMutation(
             SyncMutationEntity(
-                id = "mut-complete-$sessionId-$now",
+                id = "mut-complete-${Uuid.random()}",
                 entityName = "workout_session",
                 recordId = sessionId,
                 operation = "COMPLETE",
@@ -287,7 +316,7 @@ class OfflineFirstWorkoutRepository(
         val now = clock.nowMillis()
         mutationDao.insertMutation(
             SyncMutationEntity(
-                id = "mut-cancel-$sessionId-$now",
+                id = "mut-cancel-${Uuid.random()}",
                 entityName = "workout_session",
                 recordId = sessionId,
                 operation = "DELETE",
@@ -304,6 +333,7 @@ class OfflineFirstWorkoutRepository(
 
     override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double {
         val sets = localDataSource.getHistoricalCompletedSets(exerciseId, currentSessionId)
+            .filter { it.setType != WorkoutSetType.WARMUP }
         return sets.maxOfOrNull {
             PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps)
         } ?: 0.0
@@ -355,7 +385,7 @@ class OfflineFirstWorkoutRepository(
     ): WorkoutTemplate {
         val now = clock.nowMillis()
         val trimmedName = name.trim()
-        val templateId = "tmpl-$now-${(1000..9999).random()}"
+        val templateId = "tmpl-${Uuid.random()}"
         val template = WorkoutTemplate(
             id = templateId,
             name = trimmedName,
@@ -370,7 +400,7 @@ class OfflineFirstWorkoutRepository(
         )
         mutationDao.insertMutation(
             SyncMutationEntity(
-                id = "mut-$templateId",
+                id = "mut-${Uuid.random()}",
                 entityName = "workout_template",
                 recordId = templateId,
                 operation = "INSERT",
@@ -385,13 +415,14 @@ class OfflineFirstWorkoutRepository(
         val template = localDataSource.getTemplateById(templateId)
         val title = template?.name ?: "Trénink ze šablony"
         val session = startWorkout(title = title)
+        val now = clock.nowMillis()
 
         for (ex in template?.exercises.orEmpty()) {
             val lastPerf = getLastPerformance(ex.exerciseId)
             val weight = if (ex.defaultWeightKg > 0.0) ex.defaultWeightKg else 20.0
             val reps = if (ex.defaultReps > 0) ex.defaultReps else 10
             for (i in 1..ex.targetSets) {
-                val setId = "set-${session.id}-${ex.exerciseId}-$i-${clock.nowMillis()}"
+                val setId = "set-${Uuid.random()}"
                 val set = WorkoutSet(
                     id = setId,
                     sessionId = session.id,
@@ -405,6 +436,7 @@ class OfflineFirstWorkoutRepository(
                     setType = WorkoutSetType.NORMAL
                 )
                 localDataSource.saveSet(set)
+                enqueueInsertSetMutation(set, now)
             }
         }
         return session

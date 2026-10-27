@@ -135,6 +135,7 @@ fun PlateCalculatorSheet(
                         val isSelected = barWeight == weight
                         Box(
                             modifier = Modifier
+                                .minimumInteractiveComponentSize()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(if (isSelected) AppColors.Primary else AppColors.SurfaceVariant)
                                 .clickable { barWeight = weight }

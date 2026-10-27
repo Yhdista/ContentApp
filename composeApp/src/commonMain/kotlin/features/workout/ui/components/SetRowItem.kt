@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
@@ -35,8 +36,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Dialog
+import core.common.formatCleanWeight
 import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
 import ui.designsystem.nucleus.AppColors
@@ -55,8 +56,7 @@ fun SetRowItem(
     modifier: Modifier = Modifier
 ) {
     var weightText by remember(set.weightKg) {
-        val str = if (set.weightKg % 1.0 == 0.0) set.weightKg.toInt().toString() else set.weightKg.toString()
-        mutableStateOf(str)
+        mutableStateOf(set.weightKg.formatCleanWeight())
     }
     var repsText by remember(set.reps) {
         mutableStateOf(set.reps.toString())
@@ -83,44 +83,26 @@ fun SetRowItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // 1. Číslo a typ série (kliknutím se otevřou možnosti: typ série / smazat)
-        val (badgeText, badgeBg, badgeTextColor) = when (set.setType) {
-            WorkoutSetType.NORMAL -> Triple(
-                "${set.setNumber}",
-                if (set.isCompleted) AppColors.StatusSynced.copy(alpha = 0.15f) else AppColors.SurfaceVariant,
-                if (set.isCompleted) AppColors.StatusSynced else AppColors.OnSurface
-            )
-            WorkoutSetType.WARMUP -> Triple(
-                "W",
-                Color(0xFFF59E0B).copy(alpha = 0.2f),
-                Color(0xFFF59E0B)
-            )
-            WorkoutSetType.DROPSET -> Triple(
-                "D",
-                Color(0xFF6366F1).copy(alpha = 0.2f),
-                Color(0xFF818CF8)
-            )
-            WorkoutSetType.FAILURE -> Triple(
-                "F",
-                Color(0xFFEF4444).copy(alpha = 0.2f),
-                Color(0xFFEF4444)
-            )
-        }
+        // 1. Číslo a typ série (kliknutím se otevřou možnosti: rychlá tlačítka, kalkulátor, typ série, smazat)
+        val badgeVisuals = set.setType.toBadgeVisuals(
+            setNumber = set.setNumber,
+            isCompleted = set.isCompleted
+        )
 
         Box(
             modifier = Modifier
                 .minimumInteractiveComponentSize()
                 .size(32.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(badgeBg)
+                .background(badgeVisuals.backgroundColor)
                 .clickable(role = Role.Button) { showOptionsDialog = true },
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = badgeText,
+                text = badgeVisuals.label,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = badgeTextColor
+                color = badgeVisuals.contentColor
             )
         }
 
@@ -206,15 +188,19 @@ fun SetRowItem(
             )
         }
 
-        // 5. RPE cyklovač (např. 7.5, 8.0, 8.5, 9.0, 9.5, 10.0 nebo —)
+        // 5. RPE cyklovač (např. 7.0..10.0) s garantovanou 48dp dotykovou plochou
         val rpeOptions = listOf(null, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0)
         Box(
             modifier = Modifier
+                .minimumInteractiveComponentSize()
                 .width(44.dp)
                 .height(38.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(if (set.rpe != null) AppColors.PrimaryContainer.copy(alpha = 0.5f) else AppColors.SurfaceVariant.copy(alpha = 0.5f))
-                .clickable {
+                .background(
+                    if (set.rpe != null) AppColors.PrimaryContainer.copy(alpha = 0.5f)
+                    else AppColors.SurfaceVariant.copy(alpha = 0.5f)
+                )
+                .clickable(role = Role.Button) {
                     val currentIndex = rpeOptions.indexOf(set.rpe)
                     val nextIndex = (currentIndex + 1) % rpeOptions.size
                     onRpeChange(rpeOptions[nextIndex])
@@ -275,21 +261,65 @@ fun SetRowItem(
                     color = AppColors.OnSurface
                 )
                 Text(
-                    text = "Zvolte typ série (${set.weightKg} kg × ${set.reps} reps):",
+                    text = "Aktuálně: ${set.weightKg.formatCleanWeight()} kg × ${set.reps} reps",
                     style = MaterialTheme.typography.bodySmall,
                     color = AppColors.OnSurfaceVariant
                 )
+
+                // Rychlá tlačítka pro úpravu váhy a opakování + Kalkulátor kotoučů
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                ) {
+                    QuickStepButton(
+                        label = "-2.5 kg",
+                        modifier = Modifier.weight(1f),
+                        onClick = { onWeightChange((set.weightKg - 2.5).coerceAtLeast(0.0)) }
+                    )
+                    QuickStepButton(
+                        label = "+2.5 kg",
+                        modifier = Modifier.weight(1f),
+                        onClick = { onWeightChange(set.weightKg + 2.5) }
+                    )
+                    QuickStepButton(
+                        label = "-1 rep",
+                        modifier = Modifier.weight(1f),
+                        onClick = { onRepsChange((set.reps - 1).coerceAtLeast(0)) }
+                    )
+                    QuickStepButton(
+                        label = "+1 rep",
+                        modifier = Modifier.weight(1f),
+                        onClick = { onRepsChange(set.reps + 1) }
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .minimumInteractiveComponentSize()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(AppColors.PrimaryContainer.copy(alpha = 0.35f))
+                        .border(1.dp, AppColors.Primary, RoundedCornerShape(10.dp))
+                        .clickable(role = Role.Button) {
+                            showOptionsDialog = false
+                            onOpenPlateCalculator()
+                        }
+                        .padding(vertical = AppSpacing.sm),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "🏋️ Otevřít kalkulátor kotoučů pro tuto sérii",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.Primary
+                    )
+                }
 
                 // Výběr typu série (Hevy styl)
                 Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
                     WorkoutSetType.entries.forEach { type ->
                         val isSelected = set.setType == type
-                        val (typeLetter, typeColor) = when (type) {
-                            WorkoutSetType.NORMAL -> "${set.setNumber}" to AppColors.OnSurface
-                            WorkoutSetType.WARMUP -> "W" to Color(0xFFF59E0B)
-                            WorkoutSetType.DROPSET -> "D" to Color(0xFF818CF8)
-                            WorkoutSetType.FAILURE -> "F" to Color(0xFFEF4444)
-                        }
+                        val typeVisuals = type.toBadgeVisuals(setNumber = set.setNumber)
 
                         Row(
                             modifier = Modifier
@@ -318,12 +348,12 @@ fun SetRowItem(
                                     modifier = Modifier
                                         .size(28.dp)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(typeColor.copy(alpha = 0.2f)),
+                                        .background(typeVisuals.backgroundColor),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = typeLetter,
-                                        color = typeColor,
+                                        text = typeVisuals.label,
+                                        color = typeVisuals.contentColor,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
                                     )
@@ -395,5 +425,30 @@ fun SetRowItem(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun QuickStepButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .minimumInteractiveComponentSize()
+            .clip(RoundedCornerShape(8.dp))
+            .background(AppColors.SurfaceVariant)
+            .border(1.dp, AppColors.Outline, RoundedCornerShape(8.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = AppColors.OnSurface
+        )
     }
 }
