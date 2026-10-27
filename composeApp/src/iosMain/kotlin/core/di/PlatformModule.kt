@@ -1,6 +1,7 @@
 package core.di
 
 import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import core.common.AppClock
 import core.common.IosAppClock
 import core.database.AppDatabase
@@ -10,6 +11,8 @@ import core.feedback.PlatformFeedback
 import core.platform.IosPlatformClipboard
 import core.platform.PlatformClipboard
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import platform.Foundation.NSDocumentDirectory
@@ -22,7 +25,11 @@ actual val platformModule: Module = module {
         Room.databaseBuilder<AppDatabase>(
             name = dbFile,
             factory = { AppDatabaseConstructor.initialize() }
-        ).build()
+        )
+            .setDriver(BundledSQLiteDriver())
+            .setQueryCoroutineContext(Dispatchers.IO)
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
     }
     single { get<AppDatabase>().mutationDao() }
     single { get<AppDatabase>().workoutDao() }

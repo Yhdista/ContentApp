@@ -39,8 +39,9 @@ kotlin {
             
             implementation(libs.androidx.lifecycle.viewmodel)
             
-            // Room
+            // Room & SQLite KMP
             implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.sqlite.bundled)
         }
         
         androidMain.dependencies {
@@ -114,6 +115,9 @@ compose.desktop {
 }
 
 dependencies {
-    "ksp"(libs.androidx.room.compiler)
+    "kspAndroid"(libs.androidx.room.compiler)
     "kspDesktop"(libs.androidx.room.compiler)
+    "kspIosSimulatorArm64"(libs.androidx.room.compiler)
+    "kspIosArm64"(libs.androidx.room.compiler)
+    "kspIosX64"(libs.androidx.room.compiler)
 }

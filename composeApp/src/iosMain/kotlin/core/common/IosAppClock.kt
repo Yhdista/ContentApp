@@ -3,6 +3,7 @@ package core.common
 import platform.Foundation.NSDate
 import platform.Foundation.NSTimeZone
 import platform.Foundation.localTimeZone
+import platform.Foundation.secondsFromGMT
 import platform.Foundation.timeIntervalSince1970
 
 class IosAppClock : AppClock {
