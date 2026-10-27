@@ -1,5 +1,7 @@
 package core.result
 
+import kotlinx.coroutines.CancellationException
+
 interface RootError
 
 sealed interface Result<out D, out E : RootError> {
@@ -44,4 +46,22 @@ inline fun <T, E : RootError> Result<T, E>.onFailure(
 
 fun <T, E : RootError> Result<T, E>.asEmptyResult(): EmptyResult<E> {
     return map { }
+}
+
+/**
+ * Bezpečný obal pro lokální databázové a I/O operace.
+ * Vždy propustí [CancellationException] kvůli strukturované konkurenci korutin.
+ */
+suspend inline fun <T> safeLocalCall(
+    crossinline block: suspend () -> T
+): Result<T, DataError.Local> {
+    return try {
+        Result.Success(block())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: NoSuchElementException) {
+        Result.Error(DataError.Local.NOT_FOUND)
+    } catch (e: Exception) {
+        Result.Error(DataError.Local.UNKNOWN)
+    }
 }

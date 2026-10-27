@@ -8,14 +8,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import org.koin.compose.koinInject
+import core.viewmodel.rememberScreenViewModel
 
 @Composable
 fun WorkoutHistoryRoot(
     onNavigateToActiveWorkout: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: WorkoutHistoryViewModel = koinInject()
+    viewModel: WorkoutHistoryViewModel = rememberScreenViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }

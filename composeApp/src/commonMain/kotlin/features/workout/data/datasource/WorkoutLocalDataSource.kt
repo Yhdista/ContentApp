@@ -1,46 +1,49 @@
 package features.workout.data.datasource
 
-import features.workout.data.entity.ExerciseEntity
-import features.workout.data.entity.WorkoutSessionEntity
-import features.workout.data.entity.WorkoutSetEntity
-import features.workout.data.entity.WorkoutTemplateEntity
-import features.workout.data.entity.WorkoutTemplateExerciseEntity
+import features.workout.domain.Exercise
+import features.workout.domain.WorkoutSession
+import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutTemplate
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Hluboký modul lokálního zdroje dat (Deep Module).
+ *
+ * Skrývá detaily Room databáze, SQL dotazů, N+1 relací šablon i mapování `*Entity` <-> Domain.
+ * Navenek komunikuje výhradně pomocí čistých doménových modelů.
+ */
 interface WorkoutLocalDataSource {
     // Exercises
-    fun getAllExercises(): Flow<List<ExerciseEntity>>
-    suspend fun getExerciseById(id: String): ExerciseEntity?
+    fun observeExercises(): Flow<List<Exercise>>
+    suspend fun getAllExercises(): List<Exercise>
+    suspend fun getExerciseById(id: String): Exercise?
     suspend fun getExercisesCount(): Int
-    suspend fun insertExercise(exercise: ExerciseEntity)
-    suspend fun insertExercises(exercises: List<ExerciseEntity>)
-    suspend fun getAllExercisesList(): List<ExerciseEntity>
+    suspend fun saveExercise(exercise: Exercise)
+    suspend fun saveExercises(exercises: List<Exercise>)
 
     // Sessions
-    fun getActiveSession(): Flow<WorkoutSessionEntity?>
-    suspend fun getActiveSessionSync(): WorkoutSessionEntity?
-    fun getCompletedSessions(): Flow<List<WorkoutSessionEntity>>
-    suspend fun getSessionById(sessionId: String): WorkoutSessionEntity?
-    suspend fun insertSession(session: WorkoutSessionEntity)
-    suspend fun completeSession(sessionId: String, endTime: Long, volume: Double)
-    suspend fun deleteSession(sessionId: String)
-    suspend fun getAllSessionsList(): List<WorkoutSessionEntity>
+    fun observeActiveSession(): Flow<WorkoutSession?>
+    suspend fun getActiveSession(): WorkoutSession?
+    fun observeCompletedSessions(): Flow<List<WorkoutSession>>
+    suspend fun getAllSessions(): List<WorkoutSession>
+    suspend fun getSessionById(sessionId: String): WorkoutSession?
+    suspend fun saveSession(session: WorkoutSession)
+    suspend fun completeSession(sessionId: String, endTimeEpochMs: Long, totalVolumeKg: Double)
+    suspend fun deleteSessionWithSets(sessionId: String)
 
     // Sets
-    fun getSetsForSession(sessionId: String): Flow<List<WorkoutSetEntity>>
-    suspend fun insertOrUpdateSet(set: WorkoutSetEntity)
+    fun observeSetsForSession(sessionId: String): Flow<List<WorkoutSet>>
+    suspend fun saveSet(set: WorkoutSet)
     suspend fun deleteSet(setId: String)
-    suspend fun deleteSetsForSession(sessionId: String)
-    suspend fun getLastPerformanceForExercise(exerciseId: String): WorkoutSetEntity?
-    suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity>
-    fun getAllCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSetEntity>>
-    suspend fun getAllCompletedSets(): List<WorkoutSetEntity>
+    suspend fun getLastCompletedSetForExercise(exerciseId: String): WorkoutSet?
+    suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSet>
+    fun observeCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSet>>
+    suspend fun getAllCompletedSets(): List<WorkoutSet>
 
     // Templates
-    fun getAllTemplates(): Flow<List<WorkoutTemplateEntity>>
-    suspend fun getTemplateById(templateId: String): WorkoutTemplateEntity?
-    suspend fun getTemplateExercises(templateId: String): List<WorkoutTemplateExerciseEntity>
-    suspend fun insertTemplate(template: WorkoutTemplateEntity)
-    suspend fun insertTemplateExercises(exercises: List<WorkoutTemplateExerciseEntity>)
+    fun observeTemplates(): Flow<List<WorkoutTemplate>>
+    suspend fun getTemplateById(templateId: String): WorkoutTemplate?
     suspend fun getTemplatesCount(): Int
+    suspend fun saveTemplate(template: WorkoutTemplate)
+    suspend fun saveTemplates(templates: List<WorkoutTemplate>)
 }

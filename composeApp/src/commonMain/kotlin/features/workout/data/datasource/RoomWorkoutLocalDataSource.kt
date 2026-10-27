@@ -1,77 +1,117 @@
 package features.workout.data.datasource
 
 import features.workout.data.dao.WorkoutDao
-import features.workout.data.entity.ExerciseEntity
-import features.workout.data.entity.WorkoutSessionEntity
-import features.workout.data.entity.WorkoutSetEntity
-import features.workout.data.entity.WorkoutTemplateEntity
-import features.workout.data.entity.WorkoutTemplateExerciseEntity
+import features.workout.data.mapper.toDomain
+import features.workout.data.mapper.toEntity
+import features.workout.domain.Exercise
+import features.workout.domain.WorkoutSession
+import features.workout.domain.WorkoutSet
+import features.workout.domain.WorkoutTemplate
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 
 class RoomWorkoutLocalDataSource(
     private val workoutDao: WorkoutDao
 ) : WorkoutLocalDataSource {
 
-    override fun getAllExercises(): Flow<List<ExerciseEntity>> = workoutDao.getAllExercises()
+    override fun observeExercises(): Flow<List<Exercise>> =
+        workoutDao.getAllExercises().map { list -> list.map { it.toDomain() } }
 
-    override suspend fun getExerciseById(id: String): ExerciseEntity? = workoutDao.getExerciseById(id)
+    override suspend fun getAllExercises(): List<Exercise> =
+        workoutDao.getAllExercisesList().map { it.toDomain() }
 
-    override suspend fun getExercisesCount(): Int = workoutDao.getExercisesCount()
+    override suspend fun getExerciseById(id: String): Exercise? =
+        workoutDao.getExerciseById(id)?.toDomain()
 
-    override suspend fun insertExercise(exercise: ExerciseEntity) = workoutDao.insertExercise(exercise)
+    override suspend fun getExercisesCount(): Int =
+        workoutDao.getExercisesCount()
 
-    override suspend fun insertExercises(exercises: List<ExerciseEntity>) = workoutDao.insertExercises(exercises)
+    override suspend fun saveExercise(exercise: Exercise) =
+        workoutDao.insertExercise(exercise.toEntity())
 
-    override suspend fun getAllExercisesList(): List<ExerciseEntity> = workoutDao.getAllExercisesList()
+    override suspend fun saveExercises(exercises: List<Exercise>) =
+        workoutDao.insertExercises(exercises.map { it.toEntity() })
 
-    override fun getActiveSession(): Flow<WorkoutSessionEntity?> = workoutDao.getActiveSession()
+    override fun observeActiveSession(): Flow<WorkoutSession?> =
+        workoutDao.getActiveSession().map { it?.toDomain() }
 
-    override suspend fun getActiveSessionSync(): WorkoutSessionEntity? = workoutDao.getActiveSessionSync()
+    override suspend fun getActiveSession(): WorkoutSession? =
+        workoutDao.getActiveSessionSync()?.toDomain()
 
-    override fun getCompletedSessions(): Flow<List<WorkoutSessionEntity>> = workoutDao.getCompletedSessions()
+    override fun observeCompletedSessions(): Flow<List<WorkoutSession>> =
+        workoutDao.getCompletedSessions().map { list -> list.map { it.toDomain() } }
 
-    override suspend fun getSessionById(sessionId: String): WorkoutSessionEntity? = workoutDao.getSessionById(sessionId)
+    override suspend fun getAllSessions(): List<WorkoutSession> =
+        workoutDao.getAllSessionsList().map { it.toDomain() }
 
-    override suspend fun insertSession(session: WorkoutSessionEntity) = workoutDao.insertSession(session)
+    override suspend fun getSessionById(sessionId: String): WorkoutSession? =
+        workoutDao.getSessionById(sessionId)?.toDomain()
 
-    override suspend fun completeSession(sessionId: String, endTime: Long, volume: Double) =
-        workoutDao.completeSession(sessionId, endTime, volume)
+    override suspend fun saveSession(session: WorkoutSession) =
+        workoutDao.insertSession(session.toEntity())
 
-    override suspend fun deleteSession(sessionId: String) = workoutDao.deleteSession(sessionId)
+    override suspend fun completeSession(sessionId: String, endTimeEpochMs: Long, totalVolumeKg: Double) =
+        workoutDao.completeSession(sessionId, endTimeEpochMs, totalVolumeKg)
 
-    override suspend fun getAllSessionsList(): List<WorkoutSessionEntity> = workoutDao.getAllSessionsList()
+    override suspend fun deleteSessionWithSets(sessionId: String) {
+        workoutDao.deleteSetsForSession(sessionId)
+        workoutDao.deleteSession(sessionId)
+    }
 
-    override fun getSetsForSession(sessionId: String): Flow<List<WorkoutSetEntity>> = workoutDao.getSetsForSession(sessionId)
+    override fun observeSetsForSession(sessionId: String): Flow<List<WorkoutSet>> =
+        workoutDao.getSetsForSession(sessionId).map { list -> list.map { it.toDomain() } }
 
-    override suspend fun insertOrUpdateSet(set: WorkoutSetEntity) = workoutDao.insertOrUpdateSet(set)
+    override suspend fun saveSet(set: WorkoutSet) =
+        workoutDao.insertOrUpdateSet(set.toEntity())
 
-    override suspend fun deleteSet(setId: String) = workoutDao.deleteSet(setId)
+    override suspend fun deleteSet(setId: String) =
+        workoutDao.deleteSet(setId)
 
-    override suspend fun deleteSetsForSession(sessionId: String) = workoutDao.deleteSetsForSession(sessionId)
+    override suspend fun getLastCompletedSetForExercise(exerciseId: String): WorkoutSet? =
+        workoutDao.getLastPerformanceForExercise(exerciseId)?.toDomain()
 
-    override suspend fun getLastPerformanceForExercise(exerciseId: String): WorkoutSetEntity? =
-        workoutDao.getLastPerformanceForExercise(exerciseId)
+    override suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSet> =
+        workoutDao.getHistoricalCompletedSets(exerciseId, currentSessionId).map { it.toDomain() }
 
-    override suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity> =
-        workoutDao.getHistoricalCompletedSets(exerciseId, currentSessionId)
+    override fun observeCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSet>> =
+        workoutDao.getAllCompletedSetsForExercise(exerciseId).map { list -> list.map { it.toDomain() } }
 
-    override fun getAllCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSetEntity>> =
-        workoutDao.getAllCompletedSetsForExercise(exerciseId)
+    override suspend fun getAllCompletedSets(): List<WorkoutSet> =
+        workoutDao.getAllCompletedSets().map { it.toDomain() }
 
-    override suspend fun getAllCompletedSets(): List<WorkoutSetEntity> = workoutDao.getAllCompletedSets()
+    override fun observeTemplates(): Flow<List<WorkoutTemplate>> =
+        combine(
+            workoutDao.getAllTemplates(),
+            workoutDao.getAllTemplateExercises()
+        ) { templates, allExercises ->
+            val exercisesByTemplate = allExercises.groupBy { it.templateId }
+            templates.map { tmpl ->
+                val tmplExercises = exercisesByTemplate[tmpl.id]
+                    .orEmpty()
+                    .sortedBy { it.orderIndex }
+                    .map { it.toDomain() }
+                tmpl.toDomain(tmplExercises)
+            }
+        }
 
-    override fun getAllTemplates(): Flow<List<WorkoutTemplateEntity>> = workoutDao.getAllTemplates()
+    override suspend fun getTemplateById(templateId: String): WorkoutTemplate? {
+        val entity = workoutDao.getTemplateById(templateId) ?: return null
+        val exercises = workoutDao.getTemplateExercises(templateId).map { it.toDomain() }
+        return entity.toDomain(exercises)
+    }
 
-    override suspend fun getTemplateById(templateId: String): WorkoutTemplateEntity? =
-        workoutDao.getTemplateById(templateId)
+    override suspend fun getTemplatesCount(): Int =
+        workoutDao.getTemplatesCount()
 
-    override suspend fun getTemplateExercises(templateId: String): List<WorkoutTemplateExerciseEntity> =
-        workoutDao.getTemplateExercises(templateId)
+    override suspend fun saveTemplate(template: WorkoutTemplate) {
+        workoutDao.insertTemplate(template.toEntity())
+        workoutDao.insertTemplateExercises(template.exercises.map { it.toEntity(template.id) })
+    }
 
-    override suspend fun insertTemplate(template: WorkoutTemplateEntity) = workoutDao.insertTemplate(template)
-
-    override suspend fun insertTemplateExercises(exercises: List<WorkoutTemplateExerciseEntity>) =
-        workoutDao.insertTemplateExercises(exercises)
-
-    override suspend fun getTemplatesCount(): Int = workoutDao.getTemplatesCount()
+    override suspend fun saveTemplates(templates: List<WorkoutTemplate>) {
+        for (tmpl in templates) {
+            saveTemplate(tmpl)
+        }
+    }
 }

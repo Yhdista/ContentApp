@@ -1,10 +1,12 @@
 package core.sync
 
 import core.common.ApplicationScope
+import core.database.DEFAULT_MAX_SYNC_RETRIES
 import core.database.MutationDao
 import core.database.SyncMutationEntity
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,25 +19,39 @@ import kotlin.random.Random
 /**
  * Asynchronní Outbox engine zodpovědný za spolehlivé odesílání
  * lokálně zapsaných mutací na cloudový backend.
+ *
+ * Architektonické záruky:
+ * - Single-Active-Job Guard: Opakované volání [startSyncLoop] nespustí duplicitní korutiny.
+ * - Dead-Letter / Max-Retry Ochrana: Mutace se po překročení [maxRetries] přestanou nekonečně opakovat.
+ * - Injektovatelný [networkUploader]: Umožňuje deterministické testování síťových výpadků.
  */
 class SyncManager(
     private val mutationDao: MutationDao,
-    private val applicationScope: ApplicationScope
+    private val applicationScope: ApplicationScope,
+    private val maxRetries: Int = DEFAULT_MAX_SYNC_RETRIES,
+    private val networkUploader: suspend (SyncMutationEntity) -> Boolean = ::defaultSimulateNetworkUpload
 ) {
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
-    private val _lastSyncLog = MutableStateFlow<String>("Čeká na první synchronizaci...")
+    private val _lastSyncLog = MutableStateFlow("Čeká na první synchronizaci...")
     val lastSyncLog: StateFlow<String> = _lastSyncLog.asStateFlow()
 
+    private var syncJob: Job? = null
+
     fun startSyncLoop() {
-        applicationScope.launch {
+        if (syncJob?.isActive == true) return
+
+        syncJob = applicationScope.launch {
             mutationDao.getPendingMutations().collect { mutations ->
-                if (mutations.isNotEmpty()) {
+                val actionable = mutations.filter { it.retryCount < maxRetries }
+                if (actionable.isNotEmpty()) {
                     _isSyncing.value = true
-                    for (mutation in mutations) {
+                    for (mutation in actionable) {
                         processMutation(mutation)
                     }
+                    _isSyncing.value = false
+                } else {
                     _isSyncing.value = false
                 }
             }
@@ -46,18 +62,16 @@ class SyncManager(
         try {
             _lastSyncLog.value = "Odesílám mutaci: ${mutation.entityName} (id: ${mutation.id.take(8)}...)"
 
-            // Obaleno do withTimeout pro simulaci reálného síťového limitu
             val success = withTimeout(3000) {
-                simulateNetworkUpload(mutation)
+                networkUploader(mutation)
             }
 
             if (success) {
-                // Po úspěchu: smazat z outbox fronty (tím reaktivně klesne pending count)
                 mutationDao.deleteMutation(mutation.id)
                 _lastSyncLog.value = "Synchronizováno OK: ${mutation.recordId}"
                 Napier.d("Sync úspěch pro mutaci ${mutation.id}")
             } else {
-                handleFailure(mutation, "Simulovaná chyba sítě (30% drop)")
+                handleFailure(mutation, "Simulovaná chyba sítě (drop)")
             }
         } catch (e: TimeoutCancellationException) {
             handleFailure(mutation, "Timeout požadavku (>3s)")
@@ -71,19 +85,25 @@ class SyncManager(
     private suspend fun handleFailure(mutation: SyncMutationEntity, reason: String) {
         val newRetry = mutation.retryCount + 1
         mutationDao.markError(mutation.id, reason, newRetry)
-        _lastSyncLog.value = "Chyba ($reason) – pokus č. $newRetry"
-        Napier.w("Sync selhal pro ${mutation.id}: $reason")
-        // Krátká prodleva před dalším pokusem
-        delay(1500)
+        if (newRetry >= maxRetries) {
+            _lastSyncLog.value = "Odloženo po $newRetry pokusech ($reason): ${mutation.recordId}"
+            Napier.e("Sync mutace ${mutation.id} dosáhla max. počtu pokusů ($maxRetries): $reason")
+        } else {
+            _lastSyncLog.value = "Chyba ($reason) – pokus č. $newRetry/$maxRetries"
+            Napier.w("Sync selhal pro ${mutation.id}: $reason (pokus $newRetry/$maxRetries)")
+            delay(1500)
+        }
     }
 
-    /**
-     * Simulátor odeslání sítě:
-     * - Přidává umělou latenci 600 ms
-     * - Náhodně způsobí 20% chybovost pro ověření retry logiky
-     */
-    private suspend fun simulateNetworkUpload(mutation: SyncMutationEntity): Boolean {
-        delay(600)
-        return Random.nextInt(100) >= 20 // 80% úspěšnost
+    companion object {
+        /**
+         * Výchozí simulátor odeslání sítě:
+         * - Přidává umělou latenci 600 ms
+         * - Náhodně způsobí 20% chybovost pro ověření retry logiky
+         */
+        suspend fun defaultSimulateNetworkUpload(mutation: SyncMutationEntity): Boolean {
+            delay(600)
+            return Random.nextInt(100) >= 20
+        }
     }
 }

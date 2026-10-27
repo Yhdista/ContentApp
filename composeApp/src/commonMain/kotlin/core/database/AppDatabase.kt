@@ -20,7 +20,8 @@ import features.workout.data.entity.WorkoutTemplateExerciseEntity
         WorkoutTemplateEntity::class,
         WorkoutTemplateExerciseEntity::class
     ],
-    version = 6
+    version = 6,
+    exportSchema = false
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

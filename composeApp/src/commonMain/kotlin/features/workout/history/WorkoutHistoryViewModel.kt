@@ -79,15 +79,22 @@ class WorkoutHistoryViewModel(
             workoutRepository.ensureDefaultExercises()
             workoutRepository.ensureDefaultTemplates()
 
+            // Samostatný lehký odběr počtu čekajících mutací v Outboxu,
+            // aby změna stavu synchronizace nespouštěla přepočet celé historie a čtení všech sérií.
+            launch {
+                workoutRepository.getPendingSyncMutationsCount().collect { pendingCount ->
+                    updateState { copy(pendingSyncCount = pendingCount) }
+                }
+            }
+
             combine(
                 workoutRepository.getCompletedSessions(),
                 workoutRepository.getActiveSession(),
-                workoutRepository.getPendingSyncMutationsCount(),
                 workoutRepository.getTemplates(),
                 workoutRepository.getExercises()
-            ) { completed, active, pendingCount, templates, exercises ->
+            ) { completed, active, templates, exercises ->
                 val totalVolume = completed.sumOf { it.totalVolumeKg }
-                HistoryData(completed, active, pendingCount, templates, exercises, totalVolume)
+                HistoryData(completed, active, templates, exercises, totalVolume)
             }.collect { data ->
                 val allSets = workoutRepository.getAllCompletedSets()
                 val exerciseMap = data.exercises.associateBy { it.id }
@@ -116,7 +123,6 @@ class WorkoutHistoryViewModel(
                         allExercises = data.exercises,
                         totalVolumeAllTimeKg = data.totalVolume,
                         totalWorkoutsCount = data.completed.size,
-                        pendingSyncCount = data.pendingCount,
                         sessionExerciseNames = sessionExerciseMap,
                         weeklyActivity = weekly,
                         filteredCompletedSessions = filtered,
@@ -130,7 +136,6 @@ class WorkoutHistoryViewModel(
     private data class HistoryData(
         val completed: List<WorkoutSession>,
         val active: WorkoutSession?,
-        val pendingCount: Int,
         val templates: List<WorkoutTemplate>,
         val exercises: List<Exercise>,
         val totalVolume: Double

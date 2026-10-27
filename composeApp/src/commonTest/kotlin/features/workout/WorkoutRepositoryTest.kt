@@ -203,6 +203,19 @@ class WorkoutRepositoryTest {
         val completedSet = sets.first { it.id == set.id }
         kotlin.test.assertFalse(completedSet.isPersonalRecord)
     }
+
+    @Test
+    fun testOutboxPayloadsAreValidJsonWithEscapedSpecialCharacters() = runTest {
+        val created = repository.createCustomExercise(
+            name = "Bench \"Heavy\" \\ Press",
+            muscleGroup = features.workout.domain.MuscleGroup.CHEST,
+            defaultRestSeconds = 120
+        )
+        val mutation = fakeMutationDao.mutations.first { it.recordId == created.id }
+        assertTrue(mutation.payloadJson.contains("\\\"Heavy\\\""))
+        val decoded = kotlinx.serialization.json.Json.decodeFromString<features.workout.data.model.ExerciseSyncPayload>(mutation.payloadJson)
+        assertEquals("Bench \"Heavy\" \\ Press", decoded.name)
+    }
 }
 
 private class RepoFakeClock(var time: Long) : AppClock {
@@ -279,6 +292,8 @@ private class FakeWorkoutDao : WorkoutDao {
         sets.value.filter { it.exerciseId == exerciseId && it.isCompleted && it.sessionId != currentSessionId }
 
     override fun getAllTemplates(): Flow<List<WorkoutTemplateEntity>> = templates.asStateFlow()
+
+    override fun getAllTemplateExercises(): Flow<List<WorkoutTemplateExerciseEntity>> = templateExercises.asStateFlow()
 
     override suspend fun getTemplateById(templateId: String): WorkoutTemplateEntity? =
         templates.value.firstOrNull { it.id == templateId }

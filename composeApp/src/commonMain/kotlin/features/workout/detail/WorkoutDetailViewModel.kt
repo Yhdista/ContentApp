@@ -1,6 +1,10 @@
 package features.workout.detail
 
 import androidx.lifecycle.viewModelScope
+import core.result.onFailure
+import core.result.onSuccess
+import core.result.safeLocalCall
+import core.ui.toUiText
 import core.viewmodel.BaseViewModel
 import features.workout.domain.WorkoutRepository
 import kotlinx.coroutines.flow.first
@@ -27,8 +31,13 @@ class WorkoutDetailViewModel(
     private fun saveAsTemplate(templateName: String) {
         val currentSession = uiState.value.session ?: return
         viewModelScope.launch {
-            workoutRepository.saveSessionAsTemplate(currentSession.id, templateName)
-            sendEffect(WorkoutDetailContract.Effect.ShowSnackbar("Šablona '$templateName' byla úspěšně uložena."))
+            safeLocalCall {
+                workoutRepository.saveSessionAsTemplate(currentSession.id, templateName)
+            }.onSuccess {
+                sendEffect(WorkoutDetailContract.Effect.ShowSnackbar("Šablona '$templateName' byla úspěšně uložena."))
+            }.onFailure { error ->
+                sendEffect(WorkoutDetailContract.Effect.ShowSnackbar(error.toUiText().asString()))
+            }
         }
     }
 

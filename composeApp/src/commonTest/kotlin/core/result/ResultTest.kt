@@ -1,5 +1,7 @@
 package core.result
 
+import core.ui.toUiText
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -40,5 +42,15 @@ class ResultTest {
         val empty = result.asEmptyResult()
         assertTrue(empty is Result.Success)
         assertEquals(Unit, (empty as Result.Success).data)
+    }
+
+    @Test
+    fun testSafeLocalCallCatchesExceptionAndMapsToDataError() = runTest {
+        val notFoundResult = safeLocalCall<String> {
+            throw NoSuchElementException("Missing entity")
+        }
+        assertTrue(notFoundResult is Result.Error)
+        assertEquals(DataError.Local.NOT_FOUND, (notFoundResult as Result.Error).error)
+        assertTrue(notFoundResult.error.toUiText().asString().isNotBlank())
     }
 }

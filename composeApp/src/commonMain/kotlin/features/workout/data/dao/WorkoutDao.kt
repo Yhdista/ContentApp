@@ -87,6 +87,9 @@ interface WorkoutDao {
     @Query("SELECT * FROM workout_templates ORDER BY name ASC")
     fun getAllTemplates(): Flow<List<WorkoutTemplateEntity>>
 
+    @Query("SELECT * FROM workout_template_exercises ORDER BY orderIndex ASC")
+    fun getAllTemplateExercises(): Flow<List<WorkoutTemplateExerciseEntity>>
+
     @Query("SELECT * FROM workout_templates WHERE id = :templateId LIMIT 1")
     suspend fun getTemplateById(templateId: String): WorkoutTemplateEntity?
 

@@ -6,9 +6,11 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
+const val DEFAULT_MAX_SYNC_RETRIES = 5
+
 @Dao
 interface MutationDao {
-    @Query("SELECT * FROM sync_mutations ORDER BY createdAt ASC")
+    @Query("SELECT * FROM sync_mutations WHERE retryCount < $DEFAULT_MAX_SYNC_RETRIES ORDER BY createdAt ASC")
     fun getPendingMutations(): Flow<List<SyncMutationEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

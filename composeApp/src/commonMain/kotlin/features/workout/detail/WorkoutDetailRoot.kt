@@ -5,14 +5,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import org.koin.compose.koinInject
+import core.viewmodel.rememberScreenViewModel
 
 @Composable
 fun WorkoutDetailRoot(
     sessionId: String,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: WorkoutDetailViewModel = koinInject()
+    viewModel: WorkoutDetailViewModel = rememberScreenViewModel(key = "detail_$sessionId")
 ) {
     val state by viewModel.uiState.collectAsState()
 
