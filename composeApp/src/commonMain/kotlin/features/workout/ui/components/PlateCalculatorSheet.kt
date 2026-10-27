@@ -35,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import features.workout.domain.BarbellPlate
+import features.workout.domain.PlateCalculator
 import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
@@ -45,29 +47,20 @@ data class PlateSpec(
     val heightDp: Int
 )
 
-val STANDARD_PLATES = listOf(
-    PlateSpec(25.0, Color(0xFFDC2626), Color.White, 76),
-    PlateSpec(20.0, Color(0xFF2563EB), Color.White, 68),
-    PlateSpec(15.0, Color(0xFFEAB308), Color.Black, 60),
-    PlateSpec(10.0, Color(0xFF16A34A), Color.White, 52),
-    PlateSpec(5.0, Color(0xFFE2E8F0), Color.Black, 44),
-    PlateSpec(2.5, Color(0xFF334155), Color.White, 36),
-    PlateSpec(1.25, Color(0xFF94A3B8), Color.Black, 28)
-)
+fun BarbellPlate.toSpec(): PlateSpec = when (weightKg) {
+    25.0 -> PlateSpec(25.0, Color(0xFFDC2626), Color.White, 76)
+    20.0 -> PlateSpec(20.0, Color(0xFF2563EB), Color.White, 68)
+    15.0 -> PlateSpec(15.0, Color(0xFFEAB308), Color.Black, 60)
+    10.0 -> PlateSpec(10.0, Color(0xFF16A34A), Color.White, 52)
+    5.0 -> PlateSpec(5.0, Color(0xFFE2E8F0), Color.Black, 44)
+    2.5 -> PlateSpec(2.5, Color(0xFF334155), Color.White, 36)
+    else -> PlateSpec(weightKg, Color(0xFF94A3B8), Color.Black, 28)
+}
+
+val STANDARD_PLATES = PlateCalculator.STANDARD_AVAILABLE_PLATES.map { it.toSpec() }
 
 fun calculatePlatesPerSide(totalWeightKg: Double, barWeightKg: Double = 20.0): List<PlateSpec> {
-    var remainingPerSide = (totalWeightKg - barWeightKg) / 2.0
-    if (remainingPerSide <= 0.0) return emptyList()
-
-    val result = mutableListOf<PlateSpec>()
-    for (plate in STANDARD_PLATES) {
-        val count = (remainingPerSide / plate.weightKg).toInt()
-        repeat(count) {
-            result.add(plate)
-        }
-        remainingPerSide -= count * plate.weightKg
-    }
-    return result
+    return PlateCalculator.calculatePlatesPerSide(totalWeightKg, barWeightKg).map { it.toSpec() }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

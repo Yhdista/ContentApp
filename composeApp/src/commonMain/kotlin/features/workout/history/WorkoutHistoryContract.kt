@@ -1,5 +1,6 @@
 package features.workout.history
 
+import androidx.compose.runtime.Stable
 import core.mvi.UiEffect
 import core.mvi.UiIntent
 import core.mvi.UiState
@@ -10,6 +11,8 @@ import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutTemplate
 
 class WorkoutHistoryContract {
+
+    @Stable
     data class State(
         val completedSessions: List<WorkoutSession> = emptyList(),
         val activeSession: WorkoutSession? = null,
@@ -32,17 +35,23 @@ class WorkoutHistoryContract {
         val exportSetsCount: Int = 0,
         val weeklyActivity: WeeklyActivitySummary? = null,
         val searchQuery: String = "",
-        val sessionExerciseNames: Map<String, List<String>> = emptyMap()
-    ) : UiState {
-        val filteredCompletedSessions: List<WorkoutSession>
-            get() {
-                if (searchQuery.isBlank()) return completedSessions
-                val query = searchQuery.trim().lowercase()
-                return completedSessions.filter { session ->
-                    session.title.lowercase().contains(query) ||
-                    sessionExerciseNames[session.id]?.any { it.lowercase().contains(query) } == true
-                }
+        val sessionExerciseNames: Map<String, List<String>> = emptyMap(),
+        val filteredCompletedSessions: List<WorkoutSession> = emptyList()
+    ) : UiState
+
+    companion object {
+        fun filterSessions(
+            sessions: List<WorkoutSession>,
+            sessionExerciseNames: Map<String, List<String>>,
+            query: String
+        ): List<WorkoutSession> {
+            if (query.isBlank()) return sessions
+            val clean = query.trim().lowercase()
+            return sessions.filter { session ->
+                session.title.lowercase().contains(clean) ||
+                sessionExerciseNames[session.id]?.any { it.lowercase().contains(clean) } == true
             }
+        }
     }
 
     sealed class Intent : UiIntent {

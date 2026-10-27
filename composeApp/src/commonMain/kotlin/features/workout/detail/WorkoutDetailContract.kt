@@ -1,5 +1,6 @@
 package features.workout.detail
 
+import androidx.compose.runtime.Stable
 import core.mvi.UiEffect
 import core.mvi.UiIntent
 import core.mvi.UiState
@@ -14,6 +15,7 @@ class WorkoutDetailContract {
         val exerciseVolumeKg: Double
     )
 
+    @Stable
     data class State(
         val session: WorkoutSession? = null,
         val exercisesWithSets: List<ExerciseWithSets> = emptyList(),

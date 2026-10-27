@@ -30,10 +30,16 @@ class WorkoutHistoryViewModel(
         when (intent) {
             is WorkoutHistoryContract.Intent.LoadHistory -> loadHistory()
             is WorkoutHistoryContract.Intent.UpdateSearchQuery -> {
-                updateState { copy(searchQuery = intent.query) }
+                updateState {
+                    val filtered = WorkoutHistoryContract.filterSessions(completedSessions, sessionExerciseNames, intent.query)
+                    copy(searchQuery = intent.query, filteredCompletedSessions = filtered)
+                }
             }
             is WorkoutHistoryContract.Intent.ClearSearchQuery -> {
-                updateState { copy(searchQuery = "") }
+                updateState {
+                    val filtered = WorkoutHistoryContract.filterSessions(completedSessions, sessionExerciseNames, "")
+                    copy(searchQuery = "", filteredCompletedSessions = filtered)
+                }
             }
             is WorkoutHistoryContract.Intent.StartNewWorkout -> startNewWorkout()
             is WorkoutHistoryContract.Intent.OpenTemplatePicker -> {
@@ -96,6 +102,12 @@ class WorkoutHistoryViewModel(
                     timeZoneOffsetMs = appClock.timeZoneOffsetMillis()
                 )
 
+                val filtered = WorkoutHistoryContract.filterSessions(
+                    data.completed,
+                    sessionExerciseMap,
+                    uiState.value.searchQuery
+                )
+
                 updateState {
                     copy(
                         completedSessions = data.completed,
@@ -107,6 +119,7 @@ class WorkoutHistoryViewModel(
                         pendingSyncCount = data.pendingCount,
                         sessionExerciseNames = sessionExerciseMap,
                         weeklyActivity = weekly,
+                        filteredCompletedSessions = filtered,
                         isLoading = false
                     )
                 }

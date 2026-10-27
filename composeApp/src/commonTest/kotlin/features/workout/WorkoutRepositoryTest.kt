@@ -3,8 +3,9 @@ package features.workout
 import core.common.AppClock
 import core.database.MutationDao
 import core.database.SyncMutationEntity
-import features.workout.data.WorkoutRepositoryImpl
+import features.workout.data.OfflineFirstWorkoutRepository
 import features.workout.data.dao.WorkoutDao
+import features.workout.data.datasource.RoomWorkoutLocalDataSource
 import features.workout.data.entity.ExerciseEntity
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
@@ -36,8 +37,8 @@ class WorkoutRepositoryTest {
         fakeDao = FakeWorkoutDao()
         fakeMutationDao = FakeMutationDao()
         fakeClock = RepoFakeClock(time = 1000000L)
-        repository = WorkoutRepositoryImpl(
-            workoutDao = fakeDao,
+        repository = OfflineFirstWorkoutRepository(
+            localDataSource = RoomWorkoutLocalDataSource(fakeDao),
             mutationDao = fakeMutationDao,
             clock = fakeClock
         )

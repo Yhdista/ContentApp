@@ -1,5 +1,6 @@
 package features.workout.active
 
+import androidx.compose.runtime.Stable
 import core.mvi.UiEffect
 import core.mvi.UiIntent
 import core.mvi.UiState
@@ -10,6 +11,7 @@ import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
 
 class ActiveWorkoutContract {
+    @Stable
     data class State(
         val session: WorkoutSession? = null,
         val availableExercises: List<Exercise> = emptyList(),

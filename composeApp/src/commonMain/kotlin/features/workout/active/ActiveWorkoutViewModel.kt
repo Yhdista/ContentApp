@@ -31,7 +31,6 @@ class ActiveWorkoutViewModel(
     private var restTimerJob: Job? = null
     private var workoutTimerJob: Job? = null
     private var statsJob: Job? = null
-    private val selectedExercises = mutableListOf<Exercise>()
 
     init {
         onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
@@ -85,24 +84,24 @@ class ActiveWorkoutViewModel(
                     setsCollectorJob?.cancel()
                     setsCollectorJob = launch {
                         workoutRepository.getSetsForSession(active.id).collect { sessionSets ->
-                            val allEx = uiState.value.availableExercises
-                            val exerciseIds = sessionSets.map { it.exerciseId }.distinct()
-                            val exercisesInWorkout = exerciseIds.mapNotNull { id -> allEx.find { it.id == id } }
-
-                            selectedExercises.clear()
-                            selectedExercises.addAll(exercisesInWorkout)
-
                             updateState {
+                                val allEx = availableExercises
+                                val existingExIds = workoutExercises.map { it.id }.toSet()
+                                val setExIds = sessionSets.map { it.exerciseId }.distinct()
+                                val newExercisesFromSets = setExIds
+                                    .filterNot { it in existingExIds }
+                                    .mapNotNull { id -> allEx.find { it.id == id } }
+
                                 copy(
                                     sets = sessionSets,
-                                    workoutExercises = selectedExercises.toList()
+                                    workoutExercises = workoutExercises + newExercisesFromSets
                                 )
                             }
                         }
                     }
                 } else {
                     setsCollectorJob?.cancel()
-                    selectedExercises.clear()
+                    workoutTimerJob?.cancel()
                     updateState { copy(sets = emptyList(), workoutExercises = emptyList()) }
                 }
             }
@@ -121,16 +120,13 @@ class ActiveWorkoutViewModel(
     }
 
     private fun addExercise(exercise: Exercise) {
-        if (selectedExercises.none { it.id == exercise.id }) {
-            selectedExercises.add(exercise)
-            updateState {
-                copy(
-                    workoutExercises = selectedExercises.toList(),
-                    isPickerVisible = false
-                )
-            }
-        } else {
-            updateState { copy(isPickerVisible = false) }
+        updateState {
+            val current = workoutExercises
+            val updated = if (current.none { it.id == exercise.id }) current + exercise else current
+            copy(
+                workoutExercises = updated,
+                isPickerVisible = false
+            )
         }
         addSet(exercise.id)
     }
@@ -161,8 +157,12 @@ class ActiveWorkoutViewModel(
     }
 
     private fun removeExercise(exerciseId: String) {
-        selectedExercises.removeAll { it.id == exerciseId }
-        updateState { copy(workoutExercises = selectedExercises.toList()) }
+        updateState {
+            copy(
+                workoutExercises = workoutExercises.filterNot { it.id == exerciseId },
+                sets = sets.filterNot { it.exerciseId == exerciseId }
+            )
+        }
 
         val sessionId = uiState.value.session?.id ?: return
         viewModelScope.launch {

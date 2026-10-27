@@ -5,12 +5,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import org.koin.compose.koinInject
 
 @Composable
 fun ActiveWorkoutRoot(
-    viewModel: ActiveWorkoutViewModel,
     onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: ActiveWorkoutViewModel = koinInject()
 ) {
     val state by viewModel.uiState.collectAsState()
 

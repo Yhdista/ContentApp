@@ -3,12 +3,9 @@ package features.workout.data
 import core.common.AppClock
 import core.database.MutationDao
 import core.database.SyncMutationEntity
-import features.workout.data.dao.WorkoutDao
-import features.workout.data.entity.ExerciseEntity
-import features.workout.data.entity.WorkoutSessionEntity
-import features.workout.data.entity.WorkoutSetEntity
-import features.workout.data.entity.WorkoutTemplateEntity
-import features.workout.data.entity.WorkoutTemplateExerciseEntity
+import features.workout.data.datasource.WorkoutLocalDataSource
+import features.workout.data.mapper.toDomain
+import features.workout.data.mapper.toEntity
 import features.workout.domain.Exercise
 import features.workout.domain.ExerciseStats
 import features.workout.domain.ExerciseStatsCalculator
@@ -26,20 +23,25 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-class WorkoutRepositoryImpl(
-    private val workoutDao: WorkoutDao,
+/**
+ * Offline-first implementace repozitáře tréninků koordinující:
+ * 1. Lokální perzistenci přes [WorkoutLocalDataSource]
+ * 2. Transakční outbox synchronizaci přes [MutationDao]
+ */
+class OfflineFirstWorkoutRepository(
+    private val localDataSource: WorkoutLocalDataSource,
     private val mutationDao: MutationDao,
     private val clock: AppClock
 ) : WorkoutRepository {
 
     override fun getExercises(): Flow<List<Exercise>> {
-        return workoutDao.getAllExercises().map { list ->
+        return localDataSource.getAllExercises().map { list ->
             list.map { it.toDomain() }
         }
     }
 
     override suspend fun ensureDefaultExercises() {
-        if (workoutDao.getExercisesCount() == 0) {
+        if (localDataSource.getExercisesCount() == 0) {
             val defaults = listOf(
                 Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, defaultRestSeconds = 120),
                 Exercise("ex_squat", "Dřep s činkou", MuscleGroup.LEGS, defaultRestSeconds = 180),
@@ -49,7 +51,7 @@ class WorkoutRepositoryImpl(
                 Exercise("ex_biceps", "Bicepsový zdvih", MuscleGroup.ARMS, defaultRestSeconds = 60),
                 Exercise("ex_plank", "Plank", MuscleGroup.CORE, defaultRestSeconds = 60)
             )
-            workoutDao.insertExercises(defaults.map { ExerciseEntity.fromDomain(it) })
+            localDataSource.insertExercises(defaults.map { it.toEntity() })
         }
     }
 
@@ -66,7 +68,7 @@ class WorkoutRepositoryImpl(
             muscleGroup = muscleGroup,
             defaultRestSeconds = defaultRestSeconds
         )
-        workoutDao.insertExercise(ExerciseEntity.fromDomain(exercise))
+        localDataSource.insertExercise(exercise.toEntity())
 
         mutationDao.insertMutation(
             SyncMutationEntity(
@@ -82,11 +84,11 @@ class WorkoutRepositoryImpl(
     }
 
     override fun getActiveSession(): Flow<WorkoutSession?> {
-        return workoutDao.getActiveSession().map { it?.toDomain() }
+        return localDataSource.getActiveSession().map { it?.toDomain() }
     }
 
     override fun getCompletedSessions(): Flow<List<WorkoutSession>> {
-        return workoutDao.getCompletedSessions().map { list ->
+        return localDataSource.getCompletedSessions().map { list ->
             list.map { it.toDomain() }
         }
     }
@@ -96,17 +98,17 @@ class WorkoutRepositoryImpl(
     }
 
     override suspend fun getSessionById(sessionId: String): WorkoutSession? {
-        return workoutDao.getSessionById(sessionId)?.toDomain()
+        return localDataSource.getSessionById(sessionId)?.toDomain()
     }
 
     override fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>> {
-        return workoutDao.getSetsForSession(sessionId).map { list ->
+        return localDataSource.getSetsForSession(sessionId).map { list ->
             list.map { it.toDomain() }
         }
     }
 
     override suspend fun startWorkout(title: String): WorkoutSession {
-        val existing = workoutDao.getActiveSessionSync()
+        val existing = localDataSource.getActiveSessionSync()
         if (existing != null) {
             return existing.toDomain()
         }
@@ -120,7 +122,7 @@ class WorkoutRepositoryImpl(
             isCompleted = false,
             totalVolumeKg = 0.0
         )
-        workoutDao.insertSession(WorkoutSessionEntity.fromDomain(session))
+        localDataSource.insertSession(session.toEntity())
 
         mutationDao.insertMutation(
             SyncMutationEntity(
@@ -142,14 +144,22 @@ class WorkoutRepositoryImpl(
         reps: Int,
         rpe: Double?
     ): WorkoutSet {
-        val currentSets = workoutDao.getSetsForSession(sessionId).first()
+        val currentSets = localDataSource.getSetsForSession(sessionId).first()
         val exerciseSets = currentSets.filter { it.exerciseId == exerciseId }
         val nextSetNumber = (exerciseSets.maxOfOrNull { it.setNumber } ?: 0) + 1
-        val lastPerf = getLastPerformance(exerciseId)
+        val lastPerformance = getLastPerformance(exerciseId)
+
+        val previousSameExerciseSets = exerciseSets.filter { it.isCompleted }
+        val sessionMax1RM = previousSameExerciseSets.maxOfOrNull {
+            PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps)
+        } ?: 0.0
+        val historicalMax1RM = getHistoricalMax1RM(exerciseId, sessionId)
+        val overallBest1RM = maxOf(sessionMax1RM, historicalMax1RM)
+        val isPR = PersonalRecordCalculator.isPersonalRecord(weightKg, reps, overallBest1RM)
 
         val now = clock.nowMillis()
-        val setId = "set-$now-${(1000..9999).random()}"
-        val set = WorkoutSet(
+        val setId = "set-$sessionId-$exerciseId-$nextSetNumber-$now"
+        val workoutSet = WorkoutSet(
             id = setId,
             sessionId = sessionId,
             exerciseId = exerciseId,
@@ -158,9 +168,11 @@ class WorkoutRepositoryImpl(
             reps = reps,
             rpe = rpe,
             isCompleted = false,
-            previousPerformance = lastPerf
+            previousPerformance = lastPerformance,
+            isPersonalRecord = isPR,
+            setType = WorkoutSetType.NORMAL
         )
-        workoutDao.insertOrUpdateSet(WorkoutSetEntity.fromDomain(set))
+        localDataSource.insertOrUpdateSet(workoutSet.toEntity())
 
         mutationDao.insertMutation(
             SyncMutationEntity(
@@ -168,27 +180,32 @@ class WorkoutRepositoryImpl(
                 entityName = "workout_set",
                 recordId = setId,
                 operation = "INSERT",
-                payloadJson = "{\"sessionId\":\"$sessionId\",\"exerciseId\":\"$exerciseId\",\"weight\":$weightKg,\"reps\":$reps}",
+                payloadJson = "{\"sessionId\":\"$sessionId\",\"exerciseId\":\"$exerciseId\",\"setNumber\":$nextSetNumber,\"weightKg\":$weightKg,\"reps\":$reps,\"setType\":\"NORMAL\"}",
                 createdAt = now
             )
         )
-        return set
+        return workoutSet
     }
 
     override suspend fun updateSet(set: WorkoutSet) {
-        val isPR = if (set.isCompleted && set.weightKg > 0.0 && set.reps > 0 && set.setType != WorkoutSetType.WARMUP) {
-            val historical = workoutDao.getHistoricalCompletedSets(set.exerciseId, set.sessionId)
-            if (historical.isEmpty()) {
-                true
-            } else {
-                val max1RM = historical.maxOfOrNull { PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps) } ?: 0.0
-                PersonalRecordCalculator.isPersonalRecord(set.weightKg, set.reps, max1RM)
-            }
+        val currentSets = localDataSource.getSetsForSession(set.sessionId).first()
+        val previousSameExerciseSets = currentSets
+            .filter { it.exerciseId == set.exerciseId && it.id != set.id && it.isCompleted }
+        val sessionMax1RM = previousSameExerciseSets.maxOfOrNull {
+            PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps)
+        } ?: 0.0
+        val historicalMax1RM = getHistoricalMax1RM(set.exerciseId, set.sessionId)
+        val overallBest1RM = maxOf(sessionMax1RM, historicalMax1RM)
+
+        val isPR = if (set.isCompleted && set.setType != WorkoutSetType.WARMUP) {
+            PersonalRecordCalculator.isPersonalRecord(set.weightKg, set.reps, overallBest1RM)
         } else {
             false
         }
-        val setWithPR = set.copy(isPersonalRecord = isPR)
-        workoutDao.insertOrUpdateSet(WorkoutSetEntity.fromDomain(setWithPR))
+
+        val updatedSet = set.copy(isPersonalRecord = isPR)
+        localDataSource.insertOrUpdateSet(updatedSet.toEntity())
+
         val now = clock.nowMillis()
         mutationDao.insertMutation(
             SyncMutationEntity(
@@ -196,19 +213,14 @@ class WorkoutRepositoryImpl(
                 entityName = "workout_set",
                 recordId = set.id,
                 operation = "UPDATE",
-                payloadJson = "{\"weight\":${set.weightKg},\"reps\":${set.reps},\"rpe\":${set.rpe},\"isCompleted\":${set.isCompleted},\"isPR\":$isPR}",
+                payloadJson = "{\"weightKg\":${set.weightKg},\"reps\":${set.reps},\"rpe\":${set.rpe},\"isCompleted\":${set.isCompleted},\"isPersonalRecord\":$isPR,\"setType\":\"${set.setType.name}\"}",
                 createdAt = now
             )
         )
     }
 
-    override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double {
-        val historical = workoutDao.getHistoricalCompletedSets(exerciseId, currentSessionId)
-        return historical.maxOfOrNull { PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps) } ?: 0.0
-    }
-
     override suspend fun deleteSet(setId: String) {
-        workoutDao.deleteSet(setId)
+        localDataSource.deleteSet(setId)
         val now = clock.nowMillis()
         mutationDao.insertMutation(
             SyncMutationEntity(
@@ -223,82 +235,99 @@ class WorkoutRepositoryImpl(
     }
 
     override suspend fun completeWorkout(sessionId: String): WorkoutSession? {
+        val sets = localDataSource.getSetsForSession(sessionId).first().map { it.toDomain() }
+        val completedSets = sets.filter { it.isCompleted }
+        val totalVolume = completedSets.sumOf { it.weightKg * it.reps }
         val now = clock.nowMillis()
-        val sets = workoutDao.getSetsForSession(sessionId).first()
-        val totalVolume = sets
-            .filter { it.isCompleted }
-            .sumOf { it.weightKg * it.reps }
 
-        workoutDao.completeSession(sessionId, now, totalVolume)
+        localDataSource.completeSession(sessionId, now, totalVolume)
 
         mutationDao.insertMutation(
             SyncMutationEntity(
-                id = "mut-comp-$sessionId-$now",
+                id = "mut-complete-$sessionId-$now",
                 entityName = "workout_session",
                 recordId = sessionId,
                 operation = "COMPLETE",
-                payloadJson = "{\"endTime\":$now,\"totalVolumeKg\":$totalVolume}",
+                payloadJson = "{\"isCompleted\":true,\"endTimeEpochMs\":$now,\"totalVolumeKg\":$totalVolume}",
                 createdAt = now
             )
         )
-
-        return workoutDao.getCompletedSessions().first().firstOrNull { it.id == sessionId }?.toDomain()
+        return getSessionById(sessionId)
     }
 
     override suspend fun cancelWorkout(sessionId: String) {
-        workoutDao.deleteSetsForSession(sessionId)
-        workoutDao.deleteSession(sessionId)
+        localDataSource.deleteSetsForSession(sessionId)
+        localDataSource.deleteSession(sessionId)
+        val now = clock.nowMillis()
+        mutationDao.insertMutation(
+            SyncMutationEntity(
+                id = "mut-cancel-$sessionId-$now",
+                entityName = "workout_session",
+                recordId = sessionId,
+                operation = "DELETE",
+                payloadJson = "{}",
+                createdAt = now
+            )
+        )
     }
 
     override suspend fun getLastPerformance(exerciseId: String): String? {
-        val last = workoutDao.getLastPerformanceForExercise(exerciseId) ?: return null
-        val weightStr = if (last.weightKg % 1.0 == 0.0) last.weightKg.toInt().toString() else last.weightKg.toString()
-        return "$weightStr kg × ${last.reps}"
+        val lastSet = localDataSource.getLastPerformanceForExercise(exerciseId) ?: return null
+        return "${lastSet.weightKg} kg × ${lastSet.reps}"
+    }
+
+    override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double {
+        val sets = localDataSource.getHistoricalCompletedSets(exerciseId, currentSessionId)
+        return sets.maxOfOrNull {
+            PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps)
+        } ?: 0.0
     }
 
     override fun getTemplates(): Flow<List<WorkoutTemplate>> {
-        return workoutDao.getAllTemplates().map { list ->
-            list.map { entity ->
-                val exercises = workoutDao.getTemplateExercises(entity.id).map { it.toDomain() }
-                entity.toDomain(exercises)
+        return localDataSource.getAllTemplates().map { templates ->
+            templates.map { tmpl ->
+                val exercises = localDataSource.getTemplateExercises(tmpl.id)
+                tmpl.toDomain(exercises.map { it.toDomain() })
             }
         }
     }
 
     override suspend fun ensureDefaultTemplates() {
-        if (workoutDao.getTemplatesCount() == 0) {
-            val tPush = WorkoutTemplate(
-                id = "tmpl_push",
-                name = "Push Day (Hrudník & Ramena)",
-                description = "Trénink zaměřený na tlakové cviky: Bench press a tlaky na ramena.",
-                exercises = listOf(
-                    WorkoutTemplateExercise("ex_bench", "Bench press", targetSets = 3, defaultWeightKg = 60.0, defaultReps = 10, orderIndex = 0),
-                    WorkoutTemplateExercise("ex_ohp", "Tlaky na ramena (OHP)", targetSets = 3, defaultWeightKg = 40.0, defaultReps = 10, orderIndex = 1)
-                )
-            )
-            val tPull = WorkoutTemplate(
-                id = "tmpl_pull",
-                name = "Pull Day (Záda & Biceps)",
-                description = "Tahový trénink: Mrtvý tah a shyby na hrazdě.",
-                exercises = listOf(
-                    WorkoutTemplateExercise("ex_deadlift", "Mrtvý tah", targetSets = 3, defaultWeightKg = 100.0, defaultReps = 6, orderIndex = 0),
-                    WorkoutTemplateExercise("ex_pullup", "Shyby na hrazdě", targetSets = 3, defaultWeightKg = 0.0, defaultReps = 8, orderIndex = 1),
-                    WorkoutTemplateExercise("ex_biceps", "Bicepsový zdvih", targetSets = 3, defaultWeightKg = 25.0, defaultReps = 12, orderIndex = 2)
-                )
-            )
-            val tLegs = WorkoutTemplate(
-                id = "tmpl_legs",
-                name = "Leg Day (Nohy & Core)",
-                description = "Komplexní trénink nohou: Dřepy a plank.",
-                exercises = listOf(
-                    WorkoutTemplateExercise("ex_squat", "Dřep s činkou", targetSets = 4, defaultWeightKg = 80.0, defaultReps = 8, orderIndex = 0),
-                    WorkoutTemplateExercise("ex_plank", "Plank", targetSets = 3, defaultWeightKg = 0.0, defaultReps = 60, orderIndex = 1)
+        if (localDataSource.getTemplatesCount() == 0) {
+            val templates = listOf(
+                WorkoutTemplate(
+                    id = "tmpl_push",
+                    name = "Push Day",
+                    description = "Hrudník, ramena a triceps",
+                    exercises = listOf(
+                        WorkoutTemplateExercise("ex_bench", "Bench press", 3, 60.0, 8, 0),
+                        WorkoutTemplateExercise("ex_ohp", "Tlaky na ramena (OHP)", 3, 40.0, 10, 1)
+                    )
+                ),
+                WorkoutTemplate(
+                    id = "tmpl_pull",
+                    name = "Pull Day",
+                    description = "Záda, biceps a zadní ramena",
+                    exercises = listOf(
+                        WorkoutTemplateExercise("ex_deadlift", "Mrtvý tah", 4, 100.0, 5, 0),
+                        WorkoutTemplateExercise("ex_pullup", "Shyby na hrazdě", 3, 0.0, 8, 1),
+                        WorkoutTemplateExercise("ex_biceps", "Bicepsový zdvih", 3, 15.0, 12, 2)
+                    )
+                ),
+                WorkoutTemplate(
+                    id = "tmpl_legs",
+                    name = "Leg Day",
+                    description = "Kvadricepsy, hamstringy a lýtka",
+                    exercises = listOf(
+                        WorkoutTemplateExercise("ex_squat", "Dřep s činkou", 4, 80.0, 8, 0),
+                        WorkoutTemplateExercise("ex_plank", "Plank", 3, 0.0, 60, 1)
+                    )
                 )
             )
 
-            for (tmpl in listOf(tPush, tPull, tLegs)) {
-                workoutDao.insertTemplate(WorkoutTemplateEntity.fromDomain(tmpl))
-                workoutDao.insertTemplateExercises(tmpl.exercises.map { WorkoutTemplateExerciseEntity.fromDomain(tmpl.id, it) })
+            for (tmpl in templates) {
+                localDataSource.insertTemplate(tmpl.toEntity())
+                localDataSource.insertTemplateExercises(tmpl.exercises.map { it.toEntity(tmpl.id) })
             }
         }
     }
@@ -316,8 +345,8 @@ class WorkoutRepositoryImpl(
             description = description.trim(),
             exercises = exercises.mapIndexed { idx, ex -> ex.copy(orderIndex = idx) }
         )
-        workoutDao.insertTemplate(WorkoutTemplateEntity.fromDomain(template))
-        workoutDao.insertTemplateExercises(template.exercises.map { WorkoutTemplateExerciseEntity.fromDomain(templateId, it) })
+        localDataSource.insertTemplate(template.toEntity())
+        localDataSource.insertTemplateExercises(template.exercises.map { it.toEntity(templateId) })
 
         mutationDao.insertMutation(
             SyncMutationEntity(
@@ -333,8 +362,8 @@ class WorkoutRepositoryImpl(
     }
 
     override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession {
-        val templateEntity = workoutDao.getTemplateById(templateId)
-        val templateExercises = workoutDao.getTemplateExercises(templateId)
+        val templateEntity = localDataSource.getTemplateById(templateId)
+        val templateExercises = localDataSource.getTemplateExercises(templateId)
         val title = templateEntity?.name ?: "Trénink ze šablony"
         val session = startWorkout(title = title)
 
@@ -344,7 +373,7 @@ class WorkoutRepositoryImpl(
             val reps = if (ex.defaultReps > 0) ex.defaultReps else 10
             for (i in 1..ex.targetSets) {
                 val setId = "set-${session.id}-${ex.exerciseId}-$i-${clock.nowMillis()}"
-                val setEntity = WorkoutSetEntity(
+                val set = WorkoutSet(
                     id = setId,
                     sessionId = session.id,
                     exerciseId = ex.exerciseId,
@@ -353,22 +382,23 @@ class WorkoutRepositoryImpl(
                     reps = reps,
                     rpe = null,
                     isCompleted = false,
-                    previousPerformance = lastPerf
+                    previousPerformance = lastPerf,
+                    setType = WorkoutSetType.NORMAL
                 )
-                workoutDao.insertOrUpdateSet(setEntity)
+                localDataSource.insertOrUpdateSet(set.toEntity())
             }
         }
         return session
     }
 
     override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate {
-        val sessionSets = workoutDao.getSetsForSession(sessionId).first()
+        val sessionSets = localDataSource.getSetsForSession(sessionId).first().map { it.toDomain() }
         val exercisesMap = sessionSets.groupBy { it.exerciseId }
         val templateExercises = mutableListOf<WorkoutTemplateExercise>()
 
         var orderIndex = 0
         for ((exerciseId, sets) in exercisesMap) {
-            val exEntity = workoutDao.getExerciseById(exerciseId)
+            val exEntity = localDataSource.getExerciseById(exerciseId)
             val exName = exEntity?.name ?: "Cvik"
             val avgWeight = sets.map { it.weightKg }.average().let { if (it.isNaN()) 20.0 else it }
             val avgReps = sets.map { it.reps }.average().toInt().coerceAtLeast(1)
@@ -395,7 +425,7 @@ class WorkoutRepositoryImpl(
         return combine(
             getExercises(),
             getCompletedSessions(),
-            workoutDao.getAllCompletedSetsForExercise(exerciseId)
+            localDataSource.getAllCompletedSetsForExercise(exerciseId)
         ) { exercises, sessions, setEntities ->
             val exercise = exercises.firstOrNull { it.id == exerciseId } ?: return@combine null
             val sets = setEntities.map { it.toDomain() }
@@ -404,21 +434,21 @@ class WorkoutRepositoryImpl(
     }
 
     override suspend fun getAllCompletedSets(): List<WorkoutSet> {
-        return workoutDao.getAllCompletedSets().map { it.toDomain() }
+        return localDataSource.getAllCompletedSets().map { it.toDomain() }
     }
 
     override suspend fun exportWorkoutDataCsv(): String {
-        val sessions = workoutDao.getAllSessionsList().map { it.toDomain() }
-        val exercises = workoutDao.getAllExercisesList().map { it.toDomain() }
-        val sets = workoutDao.getAllCompletedSets().map { it.toDomain() }
+        val sessions = localDataSource.getAllSessionsList().map { it.toDomain() }
+        val exercises = localDataSource.getAllExercisesList().map { it.toDomain() }
+        val sets = localDataSource.getAllCompletedSets().map { it.toDomain() }
         return WorkoutDataExporter.exportToCsv(sessions, exercises, sets)
     }
 
     override suspend fun exportWorkoutDataJson(): String {
-        val sessions = workoutDao.getAllSessionsList().map { it.toDomain() }
-        val exercises = workoutDao.getAllExercisesList().map { it.toDomain() }
-        val sets = workoutDao.getAllCompletedSets().map { it.toDomain() }
-        val templates = workoutDao.getAllTemplates().first().map { it.toDomain() }
+        val sessions = localDataSource.getAllSessionsList().map { it.toDomain() }
+        val exercises = localDataSource.getAllExercisesList().map { it.toDomain() }
+        val sets = localDataSource.getAllCompletedSets().map { it.toDomain() }
+        val templates = localDataSource.getAllTemplates().first().map { it.toDomain() }
         return WorkoutDataExporter.exportToJson(sessions, exercises, sets, templates)
     }
 }
