@@ -27,13 +27,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import features.workout.domain.WorkoutTemplate
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,11 +43,13 @@ fun TemplatePickerSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = AppColors.SurfaceVariant,
-        contentColor = AppColors.OnSurface,
+        containerColor = colorScheme.surface,
+        contentColor = colorScheme.onSurface,
         modifier = modifier
     ) {
         Column(
@@ -71,12 +71,12 @@ fun TemplatePickerSheet(
                         text = "📋 Tréninkové šablony",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnSurface
+                        color = colorScheme.onSurface
                     )
                     Text(
                         text = "Vyberte předpřipravenou rutinu",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
                 Box(
@@ -90,7 +90,7 @@ fun TemplatePickerSheet(
                     Text(
                         text = "Zavřít",
                         style = MaterialTheme.typography.labelMedium,
-                        color = AppColors.Primary
+                        color = colorScheme.primary
                     )
                 }
             }
@@ -105,7 +105,7 @@ fun TemplatePickerSheet(
                     Text(
                         text = "Žádné šablony nejsou k dispozici.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
             } else {
@@ -131,12 +131,14 @@ fun TemplateCard(
     onStart: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(AppColors.Surface)
-            .border(1.dp, AppColors.Outline, RoundedCornerShape(12.dp))
+            .background(colorScheme.surface)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(12.dp))
             .padding(AppSpacing.lg)
     ) {
         Row(
@@ -149,14 +151,14 @@ fun TemplateCard(
                     text = template.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.OnSurface
+                    color = colorScheme.onSurface
                 )
                 if (template.description.isNotBlank()) {
                     Spacer(modifier = Modifier.height(AppSpacing.xs))
                     Text(
                         text = template.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -164,8 +166,8 @@ fun TemplateCard(
             Button(
                 onClick = onStart,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.Primary,
-                    contentColor = AppColors.OnPrimary
+                    containerColor = colorScheme.primary,
+                    contentColor = colorScheme.onPrimary
                 ),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
@@ -194,13 +196,13 @@ fun TemplateCard(
                         Text(
                             text = "• ${ex.exerciseName}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.OnSurface,
+                            color = colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         Text(
                             text = "${ex.targetSets} série × ${ex.defaultReps} op.",
                             style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.OnSurfaceVariant
+                            color = colorScheme.onSurfaceVariant
                         )
                     }
                 }

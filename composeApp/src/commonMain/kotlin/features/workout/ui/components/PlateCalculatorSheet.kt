@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import features.workout.domain.BarbellPlate
 import features.workout.domain.PlateCalculator
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
 data class PlateSpec(
@@ -74,11 +72,13 @@ fun PlateCalculatorSheet(
 ) {
     if (!isVisible) return
 
+    val colorScheme = MaterialTheme.colorScheme
+
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = AppColors.Background,
-        contentColor = AppColors.OnBackground,
+        containerColor = colorScheme.surface,
+        contentColor = colorScheme.onSurface,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -86,7 +86,7 @@ fun PlateCalculatorSheet(
                     .width(40.dp)
                     .height(4.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(AppColors.Outline)
+                    .background(colorScheme.outlineVariant)
             )
         }
     ) {
@@ -120,12 +120,12 @@ fun PlateCalculatorSheet(
                         text = "Kalkulátor kotoučů",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnBackground
+                        color = colorScheme.onSurface
                     )
                     Text(
                         text = "Rozpad zátěže na olympijskou osu",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -137,7 +137,7 @@ fun PlateCalculatorSheet(
                             modifier = Modifier
                                 .minimumInteractiveComponentSize()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (isSelected) AppColors.Primary else AppColors.SurfaceVariant)
+                                .background(if (isSelected) colorScheme.primary else colorScheme.surfaceVariant)
                                 .clickable { barWeight = weight }
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                             contentAlignment = Alignment.Center
@@ -146,7 +146,7 @@ fun PlateCalculatorSheet(
                                 text = label,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) AppColors.OnPrimary else AppColors.OnSurfaceVariant
+                                color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -158,8 +158,8 @@ fun PlateCalculatorSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(AppColors.Surface)
-                    .border(1.dp, AppColors.Outline, RoundedCornerShape(16.dp))
+                    .background(colorScheme.surface)
+                    .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                     .padding(AppSpacing.md),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
@@ -169,19 +169,19 @@ fun PlateCalculatorSheet(
                         text = "$formattedTotal kg",
                         fontSize = 32.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = AppColors.Primary
+                        color = colorScheme.primary
                     )
                     Text(
                         text = "Celková váha",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
                 Box(
                     modifier = Modifier
                         .height(44.dp)
-                        .border(0.5.dp, AppColors.Outline, RoundedCornerShape(1.dp))
+                        .border(0.5.dp, colorScheme.outlineVariant, RoundedCornerShape(1.dp))
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -189,12 +189,12 @@ fun PlateCalculatorSheet(
                         text = "$formattedPerSide kg",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnSurface
+                        color = colorScheme.onSurface
                     )
                     Text(
                         text = "Na jedné straně",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -213,7 +213,7 @@ fun PlateCalculatorSheet(
                             .height(40.dp)
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(AppColors.SurfaceVariant)
+                            .background(colorScheme.surfaceVariant)
                             .clickable {
                                 totalWeight = (totalWeight + delta).coerceAtLeast(barWeight)
                             },
@@ -223,7 +223,7 @@ fun PlateCalculatorSheet(
                             text = label,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = if (delta > 0) AppColors.Primary else AppColors.OnSurfaceVariant
+                            color = if (delta > 0) colorScheme.primary else colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -235,8 +235,8 @@ fun PlateCalculatorSheet(
                     .fillMaxWidth()
                     .height(100.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(AppColors.Surface)
-                    .border(1.dp, AppColors.OutlineVariant, RoundedCornerShape(16.dp))
+                    .background(colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                     .padding(horizontal = AppSpacing.md),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -267,7 +267,7 @@ fun PlateCalculatorSheet(
                         Text(
                             text = "Pouze prázdná osa ($barWeight kg)",
                             style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.OnSurfaceVariant,
+                            color = colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     } else {
@@ -315,13 +315,13 @@ fun PlateCalculatorSheet(
                     Text(
                         text = "Kotouče na každou stranu:",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = summaryText,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnSurface
+                        color = colorScheme.onSurface
                     )
                 }
             }
@@ -335,7 +335,7 @@ fun PlateCalculatorSheet(
                     .height(50.dp)
                     .minimumInteractiveComponentSize()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(AppColors.Primary)
+                    .background(colorScheme.primary)
                     .clickable(role = Role.Button) {
                         if (onApplyWeight != null) {
                             onApplyWeight(totalWeight)
@@ -348,7 +348,7 @@ fun PlateCalculatorSheet(
                     text = if (onApplyWeight != null) "Použít $formattedTotal kg do série" else "Hotovo",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.OnPrimary
+                    color = colorScheme.onPrimary
                 )
             }
 

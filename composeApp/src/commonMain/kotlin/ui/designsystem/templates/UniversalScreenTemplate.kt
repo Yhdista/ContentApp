@@ -9,17 +9,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
 /**
  * Univerzální šablona obrazovky pro mobil i desktop:
  * - Ošetřuje systémové Insets a klávesnici (IME)
+ * - Podporuje plně Light i Dark mode přes MaterialTheme.colorScheme
  * - Odděluje pozorovací zónu nahoře a akční zónu palce dole
  */
 @Composable
@@ -35,7 +36,7 @@ fun UniversalScreenTemplate(
         modifier = modifier.fillMaxSize(),
         topBar = topBar,
         snackbarHost = { snackbarHost?.invoke() },
-        containerColor = AppColors.Background
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -65,7 +66,7 @@ fun UniversalScreenTemplate(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(AppColors.Surface)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(AppSpacing.lg),
                     contentAlignment = Alignment.Center
                 ) {

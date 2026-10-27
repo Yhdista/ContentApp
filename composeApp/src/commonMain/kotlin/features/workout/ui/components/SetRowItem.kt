@@ -40,8 +40,10 @@ import androidx.compose.ui.window.Dialog
 import core.common.formatCleanWeight
 import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
+import ui.designsystem.nucleus.isLight
+import ui.designsystem.nucleus.prGold
+import ui.designsystem.nucleus.statusSynced
 
 @Composable
 fun SetRowItem(
@@ -55,6 +57,7 @@ fun SetRowItem(
     onSetTypeChange: (WorkoutSetType) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     var weightText by remember(set.weightKg) {
         mutableStateOf(set.weightKg.formatCleanWeight())
     }
@@ -64,9 +67,9 @@ fun SetRowItem(
     var showOptionsDialog by remember { mutableStateOf(false) }
 
     val rowBackground = if (set.isCompleted) {
-        AppColors.Surface.copy(alpha = 0.6f)
+        colorScheme.surface.copy(alpha = 0.6f)
     } else {
-        AppColors.Surface
+        colorScheme.surface
     }
 
     Row(
@@ -76,7 +79,7 @@ fun SetRowItem(
             .background(rowBackground)
             .border(
                 width = 1.dp,
-                color = if (set.isCompleted) AppColors.StatusSynced.copy(alpha = 0.4f) else AppColors.OutlineVariant,
+                color = if (set.isCompleted) colorScheme.statusSynced.copy(alpha = 0.4f) else colorScheme.outlineVariant,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
@@ -86,7 +89,8 @@ fun SetRowItem(
         // 1. Číslo a typ série (kliknutím se otevřou možnosti: rychlá tlačítka, kalkulátor, typ série, smazat)
         val badgeVisuals = set.setType.toBadgeVisuals(
             setNumber = set.setNumber,
-            isCompleted = set.isCompleted
+            isCompleted = set.isCompleted,
+            isLight = colorScheme.isLight
         )
 
         Box(
@@ -114,14 +118,14 @@ fun SetRowItem(
             Text(
                 text = set.previousPerformance ?: "—",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.OnSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
             if (set.isPersonalRecord && set.isCompleted && set.setType != WorkoutSetType.WARMUP) {
                 Text(
                     text = "🏆 PR",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFFFBBF24),
+                    color = colorScheme.prGold,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 10.sp
                 )
@@ -134,8 +138,8 @@ fun SetRowItem(
                 .width(62.dp)
                 .height(38.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(AppColors.SurfaceVariant)
-                .border(1.dp, AppColors.Outline, RoundedCornerShape(8.dp))
+                .background(colorScheme.surfaceVariant)
+                .border(1.dp, colorScheme.outline, RoundedCornerShape(8.dp))
                 .padding(horizontal = 4.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -147,13 +151,13 @@ fun SetRowItem(
                 },
                 singleLine = true,
                 textStyle = TextStyle(
-                    color = AppColors.OnSurface,
+                    color = colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
                     textAlign = TextAlign.Center
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                cursorBrush = SolidColor(AppColors.Primary),
+                cursorBrush = SolidColor(colorScheme.primary),
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -164,8 +168,8 @@ fun SetRowItem(
                 .width(52.dp)
                 .height(38.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(AppColors.SurfaceVariant)
-                .border(1.dp, AppColors.Outline, RoundedCornerShape(8.dp))
+                .background(colorScheme.surfaceVariant)
+                .border(1.dp, colorScheme.outline, RoundedCornerShape(8.dp))
                 .padding(horizontal = 4.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -177,13 +181,13 @@ fun SetRowItem(
                 },
                 singleLine = true,
                 textStyle = TextStyle(
-                    color = AppColors.OnSurface,
+                    color = colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
                     textAlign = TextAlign.Center
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                cursorBrush = SolidColor(AppColors.Primary),
+                cursorBrush = SolidColor(colorScheme.primary),
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -197,8 +201,8 @@ fun SetRowItem(
                 .height(38.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(
-                    if (set.rpe != null) AppColors.PrimaryContainer.copy(alpha = 0.5f)
-                    else AppColors.SurfaceVariant.copy(alpha = 0.5f)
+                    if (set.rpe != null) colorScheme.primaryContainer.copy(alpha = 0.7f)
+                    else colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 )
                 .clickable(role = Role.Button) {
                     val currentIndex = rpeOptions.indexOf(set.rpe)
@@ -210,7 +214,7 @@ fun SetRowItem(
             Text(
                 text = set.rpe?.let { "@$it" } ?: "RPE",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (set.rpe != null) AppColors.Primary else AppColors.OnSurfaceVariant,
+                color = if (set.rpe != null) colorScheme.primary else colorScheme.onSurfaceVariant,
                 fontWeight = if (set.rpe != null) FontWeight.Bold else FontWeight.Normal,
                 fontSize = 11.sp
             )
@@ -222,10 +226,10 @@ fun SetRowItem(
                 .minimumInteractiveComponentSize()
                 .size(44.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(if (set.isCompleted) AppColors.StatusSynced else AppColors.SurfaceVariant)
+                .background(if (set.isCompleted) colorScheme.statusSynced else colorScheme.surfaceVariant)
                 .border(
                     width = 1.5.dp,
-                    color = if (set.isCompleted) AppColors.StatusSynced else AppColors.Outline,
+                    color = if (set.isCompleted) colorScheme.statusSynced else colorScheme.outline,
                     shape = RoundedCornerShape(10.dp)
                 )
                 .clickable(
@@ -238,7 +242,7 @@ fun SetRowItem(
                 text = "✓",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = if (set.isCompleted) AppColors.OnStatusSynced else AppColors.OnSurfaceVariant
+                color = if (set.isCompleted) Color.White else colorScheme.onSurfaceVariant
             )
         }
     }
@@ -249,8 +253,8 @@ fun SetRowItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(AppColors.Surface)
-                    .border(1.dp, AppColors.Outline, RoundedCornerShape(16.dp))
+                    .background(colorScheme.surface)
+                    .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                     .padding(AppSpacing.lg),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
@@ -258,12 +262,12 @@ fun SetRowItem(
                     text = "Možnosti série č. ${set.setNumber}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.OnSurface
+                    color = colorScheme.onSurface
                 )
                 Text(
                     text = "Aktuálně: ${set.weightKg.formatCleanWeight()} kg × ${set.reps} reps",
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.OnSurfaceVariant
+                    color = colorScheme.onSurfaceVariant
                 )
 
                 // Rychlá tlačítka pro úpravu váhy a opakování + Kalkulátor kotoučů
@@ -298,8 +302,8 @@ fun SetRowItem(
                         .fillMaxWidth()
                         .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(10.dp))
-                        .background(AppColors.PrimaryContainer.copy(alpha = 0.35f))
-                        .border(1.dp, AppColors.Primary, RoundedCornerShape(10.dp))
+                        .background(colorScheme.primaryContainer.copy(alpha = 0.5f))
+                        .border(1.dp, colorScheme.primary, RoundedCornerShape(10.dp))
                         .clickable(role = Role.Button) {
                             showOptionsDialog = false
                             onOpenPlateCalculator()
@@ -311,74 +315,80 @@ fun SetRowItem(
                         text = "🏋️ Otevřít kalkulátor kotoučů pro tuto sérii",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.Primary
+                        color = colorScheme.primary
                     )
                 }
 
-                // Výběr typu série (Hevy styl)
-                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
-                    WorkoutSetType.entries.forEach { type ->
-                        val isSelected = set.setType == type
-                        val typeVisuals = type.toBadgeVisuals(setNumber = set.setNumber)
+                Spacer(modifier = Modifier.height(2.dp))
 
-                        Row(
+                Text(
+                    text = "TYP SÉRIE",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurfaceVariant
+                )
+
+                // Výběr typu série: Normal, Warmup (W), Drop set (D), Failure (F)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                ) {
+                    val types = listOf(
+                        WorkoutSetType.NORMAL to "Normální",
+                        WorkoutSetType.WARMUP to "Warmup",
+                        WorkoutSetType.DROPSET to "Drop set",
+                        WorkoutSetType.FAILURE to "Failure"
+                    )
+
+                    types.forEach { (type, title) ->
+                        val isSelected = set.setType == type
+                        val typeVisuals = type.toBadgeVisuals(
+                            setNumber = set.setNumber,
+                            isCompleted = false,
+                            isLight = colorScheme.isLight
+                        )
+
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
+                                .weight(1f)
+                                .height(40.dp)
                                 .minimumInteractiveComponentSize()
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (isSelected) AppColors.SurfaceVariant else Color.Transparent)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) colorScheme.primary else colorScheme.surfaceVariant)
                                 .border(
-                                    1.dp,
-                                    if (isSelected) AppColors.Primary else AppColors.OutlineVariant,
-                                    RoundedCornerShape(10.dp)
+                                    width = if (isSelected) 1.5.dp else 1.dp,
+                                    color = if (isSelected) colorScheme.primary else colorScheme.outlineVariant,
+                                    shape = RoundedCornerShape(8.dp)
                                 )
-                                .clickable {
+                                .clickable(role = Role.Button) {
                                     onSetTypeChange(type)
                                     showOptionsDialog = false
-                                }
-                                .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                },
+                            contentAlignment = Alignment.Center
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
-                                verticalAlignment = Alignment.CenterVertically
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .background(typeVisuals.backgroundColor),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = typeVisuals.label,
-                                        color = typeVisuals.contentColor,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp
-                                    )
-                                }
                                 Text(
-                                    text = type.displayName,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = AppColors.OnSurface
+                                    text = if (type == WorkoutSetType.NORMAL) "1..N" else typeVisuals.label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (isSelected) colorScheme.onPrimary else typeVisuals.contentColor
                                 )
-                            }
-                            if (isSelected) {
                                 Text(
-                                    text = "✓",
-                                    color = AppColors.Primary,
-                                    fontWeight = FontWeight.Bold
+                                    text = title,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 9.sp,
+                                    color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant
                                 )
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
 
-                // Tlačítko zavřít a smazat sérii
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
@@ -389,15 +399,15 @@ fun SetRowItem(
                             .height(44.dp)
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(AppColors.SurfaceVariant)
+                            .background(colorScheme.surfaceVariant)
                             .clickable(role = Role.Button) { showOptionsDialog = false },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "Zavřít",
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = AppColors.OnSurface
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorScheme.onSurface
                         )
                     }
 
@@ -407,8 +417,8 @@ fun SetRowItem(
                             .height(44.dp)
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(AppColors.StatusError.copy(alpha = 0.15f))
-                            .border(1.dp, AppColors.StatusError, RoundedCornerShape(10.dp))
+                            .background(colorScheme.error.copy(alpha = 0.15f))
+                            .border(1.dp, colorScheme.error, RoundedCornerShape(10.dp))
                             .clickable(role = Role.Button) {
                                 showOptionsDialog = false
                                 onDelete()
@@ -419,7 +429,7 @@ fun SetRowItem(
                             text = "Smazat sérii 🗑️",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.StatusError
+                            color = colorScheme.error
                         )
                     }
                 }
@@ -434,12 +444,13 @@ private fun QuickStepButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = modifier
             .minimumInteractiveComponentSize()
             .clip(RoundedCornerShape(8.dp))
-            .background(AppColors.SurfaceVariant)
-            .border(1.dp, AppColors.Outline, RoundedCornerShape(8.dp))
+            .background(colorScheme.surfaceVariant)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(8.dp))
             .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 8.dp),
         contentAlignment = Alignment.Center
@@ -448,7 +459,7 @@ private fun QuickStepButton(
             text = label,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = AppColors.OnSurface
+            color = colorScheme.onSurface
         )
     }
 }

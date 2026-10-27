@@ -12,29 +12,39 @@ data class SetTypeBadgeVisuals(
 
 /**
  * Jednotný vizuální styl pro odznak typu série (Normal 1..N, Warmup W, Dropset D, Failure F).
+ * Podporuje Dark Mode i Light Mode.
  */
 fun WorkoutSetType.toBadgeVisuals(
     setNumber: Int,
-    isCompleted: Boolean = false
+    isCompleted: Boolean = false,
+    isLight: Boolean = false
 ): SetTypeBadgeVisuals = when (this) {
     WorkoutSetType.NORMAL -> SetTypeBadgeVisuals(
         label = "$setNumber",
-        backgroundColor = if (isCompleted) AppColors.StatusSynced.copy(alpha = 0.15f) else AppColors.SurfaceVariant,
-        contentColor = if (isCompleted) AppColors.StatusSynced else AppColors.OnSurface
+        backgroundColor = if (isCompleted) {
+            if (isLight) AppColors.LightOnStatusSynced else AppColors.DarkStatusSynced.copy(alpha = 0.15f)
+        } else {
+            if (isLight) AppColors.LightSurfaceVariant else AppColors.DarkSurfaceVariant
+        },
+        contentColor = if (isCompleted) {
+            if (isLight) AppColors.LightStatusSynced else AppColors.DarkStatusSynced
+        } else {
+            if (isLight) AppColors.LightOnSurface else AppColors.DarkOnSurface
+        }
     )
     WorkoutSetType.WARMUP -> SetTypeBadgeVisuals(
         label = "W",
-        backgroundColor = Color(0xFFF59E0B).copy(alpha = 0.2f),
-        contentColor = Color(0xFFF59E0B)
+        backgroundColor = if (isLight) AppColors.LightPrGoldBg else Color(0xFFF59E0B).copy(alpha = 0.2f),
+        contentColor = if (isLight) AppColors.LightPrGold else Color(0xFFF59E0B)
     )
     WorkoutSetType.DROPSET -> SetTypeBadgeVisuals(
         label = "D",
-        backgroundColor = Color(0xFF6366F1).copy(alpha = 0.2f),
-        contentColor = Color(0xFF818CF8)
+        backgroundColor = if (isLight) Color(0xFFEEF2FF) else Color(0xFF6366F1).copy(alpha = 0.2f),
+        contentColor = if (isLight) Color(0xFF4F46E5) else Color(0xFF818CF8)
     )
     WorkoutSetType.FAILURE -> SetTypeBadgeVisuals(
         label = "F",
-        backgroundColor = Color(0xFFEF4444).copy(alpha = 0.2f),
-        contentColor = Color(0xFFEF4444)
+        backgroundColor = if (isLight) AppColors.LightOnStatusError else Color(0xFFEF4444).copy(alpha = 0.2f),
+        contentColor = if (isLight) AppColors.LightStatusError else Color(0xFFEF4444)
     )
 }

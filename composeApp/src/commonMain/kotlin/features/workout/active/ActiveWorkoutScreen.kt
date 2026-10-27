@@ -40,7 +40,6 @@ import features.workout.ui.components.ExerciseStatsSheet
 import features.workout.ui.components.PlateCalculatorSheet
 import features.workout.ui.components.RestTimerBar
 import features.workout.ui.components.WorkoutThumbBar
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 import ui.designsystem.templates.UniversalScreenTemplate
 
@@ -51,6 +50,7 @@ fun ActiveWorkoutScreen(
     onIntent: (ActiveWorkoutContract.Intent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     var isPlateCalculatorOpen by remember { mutableStateOf(false) }
     var selectedSetForCalculator by remember { mutableStateOf<WorkoutSet?>(null) }
 
@@ -68,12 +68,12 @@ fun ActiveWorkoutScreen(
                             text = state.session?.title ?: "Trénink",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.OnBackground
+                            color = colorScheme.onBackground
                         )
                         Text(
                             text = "Aktivní sezení (Hevy styl)",
                             style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.OnSurfaceVariant
+                            color = colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -88,7 +88,7 @@ fun ActiveWorkoutScreen(
                             modifier = Modifier
                                 .minimumInteractiveComponentSize()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(AppColors.SurfaceVariant)
+                                .background(colorScheme.surfaceVariant)
                                 .clickable(role = Role.Button) {
                                     selectedSetForCalculator = null
                                     isPlateCalculatorOpen = true
@@ -100,7 +100,7 @@ fun ActiveWorkoutScreen(
                                 text = "🏋️ Kotouče",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.OnSurface
+                                color = colorScheme.onSurface
                             )
                         }
 
@@ -108,20 +108,20 @@ fun ActiveWorkoutScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(AppColors.SurfaceVariant)
+                                .background(colorScheme.surfaceVariant)
                                 .padding(horizontal = AppSpacing.md, vertical = 6.dp)
                         ) {
                             Text(
                                 text = "⏱ $timerText",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.Primary
+                                color = colorScheme.primary
                             )
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = AppColors.Background
+                    containerColor = colorScheme.background
                 )
             )
         },
@@ -159,7 +159,7 @@ fun ActiveWorkoutScreen(
                                 .fillMaxWidth()
                                 .height(220.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(AppColors.Surface)
+                                .background(colorScheme.surface)
                                 .padding(AppSpacing.xl),
                             contentAlignment = Alignment.Center
                         ) {
@@ -175,12 +175,12 @@ fun ActiveWorkoutScreen(
                                     text = "Žádné cviky v tréninku",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = AppColors.OnSurface
+                                    color = colorScheme.onSurface
                                 )
                                 Text(
                                     text = "Klikněte na '+ Přidat cvik' níže a začněte cvičit.",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = AppColors.OnSurfaceVariant
+                                    color = colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -192,17 +192,33 @@ fun ActiveWorkoutScreen(
                             exercise = exercise,
                             sets = exerciseSets,
                             onAddSet = { onIntent(ActiveWorkoutContract.Intent.AddSet(exercise.id)) },
-                            onToggleSetComplete = { set -> onIntent(ActiveWorkoutContract.Intent.ToggleSetComplete(set)) },
-                            onWeightChange = { set, weight -> onIntent(ActiveWorkoutContract.Intent.UpdateWeight(set, weight)) },
-                            onRepsChange = { set, reps -> onIntent(ActiveWorkoutContract.Intent.UpdateReps(set, reps)) },
-                            onRpeChange = { set, rpe -> onIntent(ActiveWorkoutContract.Intent.UpdateRpe(set, rpe)) },
-                            onDeleteSet = { set -> onIntent(ActiveWorkoutContract.Intent.DeleteSet(set)) },
-                            onSetTypeChange = { set, newType -> onIntent(ActiveWorkoutContract.Intent.ChangeSetType(set, newType)) },
-                            onRemoveExercise = { onIntent(ActiveWorkoutContract.Intent.RemoveExerciseFromWorkout(exercise.id)) },
-                            onShowStats = { onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(exercise)) },
+                            onToggleSetComplete = { set ->
+                                onIntent(ActiveWorkoutContract.Intent.ToggleSetComplete(set))
+                            },
+                            onWeightChange = { set, newWeight ->
+                                onIntent(ActiveWorkoutContract.Intent.UpdateWeight(set, newWeight))
+                            },
+                            onRepsChange = { set, newReps ->
+                                onIntent(ActiveWorkoutContract.Intent.UpdateReps(set, newReps))
+                            },
+                            onRpeChange = { set, newRpe ->
+                                onIntent(ActiveWorkoutContract.Intent.UpdateRpe(set, newRpe))
+                            },
+                            onDeleteSet = { set ->
+                                onIntent(ActiveWorkoutContract.Intent.DeleteSet(set))
+                            },
+                            onRemoveExercise = {
+                                onIntent(ActiveWorkoutContract.Intent.RemoveExerciseFromWorkout(exercise.id))
+                            },
                             onOpenPlateCalculator = { set ->
                                 selectedSetForCalculator = set
                                 isPlateCalculatorOpen = true
+                            },
+                            onShowStats = {
+                                onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(exercise))
+                            },
+                            onSetTypeChange = { set, newType ->
+                                onIntent(ActiveWorkoutContract.Intent.ChangeSetType(set, newType))
                             }
                         )
                     }

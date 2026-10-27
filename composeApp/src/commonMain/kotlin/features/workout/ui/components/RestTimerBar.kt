@@ -30,7 +30,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
 @Composable
@@ -42,6 +41,8 @@ fun RestTimerBar(
     onSkip: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     AnimatedVisibility(
         visible = isVisible && remainingSeconds > 0,
         enter = fadeIn() + expandVertically(),
@@ -57,8 +58,8 @@ fun RestTimerBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(AppColors.Surface)
-                .border(1.5.dp, AppColors.Primary, RoundedCornerShape(16.dp))
+                .background(colorScheme.surface)
+                .border(1.5.dp, colorScheme.primary, RoundedCornerShape(16.dp))
                 .padding(AppSpacing.md),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
@@ -74,7 +75,7 @@ fun RestTimerBar(
                     Text(
                         text = "⏱ PAUZA MEZI SÉRIEMI",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.Primary,
+                        color = colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -83,7 +84,7 @@ fun RestTimerBar(
                     text = formattedTime,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = AppColors.Primary
+                    color = colorScheme.primary
                 )
             }
 
@@ -94,8 +95,8 @@ fun RestTimerBar(
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = AppColors.Primary,
-                trackColor = AppColors.SurfaceVariant
+                color = colorScheme.primary,
+                trackColor = colorScheme.surfaceVariant
             )
 
             // Ovládací tlačítka (všechna min 48 dp)
@@ -109,7 +110,7 @@ fun RestTimerBar(
                     modifier = Modifier
                         .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(AppColors.SurfaceVariant)
+                        .background(colorScheme.surfaceVariant)
                         .clickable(role = Role.Button) { onAddSeconds(-15) }
                         .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs),
                     contentAlignment = Alignment.Center
@@ -118,7 +119,7 @@ fun RestTimerBar(
                         text = "-15s",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnSurface
+                        color = colorScheme.onSurface
                     )
                 }
 
@@ -129,7 +130,7 @@ fun RestTimerBar(
                     modifier = Modifier
                         .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(AppColors.SurfaceVariant)
+                        .background(colorScheme.surfaceVariant)
                         .clickable(role = Role.Button) { onAddSeconds(30) }
                         .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs),
                     contentAlignment = Alignment.Center
@@ -138,7 +139,7 @@ fun RestTimerBar(
                         text = "+30s",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.Primary
+                        color = colorScheme.primary
                     )
                 }
 
@@ -149,7 +150,7 @@ fun RestTimerBar(
                     modifier = Modifier
                         .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(AppColors.SurfaceVariant)
+                        .background(colorScheme.surfaceVariant)
                         .clickable(role = Role.Button, onClick = onSkip)
                         .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs),
                     contentAlignment = Alignment.Center
@@ -158,7 +159,7 @@ fun RestTimerBar(
                         text = "Přeskočit",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.StatusError
+                        color = colorScheme.error
                     )
                 }
             }

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import features.workout.domain.Exercise
 import features.workout.domain.MuscleGroup
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,6 +55,7 @@ fun ExercisePickerSheet(
 ) {
     if (!isVisible) return
 
+    val colorScheme = MaterialTheme.colorScheme
     var searchQuery by remember { mutableStateOf("") }
     var selectedMuscleGroup by remember { mutableStateOf<MuscleGroup?>(null) }
     var isCreateDialogOpen by remember { mutableStateOf(false) }
@@ -64,8 +63,8 @@ fun ExercisePickerSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = AppColors.Background,
-        contentColor = AppColors.OnBackground,
+        containerColor = colorScheme.surface,
+        contentColor = colorScheme.onSurface,
         dragHandle = {
             Box(
                 modifier = Modifier
@@ -73,7 +72,7 @@ fun ExercisePickerSheet(
                     .width(40.dp)
                     .height(4.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(AppColors.Outline)
+                    .background(colorScheme.outlineVariant)
             )
         }
     ) {
@@ -101,14 +100,14 @@ fun ExercisePickerSheet(
                     text = "Přidat cvik",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.OnBackground
+                    color = colorScheme.onSurface
                 )
 
                 Box(
                     modifier = Modifier
                         .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(AppColors.PrimaryContainer.copy(alpha = 0.4f))
+                        .background(colorScheme.primaryContainer.copy(alpha = 0.5f))
                         .clickable(role = Role.Button) { isCreateDialogOpen = true }
                         .padding(horizontal = 10.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center
@@ -117,7 +116,7 @@ fun ExercisePickerSheet(
                         text = "+ Vlastní cvik",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.Primary
+                        color = colorScheme.primary
                     )
                 }
             }
@@ -128,8 +127,8 @@ fun ExercisePickerSheet(
                     .fillMaxWidth()
                     .height(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(AppColors.Surface)
-                    .border(1.dp, AppColors.Outline, RoundedCornerShape(12.dp))
+                    .background(colorScheme.surfaceVariant)
+                    .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(12.dp))
                     .padding(horizontal = AppSpacing.md),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -137,7 +136,7 @@ fun ExercisePickerSheet(
                     Text(
                         text = "Hledat cvik...",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
                 BasicTextField(
@@ -145,11 +144,11 @@ fun ExercisePickerSheet(
                     onValueChange = { searchQuery = it },
                     singleLine = true,
                     textStyle = TextStyle(
-                        color = AppColors.OnBackground,
+                        color = colorScheme.onSurface,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal
                     ),
-                    cursorBrush = SolidColor(AppColors.Primary),
+                    cursorBrush = SolidColor(colorScheme.primary),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -165,7 +164,7 @@ fun ExercisePickerSheet(
                         modifier = Modifier
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(20.dp))
-                            .background(if (isAllSelected) AppColors.Primary else AppColors.SurfaceVariant)
+                            .background(if (isAllSelected) colorScheme.primary else colorScheme.surfaceVariant)
                             .clickable { selectedMuscleGroup = null }
                             .padding(horizontal = AppSpacing.md, vertical = 6.dp),
                         contentAlignment = Alignment.Center
@@ -174,7 +173,7 @@ fun ExercisePickerSheet(
                             text = "Vše",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = if (isAllSelected) AppColors.OnPrimary else AppColors.OnSurfaceVariant
+                            color = if (isAllSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -185,7 +184,7 @@ fun ExercisePickerSheet(
                         modifier = Modifier
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(20.dp))
-                            .background(if (isSelected) AppColors.Primary else AppColors.SurfaceVariant)
+                            .background(if (isSelected) colorScheme.primary else colorScheme.surfaceVariant)
                             .clickable { selectedMuscleGroup = if (isSelected) null else group }
                             .padding(horizontal = AppSpacing.md, vertical = 6.dp),
                         contentAlignment = Alignment.Center
@@ -194,7 +193,7 @@ fun ExercisePickerSheet(
                             text = group.displayName,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = if (isSelected) AppColors.OnPrimary else AppColors.OnSurfaceVariant
+                            color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -214,8 +213,8 @@ fun ExercisePickerSheet(
                             .fillMaxWidth()
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(AppColors.Surface)
-                            .border(1.dp, AppColors.OutlineVariant, RoundedCornerShape(12.dp))
+                            .background(colorScheme.surface)
+                            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(12.dp))
                             .clickable(role = Role.Button) { onSelectExercise(exercise) }
                             .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -226,12 +225,12 @@ fun ExercisePickerSheet(
                                 text = exercise.name,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color = AppColors.OnSurface
+                                color = colorScheme.onSurface
                             )
                             Text(
                                 text = "${exercise.muscleGroup.displayName} • Pauza: ${exercise.defaultRestSeconds}s",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.OnSurfaceVariant
+                                color = colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -239,7 +238,7 @@ fun ExercisePickerSheet(
                             text = "+",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.Primary
+                            color = colorScheme.primary
                         )
                     }
                 }
@@ -251,8 +250,8 @@ fun ExercisePickerSheet(
                             .fillMaxWidth()
                             .minimumInteractiveComponentSize()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(AppColors.SurfaceVariant.copy(alpha = 0.5f))
-                            .border(1.dp, AppColors.Primary.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                            .background(colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .border(1.dp, colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
                             .clickable(role = Role.Button) { isCreateDialogOpen = true }
                             .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md),
                         contentAlignment = Alignment.Center
@@ -261,7 +260,7 @@ fun ExercisePickerSheet(
                             text = "+ Vytvořit nový cvik${if (searchQuery.isNotBlank()) " \"$searchQuery\"" else ""}",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.Primary
+                            color = colorScheme.primary
                         )
                     }
                 }

@@ -23,8 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import core.common.formatCleanWeight
 import features.workout.domain.WorkoutSession
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
+import ui.designsystem.nucleus.statusSynced
+import ui.designsystem.nucleus.statusSyncedContainer
 
 @Composable
 fun WorkoutHistoryItemCard(
@@ -33,6 +34,7 @@ fun WorkoutHistoryItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val volumeFormatted = session.totalVolumeKg.formatCleanWeight()
 
     Column(
@@ -40,8 +42,8 @@ fun WorkoutHistoryItemCard(
             .fillMaxWidth()
             .minimumInteractiveComponentSize()
             .clip(RoundedCornerShape(14.dp))
-            .background(AppColors.Surface)
-            .border(1.dp, AppColors.OutlineVariant, RoundedCornerShape(14.dp))
+            .background(colorScheme.surface)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(14.dp))
             .clickable(role = Role.Button, onClick = onClick)
             .padding(AppSpacing.md),
         verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
@@ -55,19 +57,19 @@ fun WorkoutHistoryItemCard(
                 text = session.title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = AppColors.OnSurface
+                color = colorScheme.onSurface
             )
 
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .background(AppColors.StatusSynced.copy(alpha = 0.15f))
+                    .background(colorScheme.statusSyncedContainer)
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
                 Text(
                     text = "Dokončeno",
                     style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.StatusSynced,
+                    color = colorScheme.statusSynced,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -82,7 +84,7 @@ fun WorkoutHistoryItemCard(
                 text = "Objem: $volumeFormatted kg",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = AppColors.Primary
+                color = colorScheme.primary
             )
 
             val durationMinutes = if (session.endTimeEpochMs != null) {
@@ -95,7 +97,7 @@ fun WorkoutHistoryItemCard(
             Text(
                 text = "Délka: $durationMinutes",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.OnSurfaceVariant
+                color = colorScheme.onSurfaceVariant
             )
         }
 
@@ -112,13 +114,13 @@ fun WorkoutHistoryItemCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
-                            .background(AppColors.SurfaceVariant.copy(alpha = 0.6f))
+                            .background(colorScheme.surfaceVariant)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = name,
                             style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.OnSurfaceVariant,
+                            color = colorScheme.onSurfaceVariant,
                             fontSize = 10.sp
                         )
                     }
@@ -127,7 +129,7 @@ fun WorkoutHistoryItemCard(
                     Text(
                         text = "+${exerciseNames.size - 3}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.OnSurfaceVariant,
+                        color = colorScheme.onSurfaceVariant,
                         fontSize = 10.sp
                     )
                 }

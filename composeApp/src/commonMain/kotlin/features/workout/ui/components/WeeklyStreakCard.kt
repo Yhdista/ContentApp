@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -23,20 +22,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import features.workout.domain.WeeklyActivitySummary
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
+import ui.designsystem.nucleus.prGold
+import ui.designsystem.nucleus.prGoldBorder
+import ui.designsystem.nucleus.prGoldContainer
+import ui.designsystem.nucleus.statusSynced
 
 @Composable
 fun WeeklyStreakCard(
     summary: WeeklyActivitySummary,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(AppColors.Surface)
-            .border(1.dp, AppColors.Outline, RoundedCornerShape(16.dp))
+            .background(colorScheme.surface)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
             .padding(AppSpacing.md),
         verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
@@ -56,12 +60,12 @@ fun WeeklyStreakCard(
                         text = "Aktivita tento týden",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnSurface
+                        color = colorScheme.onSurface
                     )
                     Text(
                         text = "Přehled tréninkových dnů",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -78,14 +82,14 @@ fun WeeklyStreakCard(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF451A03))
-                    .border(1.dp, Color(0xFFFBBF24), RoundedCornerShape(8.dp))
+                    .background(colorScheme.prGoldContainer)
+                    .border(1.dp, colorScheme.prGoldBorder, RoundedCornerShape(8.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text(
                     text = badgeText,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFFFBBF24),
+                    color = colorScheme.prGold,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -108,7 +112,7 @@ fun WeeklyStreakCard(
                         text = day.dayOfWeekName,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = if (day.isToday) FontWeight.Bold else FontWeight.Normal,
-                        color = if (day.isToday) AppColors.Primary else AppColors.OnSurfaceVariant,
+                        color = if (day.isToday) colorScheme.primary else colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     )
 
@@ -118,7 +122,7 @@ fun WeeklyStreakCard(
 
                     if (day.hasWorkout) {
                         Box(
-                            modifier = circleModifier.background(AppColors.StatusSynced),
+                            modifier = circleModifier.background(colorScheme.statusSynced),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -131,25 +135,25 @@ fun WeeklyStreakCard(
                     } else if (day.isToday) {
                         Box(
                             modifier = circleModifier
-                                .background(AppColors.Primary.copy(alpha = 0.15f))
-                                .border(1.5.dp, AppColors.Primary, CircleShape),
+                                .background(colorScheme.primary.copy(alpha = 0.15f))
+                                .border(1.5.dp, colorScheme.primary, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
                                     .clip(CircleShape)
-                                    .background(AppColors.Primary)
+                                    .background(colorScheme.primary)
                             )
                         }
                     } else {
                         Box(
-                            modifier = circleModifier.background(AppColors.SurfaceVariant.copy(alpha = 0.5f)),
+                            modifier = circleModifier.background(colorScheme.surfaceVariant.copy(alpha = 0.7f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "•",
-                                color = AppColors.OnSurfaceVariant.copy(alpha = 0.4f),
+                                color = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 fontSize = 14.sp
                             )
                         }

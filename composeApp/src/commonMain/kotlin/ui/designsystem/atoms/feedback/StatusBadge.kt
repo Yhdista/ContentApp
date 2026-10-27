@@ -13,34 +13,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import core.model.ItemSyncStatus
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
+import ui.designsystem.nucleus.statusErrorContainerCustom
+import ui.designsystem.nucleus.statusErrorCustom
+import ui.designsystem.nucleus.statusPending
+import ui.designsystem.nucleus.statusPendingContainer
+import ui.designsystem.nucleus.statusSynced
+import ui.designsystem.nucleus.statusSyncedContainer
 
 @Composable
 fun StatusBadge(
     status: ItemSyncStatus,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val (bg, contentColor, dotColor, label) = when (status) {
         ItemSyncStatus.SYNCED -> Quad(
-            Color(0xFF064E3B),
-            AppColors.StatusSynced,
-            AppColors.StatusSynced,
+            colorScheme.statusSyncedContainer,
+            colorScheme.statusSynced,
+            colorScheme.statusSynced,
             "SYNCED"
         )
         ItemSyncStatus.PENDING -> Quad(
-            Color(0xFF451A03),
-            AppColors.StatusPending,
-            AppColors.StatusPending,
+            colorScheme.statusPendingContainer,
+            colorScheme.statusPending,
+            colorScheme.statusPending,
             "PENDING"
         )
         ItemSyncStatus.ERROR -> Quad(
-            Color(0xFF450A0A),
-            AppColors.StatusError,
-            AppColors.StatusError,
+            colorScheme.statusErrorContainerCustom,
+            colorScheme.statusErrorCustom,
+            colorScheme.statusErrorCustom,
             "ERROR"
         )
     }

@@ -36,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,8 +43,13 @@ import androidx.compose.ui.unit.sp
 import core.common.formatCleanWeight
 import features.workout.domain.WorkoutSetType
 import features.workout.ui.components.toBadgeVisuals
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
+import ui.designsystem.nucleus.isLight
+import ui.designsystem.nucleus.prGold
+import ui.designsystem.nucleus.prGoldBorder
+import ui.designsystem.nucleus.prGoldContainer
+import ui.designsystem.nucleus.statusSynced
+import ui.designsystem.nucleus.statusSyncedContainer
 import ui.designsystem.templates.UniversalScreenTemplate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,6 +59,7 @@ fun WorkoutDetailScreen(
     onIntent: (WorkoutDetailContract.Intent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val session = state.session
     var showSaveDialog by remember { mutableStateOf(false) }
     var templateNameInput by remember(session?.title) { mutableStateOf(session?.title ?: "Můj trénink") }
@@ -69,12 +74,12 @@ fun WorkoutDetailScreen(
                             text = session?.title ?: "Detail tréninku",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.OnBackground
+                            color = colorScheme.onBackground
                         )
                         Text(
                             text = "Souhrn výkonu & sérií",
                             style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.OnSurfaceVariant
+                            color = colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -92,7 +97,7 @@ fun WorkoutDetailScreen(
                             text = "←",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
-                            color = AppColors.Primary
+                            color = colorScheme.primary
                         )
                     }
                 },
@@ -100,53 +105,25 @@ fun WorkoutDetailScreen(
                     Box(
                         modifier = Modifier
                             .minimumInteractiveComponentSize()
+                            .padding(end = AppSpacing.sm)
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable(role = Role.Button) {
-                                showSaveDialog = true
-                            }
-                            .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
+                            .background(colorScheme.surfaceVariant)
+                            .clickable(role = Role.Button) { showSaveDialog = true }
+                            .padding(horizontal = AppSpacing.sm, vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "📋 Šablona",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = AppColors.Primary
+                            text = "💾 Uložit jako šablonu",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.primary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = AppColors.Background
+                    containerColor = colorScheme.background
                 )
             )
-        },
-        thumbActionZone = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(AppSpacing.md)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .minimumInteractiveComponentSize()
-                        .height(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(AppColors.SurfaceVariant)
-                        .border(1.dp, AppColors.Primary, RoundedCornerShape(14.dp))
-                        .clickable(role = Role.Button) {
-                            onIntent(WorkoutDetailContract.Intent.BackClicked)
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Zpět do historie",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = AppColors.Primary
-                    )
-                }
-            }
         },
         content = { contentPadding ->
             LazyColumn(
@@ -157,53 +134,59 @@ fun WorkoutDetailScreen(
                     horizontal = AppSpacing.lg,
                     vertical = AppSpacing.md
                 ),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
-                // 1. Souhrnná karta tréninku
+                // 1. Karta souhrnu (Objem, Čas)
                 item {
-                    val volumeFormatted = session?.totalVolumeKg?.formatCleanWeight() ?: "0"
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
-                            .background(AppColors.Surface)
-                            .border(1.dp, AppColors.Outline, RoundedCornerShape(16.dp))
+                            .background(colorScheme.surface)
+                            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                             .padding(AppSpacing.lg),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            val volumeFormatted = (session?.totalVolumeKg ?: 0.0).formatCleanWeight()
                             Text(
                                 text = "$volumeFormatted kg",
-                                fontSize = 24.sp,
+                                fontSize = 26.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = AppColors.Primary
+                                color = colorScheme.primary
                             )
                             Text(
                                 text = "Celkový objem",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.OnSurfaceVariant
+                                color = colorScheme.onSurfaceVariant
                             )
                         }
 
                         Box(
                             modifier = Modifier
-                                .height(40.dp)
-                                .border(0.5.dp, AppColors.Outline, RoundedCornerShape(1.dp))
+                                .height(44.dp)
+                                .border(0.5.dp, colorScheme.outlineVariant, RoundedCornerShape(1.dp))
                         )
+
+                        val durationMinutes = if (session?.endTimeEpochMs != null) {
+                            val durationSec = (session.endTimeEpochMs - session.startTimeEpochMs) / 1000
+                            "${durationSec / 60} min"
+                        } else {
+                            "—"
+                        }
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = state.durationFormatted,
-                                fontSize = 22.sp,
+                                text = durationMinutes,
+                                fontSize = 26.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = AppColors.OnSurface
+                                color = colorScheme.onSurface
                             )
                             Text(
                                 text = "Délka cvičení",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.OnSurfaceVariant
+                                color = colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -219,8 +202,8 @@ fun WorkoutDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFF26200A))
-                                .border(1.dp, Color(0xFFFBBF24).copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                .background(colorScheme.prGoldContainer)
+                                .border(1.dp, colorScheme.prGoldBorder, RoundedCornerShape(16.dp))
                                 .padding(AppSpacing.md),
                             verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                         ) {
@@ -236,7 +219,7 @@ fun WorkoutDetailScreen(
                                     text = "Nové osobní rekordy v tomto tréninku!",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFFBBF24)
+                                    color = colorScheme.prGold
                                 )
                             }
                             allPrSets.forEach { (exercise, set) ->
@@ -244,7 +227,7 @@ fun WorkoutDetailScreen(
                                 Text(
                                     text = "• ${exercise.name}: $weightStr kg × ${set.reps} opakování",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = AppColors.OnSurface
+                                    color = colorScheme.onSurface
                                 )
                             }
                         }
@@ -257,7 +240,7 @@ fun WorkoutDetailScreen(
                         text = "ROZPIS ODCVIČENÝCH CVIKŮ",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -266,54 +249,56 @@ fun WorkoutDetailScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(120.dp)
+                                .height(160.dp)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(AppColors.Surface)
+                                .background(colorScheme.surface)
                                 .padding(AppSpacing.lg),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "V tomto tréninku nebyly zaznamenány žádné série.",
+                                text = "Žádné zaznamenané cviky",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = AppColors.OnSurfaceVariant
+                                color = colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 } else {
-                    items(state.exercisesWithSets, key = { it.exercise.id }) { item ->
-                        ExerciseDetailCard(item = item)
+                    items(state.exercisesWithSets, key = { it.exercise.id }) { group ->
+                        DetailExerciseCard(group = group)
                     }
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(AppSpacing.xxl))
+                    Spacer(modifier = Modifier.height(AppSpacing.xl))
                 }
             }
         }
     )
 
+    // Dialog pro uložení sezení jako šablony
     if (showSaveDialog) {
         AlertDialog(
             onDismissRequest = { showSaveDialog = false },
+            containerColor = colorScheme.surface,
             title = {
                 Text(
-                    text = "Uložit jako šablonu",
+                    text = "Uložit jako rutinu / šablonu",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.OnSurface
+                    color = colorScheme.onSurface
                 )
             },
             text = {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                     Text(
-                        text = "Zadejte název šablony pro budoucí tréninky:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.OnSurfaceVariant
+                        text = "Vytvořte si z tohoto tréninku opakovatelnou šablonu pro rychlé spuštění kdykoliv v budoucnu.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(AppSpacing.sm))
                     OutlinedTextField(
                         value = templateNameInput,
                         onValueChange = { templateNameInput = it },
+                        label = { Text("Název šablony") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -322,38 +307,42 @@ fun WorkoutDetailScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        showSaveDialog = false
-                        val finalName = templateNameInput.ifBlank { session?.title ?: "Šablona" }
-                        onIntent(WorkoutDetailContract.Intent.SaveAsTemplate(finalName))
+                        val name = templateNameInput.trim()
+                        if (name.isNotBlank()) {
+                            onIntent(WorkoutDetailContract.Intent.SaveAsTemplate(name))
+                            showSaveDialog = false
+                        }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorScheme.primary,
+                        contentColor = colorScheme.onPrimary
+                    )
                 ) {
-                    Text("Uložit", color = AppColors.OnPrimary)
+                    Text("Uložit")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showSaveDialog = false }) {
-                    Text("Zrušit", color = AppColors.OnSurfaceVariant)
+                    Text("Zrušit", color = colorScheme.onSurfaceVariant)
                 }
-            },
-            containerColor = AppColors.SurfaceVariant
+            }
         )
     }
 }
 
 @Composable
-private fun ExerciseDetailCard(
-    item: WorkoutDetailContract.ExerciseWithSets,
+private fun DetailExerciseCard(
+    group: WorkoutDetailContract.ExerciseWithSets,
     modifier: Modifier = Modifier
 ) {
-    val volumeFormatted = item.exerciseVolumeKg.formatCleanWeight()
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(AppColors.Surface)
-            .border(1.dp, AppColors.Outline, RoundedCornerShape(16.dp))
+            .background(colorScheme.surface)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
             .padding(AppSpacing.md),
         verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
@@ -363,100 +352,123 @@ private fun ExerciseDetailCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = item.exercise.name,
+                    text = group.exercise.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.OnSurface
+                    color = colorScheme.onSurface
                 )
-                Text(
-                    text = "${item.exercise.muscleGroup.displayName} • Objem cviku: $volumeFormatted kg",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.Primary
-                )
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(colorScheme.primaryContainer.copy(alpha = 0.5f))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = group.exercise.muscleGroup.displayName,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
+
+            val completedSetsCount = group.sets.count { it.isCompleted }
+            Text(
+                text = "$completedSetsCount / ${group.sets.size} sérií",
+                style = MaterialTheme.typography.labelMedium,
+                color = colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.SemiBold
+            )
         }
 
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(AppSpacing.xs))
 
         // Seznam sérií
-        item.sets.forEach { set ->
-            val weightStr = set.weightKg.formatCleanWeight()
-            val rpeStr = set.rpe?.let { " • @$it" } ?: ""
+        Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+            group.sets.forEach { set ->
+                val weightStr = set.weightKg.formatCleanWeight()
+                val rpeStr = set.rpe?.let { " @$it" } ?: ""
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(AppColors.SurfaceVariant.copy(alpha = 0.5f))
-                    .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                val badgeVisuals = set.setType.toBadgeVisuals(
+                    setNumber = set.setNumber,
+                    isCompleted = set.isCompleted,
+                    isLight = colorScheme.isLight
+                )
+
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .padding(horizontal = AppSpacing.sm, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val badgeVisuals = set.setType.toBadgeVisuals(setNumber = set.setNumber)
-
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(badgeVisuals.backgroundColor),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(badgeVisuals.backgroundColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = badgeVisuals.label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = badgeVisuals.contentColor
+                            )
+                        }
+
                         Text(
-                            text = badgeVisuals.label,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = badgeVisuals.contentColor
+                            text = "$weightStr kg × ${set.reps} reps$rpeStr",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorScheme.onSurface
                         )
                     }
 
-                    Text(
-                        text = "$weightStr kg × ${set.reps} reps$rpeStr",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = AppColors.OnSurface
-                    )
-                }
-
-                if (set.isCompleted) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (set.isPersonalRecord) {
+                    if (set.isCompleted) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (set.isPersonalRecord) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(colorScheme.prGoldContainer)
+                                        .border(1.dp, colorScheme.prGoldBorder, RoundedCornerShape(6.dp))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "🏆 PR",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = colorScheme.prGold,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xFF451A03))
-                                    .border(1.dp, Color(0xFFFBBF24), RoundedCornerShape(6.dp))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    .background(colorScheme.statusSyncedContainer)
+                                    .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    text = "🏆 PR",
+                                    text = "✓ Hotovo",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFFFBBF24),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp
+                                    color = colorScheme.statusSynced,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
-                        }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(AppColors.StatusSynced.copy(alpha = 0.15f))
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = "✓ Hotovo",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.StatusSynced,
-                                fontWeight = FontWeight.Bold
-                            )
                         }
                     }
                 }

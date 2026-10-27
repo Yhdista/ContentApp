@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,11 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
+import ui.designsystem.nucleus.statusSynced
 
 @Composable
 fun WorkoutThumbBar(
@@ -32,12 +32,14 @@ fun WorkoutThumbBar(
     onCancelWorkout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-            .background(AppColors.Surface)
-            .border(1.dp, AppColors.Outline, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+            .background(colorScheme.surface)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             .padding(AppSpacing.md),
         verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
@@ -53,8 +55,8 @@ fun WorkoutThumbBar(
                     .minimumInteractiveComponentSize()
                     .height(AppSpacing.minInteractiveTouchTarget)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(AppColors.SurfaceVariant)
-                    .border(1.dp, AppColors.Primary, RoundedCornerShape(12.dp))
+                    .background(colorScheme.surfaceVariant)
+                    .border(1.dp, colorScheme.primary, RoundedCornerShape(12.dp))
                     .clickable(role = Role.Button, onClick = onAddExercise),
                 contentAlignment = Alignment.Center
             ) {
@@ -62,7 +64,7 @@ fun WorkoutThumbBar(
                     text = "+ Přidat cvik",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.Primary
+                    color = colorScheme.primary
                 )
             }
 
@@ -73,7 +75,7 @@ fun WorkoutThumbBar(
                     .minimumInteractiveComponentSize()
                     .height(AppSpacing.minInteractiveTouchTarget)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(AppColors.StatusSynced)
+                    .background(colorScheme.statusSynced)
                     .clickable(role = Role.Button, onClick = onFinishWorkout),
                 contentAlignment = Alignment.Center
             ) {
@@ -81,7 +83,7 @@ fun WorkoutThumbBar(
                     text = "Ukončit trénink ✓",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.OnStatusSynced
+                    color = Color.White
                 )
             }
         }
@@ -97,7 +99,7 @@ fun WorkoutThumbBar(
             Text(
                 text = "Zahodit trénink bez uložení",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.StatusError
+                color = colorScheme.error
             )
         }
     }

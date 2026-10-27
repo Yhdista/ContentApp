@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import features.workout.domain.MuscleGroup
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
 @Composable
@@ -43,6 +42,7 @@ fun CreateCustomExerciseDialog(
     onDismiss: () -> Unit,
     onConfirm: (name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     var name by remember { mutableStateOf(initialName) }
     var selectedMuscleGroup by remember { mutableStateOf(MuscleGroup.CHEST) }
     var selectedRestSeconds by remember { mutableStateOf(90) }
@@ -55,8 +55,8 @@ fun CreateCustomExerciseDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
-                .background(AppColors.Surface)
-                .border(1.dp, AppColors.Outline, RoundedCornerShape(20.dp))
+                .background(colorScheme.surface)
+                .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(20.dp))
                 .padding(AppSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
@@ -64,7 +64,7 @@ fun CreateCustomExerciseDialog(
                 text = "Nový vlastní cvik",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = AppColors.OnSurface
+                color = colorScheme.onSurface
             )
 
             // 1. Název cviku
@@ -72,7 +72,7 @@ fun CreateCustomExerciseDialog(
                 Text(
                     text = "NÁZEV CVIKU",
                     style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.OnSurfaceVariant,
+                    color = colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -81,8 +81,12 @@ fun CreateCustomExerciseDialog(
                         .fillMaxWidth()
                         .height(48.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(AppColors.SurfaceVariant)
-                        .border(1.dp, if (errorMessage != null) AppColors.StatusError else AppColors.Outline, RoundedCornerShape(12.dp))
+                        .background(colorScheme.surfaceVariant)
+                        .border(
+                            1.dp,
+                            if (errorMessage != null) colorScheme.error else colorScheme.outlineVariant,
+                            RoundedCornerShape(12.dp)
+                        )
                         .padding(horizontal = AppSpacing.md),
                     contentAlignment = Alignment.CenterStart
                 ) {
@@ -90,7 +94,7 @@ fun CreateCustomExerciseDialog(
                         Text(
                             text = "Např. Přítahy jednoručky",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = AppColors.OnSurfaceVariant
+                            color = colorScheme.onSurfaceVariant
                         )
                     }
                     BasicTextField(
@@ -101,11 +105,11 @@ fun CreateCustomExerciseDialog(
                         },
                         singleLine = true,
                         textStyle = TextStyle(
-                            color = AppColors.OnSurface,
+                            color = colorScheme.onSurface,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold
                         ),
-                        cursorBrush = SolidColor(AppColors.Primary),
+                        cursorBrush = SolidColor(colorScheme.primary),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -114,7 +118,7 @@ fun CreateCustomExerciseDialog(
                     Text(
                         text = errorMessage ?: "",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.StatusError
+                        color = colorScheme.error
                     )
                 }
             }
@@ -124,7 +128,7 @@ fun CreateCustomExerciseDialog(
                 Text(
                     text = "SVALOVÁ PARTIE",
                     style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.OnSurfaceVariant,
+                    color = colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -137,7 +141,7 @@ fun CreateCustomExerciseDialog(
                             modifier = Modifier
                                 .minimumInteractiveComponentSize()
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(if (isSelected) AppColors.Primary else AppColors.SurfaceVariant)
+                                .background(if (isSelected) colorScheme.primary else colorScheme.surfaceVariant)
                                 .clickable { selectedMuscleGroup = group }
                                 .padding(horizontal = AppSpacing.md, vertical = 6.dp),
                             contentAlignment = Alignment.Center
@@ -146,7 +150,7 @@ fun CreateCustomExerciseDialog(
                                 text = group.displayName,
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) AppColors.OnPrimary else AppColors.OnSurfaceVariant
+                                color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -158,7 +162,7 @@ fun CreateCustomExerciseDialog(
                 Text(
                     text = "VÝCHOZÍ PAUZA MEZI SÉRIEMI",
                     style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.OnSurfaceVariant,
+                    color = colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -174,7 +178,7 @@ fun CreateCustomExerciseDialog(
                                 .height(40.dp)
                                 .minimumInteractiveComponentSize()
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(if (isSelected) AppColors.Primary else AppColors.SurfaceVariant)
+                                .background(if (isSelected) colorScheme.primary else colorScheme.surfaceVariant)
                                 .clickable { selectedRestSeconds = seconds },
                             contentAlignment = Alignment.Center
                         ) {
@@ -182,7 +186,7 @@ fun CreateCustomExerciseDialog(
                                 text = "${seconds}s",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) AppColors.OnPrimary else AppColors.OnSurfaceVariant
+                                color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -202,7 +206,7 @@ fun CreateCustomExerciseDialog(
                         .height(48.dp)
                         .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(AppColors.SurfaceVariant)
+                        .background(colorScheme.surfaceVariant)
                         .clickable(role = Role.Button, onClick = onDismiss),
                     contentAlignment = Alignment.Center
                 ) {
@@ -210,7 +214,7 @@ fun CreateCustomExerciseDialog(
                         text = "Zrušit",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -220,7 +224,7 @@ fun CreateCustomExerciseDialog(
                         .height(48.dp)
                         .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(AppColors.Primary)
+                        .background(colorScheme.primary)
                         .clickable(
                             role = Role.Button,
                             onClick = {
@@ -237,7 +241,7 @@ fun CreateCustomExerciseDialog(
                         text = "Vytvořit a přidat",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.OnPrimary
+                        color = colorScheme.onPrimary
                     )
                 }
             }

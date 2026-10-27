@@ -24,11 +24,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import features.workout.domain.Exercise
 import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
-import ui.designsystem.nucleus.AppColors
 import ui.designsystem.nucleus.AppSpacing
 
 @Composable
@@ -47,12 +45,14 @@ fun ExerciseCard(
     onSetTypeChange: ((WorkoutSet, WorkoutSetType) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(AppColors.Surface)
-            .border(1.dp, AppColors.Outline, RoundedCornerShape(16.dp))
+            .background(colorScheme.surface)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
             .padding(AppSpacing.md),
         verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
@@ -67,7 +67,7 @@ fun ExerciseCard(
                     text = exercise.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.OnSurface
+                    color = colorScheme.onSurface
                 )
 
                 Row(
@@ -78,13 +78,13 @@ fun ExerciseCard(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
-                            .background(AppColors.PrimaryContainer.copy(alpha = 0.4f))
+                            .background(colorScheme.primaryContainer.copy(alpha = 0.5f))
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = exercise.muscleGroup.displayName,
                             style = MaterialTheme.typography.labelSmall,
-                            color = AppColors.Primary,
+                            color = colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -93,7 +93,7 @@ fun ExerciseCard(
                     Text(
                         text = "Pauza: ${exercise.defaultRestSeconds}s",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -127,7 +127,7 @@ fun ExerciseCard(
                     Text(
                         text = "✕",
                         style = MaterialTheme.typography.labelMedium,
-                        color = AppColors.OnSurfaceVariant
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -146,7 +146,7 @@ fun ExerciseCard(
             Text(
                 text = "SET",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.OnSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(28.dp),
                 textAlign = TextAlign.Center
@@ -154,7 +154,7 @@ fun ExerciseCard(
             Text(
                 text = "PŘEDCHOZÍ",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.OnSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(64.dp),
                 textAlign = TextAlign.Center
@@ -162,7 +162,7 @@ fun ExerciseCard(
             Text(
                 text = "KG",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.OnSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(62.dp),
                 textAlign = TextAlign.Center
@@ -170,7 +170,7 @@ fun ExerciseCard(
             Text(
                 text = "REPS",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.OnSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(52.dp),
                 textAlign = TextAlign.Center
@@ -178,7 +178,7 @@ fun ExerciseCard(
             Text(
                 text = "RPE",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.OnSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(44.dp),
                 textAlign = TextAlign.Center
@@ -186,7 +186,7 @@ fun ExerciseCard(
             Text(
                 text = "✓",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.OnSurfaceVariant,
+                color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(44.dp),
                 textAlign = TextAlign.Center
@@ -213,7 +213,7 @@ fun ExerciseCard(
                 .fillMaxWidth()
                 .minimumInteractiveComponentSize()
                 .clip(RoundedCornerShape(10.dp))
-                .background(AppColors.SurfaceVariant.copy(alpha = 0.5f))
+                .background(colorScheme.surfaceVariant.copy(alpha = 0.6f))
                 .clickable(role = Role.Button, onClick = onAddSet)
                 .padding(vertical = AppSpacing.sm),
             contentAlignment = Alignment.Center
@@ -222,7 +222,7 @@ fun ExerciseCard(
                 text = "+ Přidat sérii",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = AppColors.Primary
+                color = colorScheme.primary
             )
         }
     }

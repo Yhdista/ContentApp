@@ -15,6 +15,8 @@ fun WorkoutHistoryRoot(
     onNavigateToActiveWorkout: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
+    isDarkTheme: Boolean = true,
+    onToggleTheme: () -> Unit = {},
     viewModel: WorkoutHistoryViewModel = rememberScreenViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -40,6 +42,8 @@ fun WorkoutHistoryRoot(
         state = state,
         onIntent = viewModel::onIntent,
         modifier = modifier,
+        isDarkTheme = isDarkTheme,
+        onToggleTheme = onToggleTheme,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     )
 }
