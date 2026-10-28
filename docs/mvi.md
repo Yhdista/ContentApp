@@ -14,7 +14,7 @@ flowchart LR
     VM -->|updateState| State
     VM -->|datový příkaz nebo Flow| Repo[Repository rozhraní]
     Repo -->|data z úložiště| VM
-    VM -->|Effect přes Channel| Effects[Root: effect.collect]
+    VM -->|Effect přes Channel| Effects[Root: CollectScreenEffects RESUMED]
     Effects --> Nav[Navigace / snackbar]
 ```
 
@@ -124,14 +124,12 @@ data object WorkoutCancelled : Effect()
 val state by viewModel.uiState.collectAsState()
 val snackbarHostState = remember { SnackbarHostState() }
 
-LaunchedEffect(viewModel) {
-    viewModel.effect.collect { effect ->
-        when (effect) {
-            is ActiveWorkoutContract.Effect.WorkoutFinished -> onNavigateBack()
-            is ActiveWorkoutContract.Effect.WorkoutCancelled -> onNavigateBack()
-            is ActiveWorkoutContract.Effect.ShowSnackbar -> {
-                launch { snackbarHostState.showSnackbar(effect.message) }
-            }
+CollectScreenEffects(viewModel.effect) { effect ->
+    when (effect) {
+        is ActiveWorkoutContract.Effect.WorkoutFinished -> onNavigateBack()
+        is ActiveWorkoutContract.Effect.WorkoutCancelled -> onNavigateBack()
+        is ActiveWorkoutContract.Effect.ShowSnackbar -> {
+            launch { snackbarHostState.showSnackbar(effect.message) }
         }
     }
 }
@@ -144,7 +142,7 @@ ActiveWorkoutScreen(
 )
 ```
 
-📱 `LaunchedEffect(viewModel)` udržuje effect collector vázaný na konkrétní ViewModel. Samostatný `launch` pro snackbar dovolí dál přijímat například navigační efekt, i když snackbar ještě čeká na zmizení.
+📱 `CollectScreenEffects` váže effect collector na Flow a lifecycle vlastní entry; odebírá jen v `RESUMED`. Samostatný `launch` pro snackbar dovolí dál přijímat například navigační efekt, i když snackbar ještě čeká na zmizení.
 
 📱 Kód používá `collectAsState()`, nikoli `collectAsStateWithLifecycle()`. Odběr je svázaný s kompozicí; dokumentace netvrdí, že se automaticky pozastaví při každém přechodu aplikace do pozadí.
 
@@ -191,6 +189,8 @@ private fun updateWeight(set: WorkoutSet, weightKg: Double) {
 
 ## 💾 Dokončení tréninku a dvě různé životnosti
 
+🔄 Po vnějším úspěšném commitu RoomCommandCoordinator vyvolá `invalidationTracker.refreshAsync()`: připnutý `useWriterConnection` tuto notifikaci nedělá. Živé Flow odběry tak uvidí změnu bez opětovného otevření obrazovky; savepoint ani rollback neposílají necommitnutý mezistav. Regrese je ověřena skutečným dlouhodobým Room odběrem i návratem na přejmenovaný detail.
+
 💾 Zkrácený průchod `finishWorkout` přes app workflow (úplná implementace také mapuje chybu):
 
 ```kotlin
@@ -228,7 +228,7 @@ protected fun launchOperation(block: suspend CoroutineScope.() -> Unit): Job = v
 }
 ```
 
-🚦 `safeLocalCall` vrací `Result`, mapuje NoSuchElementException na NOT_FOUND a ostatní Exception na UNKNOWN. CancellationException znovu vyhodí. Jednotlivé repository metody přitom přímo Result nevracejí; převod je zde na prezentační straně.
+🚦 `safeLocalCall` vrací `Result`, mapuje NoSuchElementException na NOT_FOUND a ostatní Exception na UNKNOWN. CancellationException znovu vyhodí. Původní WorkoutRepository používá také metody vracející přímo hodnotu; routines/trainingplans repository a integrační workout akce vracejí typovaný Result. Jejich doménové chyby mapuje konkrétní ViewModel.
 
 🚦 Aktivní ViewModel implementuje reakci na chybu takto:
 
@@ -248,6 +248,8 @@ override fun onOperationFailure(error: DataError.Local) {
 ## 🧬 Vytvoření a obnova ViewModelu
 
 ♻️ [rememberScreenViewModel](../core/presentation/src/commonMain/kotlin/core/viewmodel/ViewModelLifecycle.kt) získá store z `LocalViewModelStoreOwner` nav entry a použije Koin factory. Odchod z kompozice store nečistí; skutečný pop ano. Dvě entry téhož typu mají nezávislé instance. Typované routes obsahují ID, po rekreaci se data načtou ze storage.
+
+🧭 Všechny Roots odebírají efekty přes [CollectScreenEffects](../core/presentation/src/commonMain/kotlin/core/viewmodel/CollectScreenEffects.kt) pouze ve stavu `RESUMED` vlastní nav entry. Odcházející kompozice během animace tak nepopne jinou záložku. Buffered efekt čeká při uchování entry a provede se právě po návratu do ní; skutečný pop zruší ViewModel. Callback se aktualizuje přes `rememberUpdatedState`. Datový commit na tento lifecycle nečeká.
 
 ♻️ Nové Roots používají `collectAsStateWithLifecycle`; effect Channel zůstává jednorázový a není náhradou durable business stavu. Workout Rooty mají původní `collectAsState`, jejich životnost ale rovněž vlastní NavHost. Odpočet pauzy nemá garantovanou procesní obnovu.
 
@@ -290,7 +292,7 @@ sequenceDiagram
 3. 🧠 **Vytvoř ViewModel.** Dědí `BaseViewModel<State, Intent, Effect>`, přijímá rozhraní závislostí v konstruktoru a implementuje handleIntent a onOperationFailure. Obsluhy bez I/O mohou pouze volat updateState; suspend práci založ přes launchOperation.
 4. 🔀 **Urči pravidla souběhu.** U reloadu ruš předchozí odběr. U opakovaného submitu definuj busy stav nebo idempotenci. Pro zápisy potřebující společný commit předávej celý příkaz do datové transakce, nikoli několik dílčích zápisů z UI.
 5. 📱 **Vytvoř Screen.** Přijímá State a onIntent, případně UI sloty a Modifier. Nezískává Koin, ViewModel ani DAO. Prvky specifické pro feature patří do jejího `ui/components`; obecný prvek do designsystem.
-6. 🔌 **Vytvoř Root.** Získá ViewModel přes rememberScreenViewModel, pozoruje uiState a jedním collectorem effect. Převádí efekty na callbacky hosta nebo snackbar.
+6. 🔌 **Vytvoř Root.** Získá ViewModel přes rememberScreenViewModel, pozoruje uiState a jedním lifecycle-aware `CollectScreenEffects` odběrem effect. Převádí efekty na callbacky hosta nebo snackbar.
 7. 🧭 **Zaregistruj DI a navigaci.** Do aplikačního Koin přidej datové singletony a factoryOf pro ViewModel; do jednoho typovaného NavHost přidej composable route a vykreslení Rootu. Navigace se nedává do foundation.
 8. 🧪 **Ověř pozorovatelné chování.** State po načtení, efekt po úspěchu, viditelnou chybu bez úspěšné navigace, opakovaný intent, souběžnou změnu a odchod během zápisu. Transakce ověř proti skutečné DB.
 

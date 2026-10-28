@@ -1,0 +1,21 @@
+{
+  "command": "./gradlew desktopTest testDebugUnitTest :composeApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64",
+  "log": "/tmp/task6-final.log",
+  "build": "SUCCESSFUL in 7s; 413 actionable tasks, 28 executed, 385 up-to-date",
+  "androidRuntime": "isolated API37 exact retained-editor rename path PASS; test package removed",
+  "docLocalLinks": 66,
+  "desktopTest": {
+    "suites": 27,
+    "tests": 187,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testDebugUnitTest": {
+    "suites": 18,
+    "tests": 118,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

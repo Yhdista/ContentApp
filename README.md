@@ -9,6 +9,7 @@
 | 🧱 moduly, DI, transakce a migrace | [Architektura](docs/architecture.md) |
 | 🧠 State, Intent, Effect, lifecycle a durable drafty | [Praktický průvodce MVI](docs/mvi.md) |
 | 📋🗓️ schválená obchodní pravidla | [Návrh rutin a plánů](docs/superpowers/specs/2026-10-28-routines-trainingplans-design.md) |
+| ✅ scénáře, buildy a potvrzené opravy | [Závěrečná akceptace](docs/reviews/2026-10-28-routines-trainingplans-acceptance.md) |
 | 🌐 historický audit na druhém počítači | [Mesh příprava](docs/reviews/2026-10-28-mesh-preparation.md) |
 
 ## 📱 Průchod aplikací

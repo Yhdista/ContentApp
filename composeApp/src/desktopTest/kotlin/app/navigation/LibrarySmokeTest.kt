@@ -77,6 +77,29 @@ class LibrarySmokeTest {
             onNodeWithText("Uložit").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Spustit příští den")).fetchSemanticsNodes().isNotEmpty() }
             screenshot("plan-detail")
+            onNodeWithText("Rutiny", useUnmergedTree = true).performClick()
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Dotčené plány: 1.", substring = true)).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText("Upravit / pokračovat v návrhu").performClick()
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText("Název").performTextReplacement("Retained owner content")
+            onNodeWithText("Plány", useUnmergedTree = true).performClick()
+            onNode(hasScrollAction()).performScrollToNode(hasText("Otevřít rutinu"))
+            onNodeWithText("Otevřít rutinu").performClick()
+            onNodeWithText("Upravit / pokračovat v návrhu").performClick()
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Tento návrh je otevřený", substring = true)).fetchSemanticsNodes().isNotEmpty() }
+            onAllNodes(hasSetTextAction()).assertCountEquals(0)
+            onNodeWithText("Zkusit znovu").performClick()
+            onAllNodes(hasSetTextAction()).assertCountEquals(0)
+            onNodeWithText("Zpět").performClick()
+            onNodeWithText("Zpět").performClick()
+            onNodeWithText("Rutiny", useUnmergedTree = true).performClick()
+            onNodeWithText("Název").assertTextContains("Retained owner content")
+            onNode(hasScrollAction()).performScrollToNode(hasText("Uložit"))
+            onNodeWithText("Uložit").performClick()
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Spustit rutinu")).fetchSemanticsNodes().isNotEmpty() }
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Retained owner content")).fetchSemanticsNodes().isNotEmpty() }
+            screenshot("renamed-routine-detail")
+            onNodeWithText("Plány", useUnmergedTree = true).performClick()
             onNodeWithText("Spustit příští den").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Ukončit trénink ✓")).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Ukončit trénink ✓").performClick()

@@ -16,10 +16,10 @@ import features.workout.domain.WorkoutSetType
     val vm: RoutineEditorViewModel = rememberScreenViewModel(parameters = { parametersOf(draftId) })
     val state by vm.uiState.collectAsStateWithLifecycle()
     EditorBackHandler(true) { vm.onIntent(RoutineEditorContract.Intent.Back) }
-    LaunchedEffect(vm) { vm.effect.collect { when(it) {
+    CollectScreenEffects(vm.effect) { when(it) {
         is RoutineEditorContract.Effect.Saved -> onSaved(it.id)
         RoutineEditorContract.Effect.Back -> onBack()
-    } } }
+    } }
     RoutineEditorScreen(state, vm::onIntent)
 }
 @Composable internal fun RoutineEditorScreen(state: RoutineEditorContract.State, onIntent: (RoutineEditorContract.Intent) -> Unit) {

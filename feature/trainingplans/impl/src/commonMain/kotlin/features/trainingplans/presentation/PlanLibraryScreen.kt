@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import core.viewmodel.rememberScreenViewModel
+import core.viewmodel.CollectScreenEffects
 import org.koin.core.parameter.parametersOf
 import ui.designsystem.nucleus.*
 import ui.designsystem.molecules.*
@@ -21,10 +22,10 @@ import features.trainingplans.api.*
     onWorkout: () -> Unit, onBack: () -> Unit, onRoutine: (String) -> Unit = {}) {
     val vm: PlanLibraryViewModel = rememberScreenViewModel(parameters = { parametersOf(id) })
     val state by vm.uiState.collectAsStateWithLifecycle()
-    LaunchedEffect(vm) { vm.effect.collect { when(it) {
+    CollectScreenEffects(vm.effect) { when(it) {
         PlanLibraryContract.Effect.Workout -> onWorkout()
         is PlanLibraryContract.Effect.Detail -> onDetail(it.id)
-    } } }
+    } }
     PlanLibraryScreen(state, id != null, vm::onIntent, onDetail, onEditor, onBack, onRoutine = onRoutine)
 }
 @Composable internal fun PlanLibraryScreen(state: PlanLibraryContract.State, detailMode: Boolean,

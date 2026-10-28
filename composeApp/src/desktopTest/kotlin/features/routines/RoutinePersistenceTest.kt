@@ -26,6 +26,11 @@ import features.routines.api.RoutineSet
 import features.routines.data.routineFeatureModule
 import features.workout.domain.WorkoutSetType
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -73,6 +78,30 @@ class RoutinePersistenceTest {
     ))
     private fun <T> success(result: Result<T, RoutineError>): T = assertIs<Result.Success<T>>(result).data
     private fun error(code: RoutineError, result: Result<*, RoutineError>) = assertEquals(code, assertIs<Result.Error<RoutineError>>(result).error)
+
+    @Test fun liveObserverReceivesOuterCommitWithoutReopeningAndNeverSeesRollback() = runTest {
+        val db = database()
+        try {
+            val s = services(db); seed(s)
+            val original = success(s.routines.save(routine(), null))
+            val emissions = Channel<List<Routine>>(Channel.UNLIMITED)
+            val observer = backgroundScope.launch { s.routines.observeAll(true).collect { emissions.send(it) } }
+            suspend fun next() = withContext(Dispatchers.IO) { withTimeout(5000) { emissions.receive() } }
+            assertEquals(listOf(original), next()) // Register before writing; never reopen the Flow.
+            assertFailsWith<IllegalStateException> {
+                s.writes.write {
+                    success(s.routines.save(original.copy(name = "Rolled back"), original.revision))
+                    error("abort outer transaction")
+                }
+            }
+            val saved = success(s.routines.save(original.copy(name = "Committed"), original.revision))
+            assertEquals(listOf(saved), next())
+            success(s.routines.archive(saved.id, saved.revision))
+            val archived = next().single()
+            assertTrue(archived.archived); assertEquals(saved.revision + 1, archived.revision)
+            observer.cancel()
+        } finally { db.close() }
+    }
 
     @Test fun saveReopensOrderedAggregateWithRepeatedCatalogueIdsAndTypedOutbox() = runTest {
         val db = database()
@@ -141,7 +170,9 @@ class RoutinePersistenceTest {
             val s = services(db); seed(s)
             val saved = success(s.routines.save(routine(), null))
             success(s.routines.archive(saved.id, 1))
+            val archivedOriginal = s.routines.getById(saved.id)
             val copy = success(s.routines.duplicate(saved.id))
+            assertEquals(archivedOriginal, s.routines.getById(saved.id))
             assertNotEquals(saved.id, copy.id); assertEquals(1L, copy.revision); assertFalse(copy.archived)
             assertEquals(saved.name, copy.name); assertEquals(saved.notes, copy.notes)
             assertTrue(copy.exercises.map { it.id }.intersect(saved.exercises.map { it.id }.toSet()).isEmpty())

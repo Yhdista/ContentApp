@@ -20,6 +20,7 @@ kotlin {
             api(compose.runtime)
             api("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
             api(libs.koin.core)
+            implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
             implementation(libs.koin.compose)
             implementation(libs.napier)
         }

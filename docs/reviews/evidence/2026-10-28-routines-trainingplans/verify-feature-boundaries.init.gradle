@@ -1,0 +1,15 @@
+gradle.projectsEvaluated {
+    rootProject.tasks.register('verifyFeatureBoundaries') {
+        doLast {
+            rootProject.allprojects.findAll { it.path.startsWith(':feature:') && (it.path.endsWith(':impl') || it.path.endsWith(':api')) }.each { p ->
+                def cfg = p.configurations.getByName('desktopCompileClasspath')
+                def projects = cfg.incoming.resolutionResult.allComponents.collect { it.id }
+                    .findAll { it instanceof org.gradle.api.artifacts.component.ProjectComponentIdentifier }
+                    .collect { it.projectPath }.unique().sort()
+                println("${p.path} -> ${projects}")
+                def illegal = projects.findAll { it.startsWith(':feature:') && it.endsWith(':impl') && it != p.path }
+                assert illegal.empty: "Foreign implementation on ${p.path} compile classpath: ${illegal}"
+            }
+        }
+    }
+}

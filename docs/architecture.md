@@ -78,6 +78,8 @@ composeApp/src/desktopTest/                  # skutečný Room, migrace, Skia/Na
 
 ## 💾 Příkazy a drafty
 
+🔄 Po vnějším úspěšném commitu RoomCommandCoordinator vyvolá `invalidationTracker.refreshAsync()`: připnutý `useWriterConnection` tuto notifikaci nedělá. Živé Flow odběry tak uvidí změnu bez opětovného otevření obrazovky; savepoint ani rollback neposílají necommitnutý mezistav. Regrese je ověřena skutečným dlouhodobým Room odběrem i návratem na přejmenovaný detail.
+
 💾 [CommandCoordinator](../core/storage/src/commonMain/kotlin/core/storage/CommandCoordinator.kt) řadí celé příkazy v aplikačním scope. Room adaptér otevře writer transaction, vnořené zápisy používají savepoint. Feature nesmí proměnit dílčí `Result.Error` na úspěch vnější transakce; workflow při chybě vyhodí interní abort a přeloží jej až mimo celou transakci.
 
 💾 [OrderedDrafts](../core/storage/src/commonMain/kotlin/core/storage/OrderedDrafts.kt) je druhá, doménově nezávislá aplikační FIFO pro lokální návrhy. `put` přijme snapshot synchronně a vrátí Deferred acknowledgement. Zrušení čekajícího ViewModelu neodstraní přijatý edit. Otevření čeká za staršími zápisy a vrátí aktuální raw payload. Editor získá výhradní lease pro `(kind,id)` vázanou na Job jeho ViewModelu. Druhá entry ani převod workoutu ji nesmí převzít: druhá entry ukáže vysvětlení a Zpět/Retry. Zánik vlastníka uvolní lease až za přijatými autosavy, draft nemaže. Kontrola zrušení před i po čtení brání úniku lease během acquire. Úspěšná publikace/discard lease také uvolní. Generace nadále odmítá pozdní callbacky.
@@ -106,7 +108,7 @@ composeApp/src/desktopTest/                  # skutečný Room, migrace, Skia/Na
 
 ## 🧭 Jedna typovaná navigace
 
-🧭 [AppNavHost](../composeApp/src/commonMain/kotlin/app/navigation/AppNavHost.kt) obsahuje devět serializovatelných feature routes pro historii, aktivní workout, detail workoutu, seznam/detail/editor rutin a plánů. Přenášejí pouze ID. Tabs Tréninky/Rutiny/Plány používají framework save/restore; Back z editoru jde přes jediný intent (toolbar i Android system Back). Workout se popne na zdrojový detail.
+🧭 [AppNavHost](../composeApp/src/commonMain/kotlin/app/navigation/AppNavHost.kt) obsahuje devět serializovatelných feature routes pro historii, aktivní workout, detail workoutu, seznam/detail/editor rutin a plánů. Přenášejí pouze ID. Tabs Tréninky/Rutiny/Plány používají framework save/restore; Back z editoru jde přes jediný intent (toolbar i Android system Back). Workout se popne na zdrojový detail. Všechny Root efekty čekají přes `CollectScreenEffects` na `RESUMED` své entry; opožděný commit během odchodu nesmí přesměrovat jinou záložku. Uchovaná entry zpracuje buffered efekt po návratu.
 
 🛠️ V připnuté verzi `org.jetbrains.androidx.navigation:2.8.0-alpha10` neandroidí `NavBackStackEntryState.fromBundle` zahazuje entry s null argumenty. Proto [withRestorableEntries](../composeApp/src/commonMain/kotlin/app/navigation/RestorableGraph.kt) přidá všem destinations včetně root grafu privátní default `_hostEntry=true`. Hlídá kolizi s argumenty; doménové routes argument nepoužívají. Není to vlastní stack. Při upgradu odstranit až po průchodu skutečného host recreation testu.
 

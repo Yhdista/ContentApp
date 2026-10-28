@@ -89,7 +89,8 @@ class TrainingWorkflowTest {
             assertEquals(listOf(20.0,21.0,20.0,21.0),sets.map { it.prescribedWeightKg })
             val session=f.workouts.getSessionById(id)
             val old=f.routines.getById("routine")!!
-            ok(f.routines.save(old.copy(name="Changed", exercises=old.exercises.reversed()),old.revision))
+            val changed = ok(f.routines.save(old.copy(name="Changed", exercises=old.exercises.reversed()),old.revision))
+            ok(f.routines.archive(changed.id, changed.revision))
             f.catalogue.saveExercise(Exercise("bench","Renamed",MuscleGroup.ARMS,12,true))
             assertEquals(entries, f.db.workoutDao().getExercisesSnapshot(id)); assertEquals(session,f.workouts.getSessionById(id))
             assertEquals(sets,f.workouts.getSetsForSession(id).first())
@@ -110,6 +111,33 @@ class TrainingWorkflowTest {
             assertEquals(count,f.db.mutationDao().getUnsentMutationsCount().first()); assertEquals(2L,f.plans.getProgress("plan")!!.progressRevision)
             f.workouts.cancelWorkout(ok(f.workflow.startPlan("plan")).sessionId)
             assertEquals(2L,f.plans.getProgress("plan")!!.progressRevision)
+            val progress = f.plans.getProgress("plan")
+            val progressMutations = f.db.mutationDao().getPendingMutations().first().filter { it.entityName == "training_plan_progress" }
+            val manual = f.workouts.startWorkout("Manual")
+            assertNull(manual.sourcePlan)
+            ok(f.workflow.complete(manual.id))
+            assertEquals(progress, f.plans.getProgress("plan"))
+            assertEquals(progressMutations, f.db.mutationDao().getPendingMutations().first().filter { it.entityName == "training_plan_progress" })
+        } finally { f.db.close() }
+    }
+    @Test fun historicalSnapshotsSurviveRoutineEditsArchiveAndCatalogueRename() = runTest {
+        val f = fixture()
+        try {
+            f.seed()
+            val id = ok(f.workflow.startRoutine("routine")).sessionId
+            ok(f.workflow.complete(id))
+            val session = f.workouts.getSessionById(id)
+            val entries = f.db.workoutDao().getExercisesSnapshot(id)
+            val sets = f.workouts.getSetsForSession(id).first()
+            val original = f.routines.getById("routine")!!
+            val edited = ok(f.routines.save(original.copy(name = "New prescription", exercises = original.exercises.reversed().map {
+                it.copy(restSeconds = 300, sets = it.sets.map { set -> set.copy(weightKg = 100.0, reps = 1) })
+            }), original.revision))
+            ok(f.routines.archive(edited.id, edited.revision))
+            f.catalogue.saveExercise(Exercise("bench", "Later name", MuscleGroup.ARMS, 30, true))
+            assertEquals(session, f.workouts.getSessionById(id))
+            assertEquals(entries, f.db.workoutDao().getExercisesSnapshot(id))
+            assertEquals(sets, f.workouts.getSetsForSession(id).first())
         } finally { f.db.close() }
     }
     @Test fun changedPlanCommitsCompletedWorkoutWithReviewAndArchivedPlanStaysUnchanged() = runTest {

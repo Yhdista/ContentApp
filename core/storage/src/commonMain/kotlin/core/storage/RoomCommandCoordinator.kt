@@ -50,6 +50,10 @@ class RoomCommandCoordinator(
                             connection.immediateTransaction<T> { block() }
                         }
                     }
+                    // The pinned Room useWriterConnection API does not refresh invalidations.
+                    // Nested DAO writes skip it while the outer transaction is open; notify only
+                    // after the actual outer commit, so existing collectors see committed data.
+                    database.invalidationTracker.refreshAsync()
                     result.complete(value)
                 } catch (error: Exception) {
                     result.completeExceptionally(error)

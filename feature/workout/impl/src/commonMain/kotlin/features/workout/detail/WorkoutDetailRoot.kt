@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import core.viewmodel.rememberScreenViewModel
+import core.viewmodel.CollectScreenEffects
 
 @Composable
 fun WorkoutDetailRoot(
@@ -27,16 +28,14 @@ fun WorkoutDetailRoot(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(viewModel) {
-        viewModel.effect.collect { effect ->
-            when (effect) {
-                is WorkoutDetailContract.Effect.RoutineDraft -> onRoutineDraft(effect.draftId)
-                is WorkoutDetailContract.Effect.NavigateBack -> {
-                    onNavigateBack()
-                }
-                is WorkoutDetailContract.Effect.ShowSnackbar -> {
-                    launch { snackbarHostState.showSnackbar(effect.message) }
-                }
+    CollectScreenEffects(viewModel.effect) { effect ->
+        when (effect) {
+            is WorkoutDetailContract.Effect.RoutineDraft -> onRoutineDraft(effect.draftId)
+            is WorkoutDetailContract.Effect.NavigateBack -> {
+                onNavigateBack()
+            }
+            is WorkoutDetailContract.Effect.ShowSnackbar -> {
+                launch { snackbarHostState.showSnackbar(effect.message) }
             }
         }
     }
