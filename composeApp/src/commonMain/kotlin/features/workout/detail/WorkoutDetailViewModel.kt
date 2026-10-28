@@ -1,12 +1,14 @@
 package features.workout.detail
 
 import androidx.lifecycle.viewModelScope
+import core.result.DataError
+import core.ui.toUiText
 import core.result.onFailure
 import core.result.onSuccess
 import core.result.safeLocalCall
-import core.ui.toUiText
 import core.viewmodel.BaseViewModel
 import features.workout.domain.WorkoutRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -15,6 +17,13 @@ class WorkoutDetailViewModel(
 ) : BaseViewModel<WorkoutDetailContract.State, WorkoutDetailContract.Intent, WorkoutDetailContract.Effect>(
     WorkoutDetailContract.State()
 ) {
+
+    private var loadJob: Job? = null
+
+    override fun onOperationFailure(error: DataError.Local) {
+        updateState { copy(error = error.toUiText(), isLoading = false) }
+        sendEffect(WorkoutDetailContract.Effect.ShowSnackbar(error.toUiText().asString()))
+    }
 
     override fun handleIntent(intent: WorkoutDetailContract.Intent) {
         when (intent) {
@@ -30,7 +39,7 @@ class WorkoutDetailViewModel(
 
     private fun saveAsTemplate(templateName: String) {
         val currentSession = uiState.value.session ?: return
-        viewModelScope.launch {
+        launchOperation {
             safeLocalCall {
                 workoutRepository.saveSessionAsTemplate(currentSession.id, templateName)
             }.onSuccess {
@@ -42,9 +51,10 @@ class WorkoutDetailViewModel(
     }
 
     private fun loadDetail(sessionId: String) {
-        viewModelScope.launch {
-            updateState { copy(isLoading = true) }
-            val session = workoutRepository.getSessionById(sessionId)
+        loadJob?.cancel()
+        loadJob = launchOperation {
+            updateState { copy(isLoading = true, requestedSessionId = sessionId, error = null) }
+            val session = workoutRepository.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
             val allExercises = workoutRepository.getExercises().first()
             val sets = workoutRepository.getSetsForSession(sessionId).first()
 

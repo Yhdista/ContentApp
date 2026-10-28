@@ -50,6 +50,7 @@ import ui.designsystem.nucleus.prGoldBorder
 import ui.designsystem.nucleus.prGoldContainer
 import ui.designsystem.nucleus.statusSynced
 import ui.designsystem.nucleus.statusSyncedContainer
+import ui.designsystem.atoms.feedback.ErrorNotice
 import ui.designsystem.templates.UniversalScreenTemplate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +58,8 @@ import ui.designsystem.templates.UniversalScreenTemplate
 fun WorkoutDetailScreen(
     state: WorkoutDetailContract.State,
     onIntent: (WorkoutDetailContract.Intent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHost: @Composable () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val session = state.session
@@ -65,6 +67,7 @@ fun WorkoutDetailScreen(
     var templateNameInput by remember(session?.title) { mutableStateOf(session?.title ?: "Můj trénink") }
 
     UniversalScreenTemplate(
+        snackbarHost = snackbarHost,
         modifier = modifier,
         topBar = {
             TopAppBar(
@@ -136,6 +139,9 @@ fun WorkoutDetailScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
+                state.error?.let { error ->
+                    item { ErrorNotice(error.asString(), onRetry = { onIntent(WorkoutDetailContract.Intent.LoadDetail(state.requestedSessionId ?: return@ErrorNotice)) }) }
+                }
                 // 1. Karta souhrnu (Objem, Čas)
                 item {
                     Row(

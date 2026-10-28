@@ -30,7 +30,8 @@ fun WorkoutThumbBar(
     onAddExercise: () -> Unit,
     onFinishWorkout: () -> Unit,
     onCancelWorkout: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -57,7 +58,7 @@ fun WorkoutThumbBar(
                     .clip(RoundedCornerShape(12.dp))
                     .background(colorScheme.surfaceVariant)
                     .border(1.dp, colorScheme.primary, RoundedCornerShape(12.dp))
-                    .clickable(role = Role.Button, onClick = onAddExercise),
+                    .clickable(enabled = enabled, role = Role.Button, onClick = onAddExercise),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -76,7 +77,7 @@ fun WorkoutThumbBar(
                     .height(AppSpacing.minInteractiveTouchTarget)
                     .clip(RoundedCornerShape(12.dp))
                     .background(colorScheme.statusSynced)
-                    .clickable(role = Role.Button, onClick = onFinishWorkout),
+                    .clickable(enabled = enabled, role = Role.Button, onClick = onFinishWorkout),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -93,7 +94,7 @@ fun WorkoutThumbBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .minimumInteractiveComponentSize()
-                .clickable(role = Role.Button, onClick = onCancelWorkout),
+                .clickable(enabled = enabled, role = Role.Button, onClick = onCancelWorkout),
             contentAlignment = Alignment.Center
         ) {
             Text(

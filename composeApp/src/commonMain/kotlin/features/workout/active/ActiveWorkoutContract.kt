@@ -26,6 +26,7 @@ class ActiveWorkoutContract {
         val selectedStatsExercise: Exercise? = null,
         val exerciseStats: features.workout.domain.ExerciseStats? = null,
         val isLoading: Boolean = false,
+        val isSaving: Boolean = false,
         val error: UiText? = null
     ) : UiState
 

@@ -45,6 +45,7 @@ import features.workout.ui.components.WorkoutExportDialog
 import features.workout.ui.components.WorkoutHistoryItemCard
 import ui.designsystem.atoms.feedback.StatusBadge
 import ui.designsystem.nucleus.AppSpacing
+import ui.designsystem.atoms.feedback.ErrorNotice
 import ui.designsystem.templates.UniversalScreenTemplate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,7 +111,7 @@ fun WorkoutHistoryScreen(
                             if (state.pendingSyncCount > 0) {
                                 StatusBadge(status = ItemSyncStatus.PENDING)
                             } else {
-                                StatusBadge(status = ItemSyncStatus.SYNCED)
+                                StatusBadge(status = ItemSyncStatus.LOCAL)
                             }
                         }
                     }
@@ -206,6 +207,9 @@ fun WorkoutHistoryScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
             ) {
+                state.error?.let { error ->
+                    item { ErrorNotice(error.asString(), onRetry = { onIntent(WorkoutHistoryContract.Intent.LoadHistory) }) }
+                }
                 // 1. Týdenní aktivita & streak (pokud je k dispozici)
                 state.weeklyActivity?.let { activity ->
                     item {

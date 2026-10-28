@@ -56,7 +56,6 @@ class ActiveWorkoutViewModelTest {
 
         viewModel = ActiveWorkoutViewModel(
             workoutRepository = fakeRepository,
-            appScope = appScope,
             clock = fakeClock
         )
     }
@@ -64,8 +63,72 @@ class ActiveWorkoutViewModelTest {
     @AfterTest
     fun tearDown() {
         viewModel.cancelTimers()
+        viewModel.cancelTimers()
         appJob.cancel()
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun failedFinishKeepsSessionAndExposesRecoverableError() = runTest(testDispatcher) {
+        fakeRepository.startWorkout("Keep editing")
+        val failing = object : WorkoutRepository by fakeRepository {
+            override suspend fun completeWorkout(sessionId: String): WorkoutSession? = error("Disk unavailable")
+        }
+        val vm = ActiveWorkoutViewModel(failing, fakeClock)
+        try {
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            testScheduler.runCurrent()
+            assertNotNull(vm.uiState.value.session)
+            assertNotNull(vm.uiState.value.error)
+            assertFalse(vm.uiState.value.isSaving)
+            assertTrue(vm.effect.first() is ActiveWorkoutContract.Effect.ShowSnackbar)
+        } finally { vm.cancelTimers(); viewModel.cancelTimers() }
+    }
+
+    @Test
+    fun mutatingIntentsAreIgnoredWhileFinishIsPending() = runTest(testDispatcher) {
+        val session = fakeRepository.startWorkout("Finish in progress")
+        val set = fakeRepository.addSet(session.id, fakeRepository.benchExercise.id, 60.0, 10)
+        val release = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val delayed = object : WorkoutRepository by fakeRepository {
+            override suspend fun completeWorkout(sessionId: String): WorkoutSession? {
+                release.await()
+                return fakeRepository.completeWorkout(sessionId)
+            }
+        }
+        val vm = ActiveWorkoutViewModel(delayed, fakeClock)
+        try {
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            testScheduler.runCurrent()
+            assertTrue(vm.uiState.value.isSaving)
+            vm.onIntent(ActiveWorkoutContract.Intent.UpdateWeight(set, 100.0))
+            testScheduler.runCurrent()
+            assertEquals(60.0, fakeRepository.getSetsForSession(session.id).first().single().weightKg)
+            release.complete(Unit)
+            testScheduler.runCurrent()
+        } finally {
+            release.complete(Unit)
+            vm.cancelTimers()
+            viewModel.cancelTimers()
+        }
+    }
+
+    @Test
+    fun editsFromSameUiSnapshotPreserveBothFields() = runTest(testDispatcher) {
+        val session = fakeRepository.startWorkout("Concurrent edits")
+        val set = fakeRepository.addSet(session.id, fakeRepository.benchExercise.id, 60.0, 10)
+        viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
+        testScheduler.runCurrent()
+        viewModel.onIntent(ActiveWorkoutContract.Intent.UpdateWeight(set, 65.0))
+        viewModel.onIntent(ActiveWorkoutContract.Intent.UpdateReps(set, 12))
+        testScheduler.runCurrent()
+        val saved = fakeRepository.getSetsForSession(session.id).first().single()
+        viewModel.cancelTimers()
+        assertEquals(65.0, saved.weightKg)
+        assertEquals(12, saved.reps)
+        viewModel.cancelTimers()
     }
 
     @Test
@@ -182,7 +245,7 @@ class ActiveWorkoutViewModelTest {
     }
 
     @Test
-    fun testDeleteSetRemovesAndRenumbersRemainingSets() = runTest(testDispatcher) {
+    fun testDeleteSetUpdatesVisibleSets() = runTest(testDispatcher) {
         fakeRepository.startWorkout("Chest Day")
         viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
         testScheduler.runCurrent()
@@ -205,7 +268,7 @@ class ActiveWorkoutViewModelTest {
 
         val setsAfter = viewModel.uiState.value.sets
         assertEquals(2, setsAfter.size)
-        assertEquals(listOf(1, 2), setsAfter.map { it.setNumber })
+        assertEquals(listOf(setsBefore[0].id, setsBefore[2].id), setsAfter.map { it.id })
         viewModel.cancelTimers()
     }
 
@@ -214,7 +277,6 @@ class ActiveWorkoutViewModelTest {
         val fakeFeedback = FakePlatformFeedback()
         val vm = ActiveWorkoutViewModel(
             workoutRepository = fakeRepository,
-            appScope = appScope,
             clock = fakeClock,
             platformFeedback = fakeFeedback
         )
@@ -384,8 +446,14 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
         return set
     }
 
-    override suspend fun updateSet(set: WorkoutSet) {
-        sets.value = sets.value.map { if (it.id == set.id) set else it }
+    override suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet {
+        val updated = update(sets.value.first { it.id == setId })
+        sets.value = sets.value.map { if (it.id == setId) updated else it }
+        return updated
+    }
+
+    override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) {
+        sets.value = sets.value.filterNot { it.sessionId == sessionId && it.exerciseId == exerciseId }
     }
 
     override suspend fun deleteSet(setId: String) {
@@ -416,6 +484,4 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
     override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = error("Not needed")
     override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
     override suspend fun getAllCompletedSets(): List<WorkoutSet> = sets.value.filter { it.isCompleted }
-    override suspend fun exportWorkoutDataCsv(): String = ""
-    override suspend fun exportWorkoutDataJson(): String = ""
 }

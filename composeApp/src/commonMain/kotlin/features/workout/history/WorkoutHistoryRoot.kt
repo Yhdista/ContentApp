@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import core.viewmodel.rememberScreenViewModel
 
 @Composable
@@ -22,7 +23,7 @@ fun WorkoutHistoryRoot(
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 is WorkoutHistoryContract.Effect.NavigateToActiveWorkout -> {
@@ -32,7 +33,7 @@ fun WorkoutHistoryRoot(
                     onNavigateToDetail(effect.sessionId)
                 }
                 is WorkoutHistoryContract.Effect.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(effect.message)
+                    launch { snackbarHostState.showSnackbar(effect.message) }
                 }
             }
         }

@@ -62,6 +62,12 @@ interface WorkoutDao {
     @Query("SELECT * FROM workout_sets WHERE sessionId = :sessionId ORDER BY exerciseId, setNumber ASC")
     fun getSetsForSession(sessionId: String): Flow<List<WorkoutSetEntity>>
 
+    @Query("SELECT * FROM workout_sets WHERE sessionId = :sessionId ORDER BY exerciseId, setNumber ASC")
+    suspend fun getSetsForSessionSnapshot(sessionId: String): List<WorkoutSetEntity>
+
+    @Query("SELECT * FROM workout_sets WHERE id = :setId LIMIT 1")
+    suspend fun getSetById(setId: String): WorkoutSetEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateSet(set: WorkoutSetEntity)
 
@@ -82,6 +88,9 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM workout_sets WHERE isCompleted = 1 ORDER BY sessionId, exerciseId, setNumber ASC")
     suspend fun getAllCompletedSets(): List<WorkoutSetEntity>
+
+    @Query("SELECT * FROM workout_templates ORDER BY name ASC")
+    suspend fun getTemplatesSnapshot(): List<WorkoutTemplateEntity>
 
     // Šablony (Templates)
     @Query("SELECT * FROM workout_templates ORDER BY name ASC")

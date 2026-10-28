@@ -23,5 +23,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ContentApp"
-include(":composeApp")
+include(":composeApp", ":foundation", ":designsystem")
  

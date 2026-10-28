@@ -39,7 +39,8 @@ data class UpdateSetSyncPayload(
     val rpe: Double? = null,
     val isCompleted: Boolean,
     val isPersonalRecord: Boolean,
-    val setType: String
+    val setType: String,
+    val setNumber: Int
 )
 
 @Serializable

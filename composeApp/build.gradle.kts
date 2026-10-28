@@ -20,6 +20,8 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":foundation"))
+            implementation(project(":designsystem"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
@@ -120,4 +122,9 @@ dependencies {
     "kspIosSimulatorArm64"(libs.androidx.room.compiler)
     "kspIosArm64"(libs.androidx.room.compiler)
     "kspIosX64"(libs.androidx.room.compiler)
+}
+
+// Versioned schemas are reviewable artifacts; missing migrations must never erase local data.
+ksp {
+    arg("room.schemaLocation", projectDir.resolve("schemas").absolutePath)
 }

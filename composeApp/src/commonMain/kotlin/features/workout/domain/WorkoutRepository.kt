@@ -2,6 +2,12 @@ package features.workout.domain
 
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Local storage is the source of truth. Commands commit data and outbox atomically.
+ * Accepted commands survive caller cancellation, but do not survive process termination before commit.
+ * Storage/missing-record exceptions propagate; presentation maps them with safeLocalCall.
+ * Edit callbacks must be pure and cannot change record identity.
+ */
 interface WorkoutRepository {
     fun getExercises(): Flow<List<Exercise>>
     suspend fun ensureDefaultExercises()
@@ -13,8 +19,10 @@ interface WorkoutRepository {
     fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>>
     suspend fun startWorkout(title: String = "Trénink"): WorkoutSession
     suspend fun addSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int, rpe: Double? = null): WorkoutSet
-    suspend fun updateSet(set: WorkoutSet)
+    /** Applies an edit to the latest persisted value in the command transaction. */
+    suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet
     suspend fun deleteSet(setId: String)
+    suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String)
     suspend fun completeWorkout(sessionId: String): WorkoutSession?
     suspend fun cancelWorkout(sessionId: String)
     suspend fun getLastPerformance(exerciseId: String): String?
@@ -26,6 +34,4 @@ interface WorkoutRepository {
     suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate
     fun getExerciseStats(exerciseId: String): Flow<ExerciseStats?>
     suspend fun getAllCompletedSets(): List<WorkoutSet>
-    suspend fun exportWorkoutDataCsv(): String
-    suspend fun exportWorkoutDataJson(): String
 }

@@ -33,6 +33,8 @@ interface WorkoutLocalDataSource {
 
     // Sets
     fun observeSetsForSession(sessionId: String): Flow<List<WorkoutSet>>
+    suspend fun getSetById(setId: String): WorkoutSet?
+    suspend fun getSetsForSessionSnapshot(sessionId: String): List<WorkoutSet>
     suspend fun saveSet(set: WorkoutSet)
     suspend fun deleteSet(setId: String)
     suspend fun getLastCompletedSetForExercise(exerciseId: String): WorkoutSet?
@@ -42,6 +44,7 @@ interface WorkoutLocalDataSource {
 
     // Templates
     fun observeTemplates(): Flow<List<WorkoutTemplate>>
+    suspend fun getTemplatesSnapshot(): List<WorkoutTemplate>
     suspend fun getTemplateById(templateId: String): WorkoutTemplate?
     suspend fun getTemplatesCount(): Int
     suspend fun saveTemplate(template: WorkoutTemplate)

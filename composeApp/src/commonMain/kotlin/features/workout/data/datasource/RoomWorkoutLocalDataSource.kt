@@ -62,6 +62,12 @@ class RoomWorkoutLocalDataSource(
     override fun observeSetsForSession(sessionId: String): Flow<List<WorkoutSet>> =
         workoutDao.getSetsForSession(sessionId).map { list -> list.map { it.toDomain() } }
 
+    override suspend fun getSetById(setId: String): WorkoutSet? =
+        workoutDao.getSetById(setId)?.toDomain()
+
+    override suspend fun getSetsForSessionSnapshot(sessionId: String): List<WorkoutSet> =
+        workoutDao.getSetsForSessionSnapshot(sessionId).map { it.toDomain() }
+
     override suspend fun saveSet(set: WorkoutSet) =
         workoutDao.insertOrUpdateSet(set.toEntity())
 
@@ -93,6 +99,11 @@ class RoomWorkoutLocalDataSource(
                     .map { it.toDomain() }
                 tmpl.toDomain(tmplExercises)
             }
+        }
+
+    override suspend fun getTemplatesSnapshot(): List<WorkoutTemplate> =
+        workoutDao.getTemplatesSnapshot().map { template ->
+            template.toDomain(workoutDao.getTemplateExercises(template.id).map { it.toDomain() })
         }
 
     override suspend fun getTemplateById(templateId: String): WorkoutTemplate? {

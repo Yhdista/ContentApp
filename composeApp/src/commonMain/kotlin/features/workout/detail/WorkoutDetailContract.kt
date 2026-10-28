@@ -19,6 +19,7 @@ class WorkoutDetailContract {
     @Stable
     data class State(
         val session: WorkoutSession? = null,
+        val requestedSessionId: String? = null,
         val exercisesWithSets: List<ExerciseWithSets> = emptyList(),
         val durationFormatted: String = "—",
         val isLoading: Boolean = false,

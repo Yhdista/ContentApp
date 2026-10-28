@@ -1,5 +1,6 @@
 package features.workout
 
+import features.workout.data.WorkoutWriteCoordinator
 import core.common.AppClock
 import core.database.MutationDao
 import core.database.SyncMutationEntity
@@ -40,7 +41,10 @@ class WorkoutRepositoryTest {
         repository = OfflineFirstWorkoutRepository(
             localDataSource = RoomWorkoutLocalDataSource(fakeDao),
             mutationDao = fakeMutationDao,
-            clock = fakeClock
+            clock = fakeClock,
+            writes = object : WorkoutWriteCoordinator {
+                override suspend fun <T> write(block: suspend () -> T): T = block()
+            }
         )
     }
 
@@ -106,8 +110,8 @@ class WorkoutRepositoryTest {
         val set1 = repository.addSet(sessionId = session.id, exerciseId = "ex_squat", weightKg = 100.0, reps = 5)
         val set2 = repository.addSet(sessionId = session.id, exerciseId = "ex_squat", weightKg = 100.0, reps = 5)
 
-        repository.updateSet(set1.copy(isCompleted = true))
-        repository.updateSet(set2.copy(isCompleted = true))
+        repository.updateSet(set1.id) { it.copy(isCompleted = true) }
+        repository.updateSet(set2.id) { it.copy(isCompleted = true) }
 
         val completed = repository.completeWorkout(session.id)
         assertNotNull(completed)
@@ -175,13 +179,13 @@ class WorkoutRepositoryTest {
         // Sezení 1: Bench 80 kg × 8 reps (~101.3 kg 1RM)
         val session1 = repository.startWorkout("Bench Day 1")
         val set1 = repository.addSet(session1.id, "ex_bench", 80.0, 8)
-        repository.updateSet(set1.copy(isCompleted = true))
+        repository.updateSet(set1.id) { it.copy(isCompleted = true) }
         repository.completeWorkout(session1.id)
 
         // Sezení 2: Bench 90 kg × 8 reps (~114 kg 1RM) -> Překonává sezení 1 -> PR!
         val session2 = repository.startWorkout("Bench Day 2")
         val set2 = repository.addSet(session2.id, "ex_bench", 90.0, 8)
-        repository.updateSet(set2.copy(isCompleted = true))
+        repository.updateSet(set2.id) { it.copy(isCompleted = true) }
 
         val setsSess2 = repository.getSetsForSession(session2.id).first()
         val completedSet2 = setsSess2.first { it.id == set2.id }
@@ -190,7 +194,7 @@ class WorkoutRepositoryTest {
         // Sezení 3: Bench 70 kg × 5 reps (~81.6 kg 1RM) -> Menší než minulé výkony -> Není PR
         val session3 = repository.startWorkout("Bench Day 3")
         val set3 = repository.addSet(session3.id, "ex_bench", 70.0, 5)
-        repository.updateSet(set3.copy(isCompleted = true))
+        repository.updateSet(set3.id) { it.copy(isCompleted = true) }
 
         val setsSess3 = repository.getSetsForSession(session3.id).first()
         val completedSet3 = setsSess3.first { it.id == set3.id }
@@ -201,7 +205,7 @@ class WorkoutRepositoryTest {
     fun testWarmupSetNeverMarkedAsPersonalRecord() = runTest {
         val session = repository.startWorkout("Bench Day")
         val set = repository.addSet(session.id, "ex_bench", 150.0, 10)
-        repository.updateSet(set.copy(isCompleted = true, setType = WorkoutSetType.WARMUP))
+        repository.updateSet(set.id) { it.copy(isCompleted = true, setType = WorkoutSetType.WARMUP) }
 
         val sets = repository.getSetsForSession(session.id).first()
         val completedSet = sets.first { it.id == set.id }
@@ -213,11 +217,11 @@ class WorkoutRepositoryTest {
         // Sezení 1: Těžký zahřívací set (150 kg × 10 = 200 kg 1RM), který nesmí zablokovat pracovní PR!
         val session1 = repository.startWorkout("Session 1")
         val warmupSet = repository.addSet(session1.id, "ex_bench", 150.0, 10)
-        repository.updateSet(warmupSet.copy(isCompleted = true, setType = WorkoutSetType.WARMUP))
+        repository.updateSet(warmupSet.id) { it.copy(isCompleted = true, setType = WorkoutSetType.WARMUP) }
 
         // Následný pracovní set ve stejném sezení (100 kg × 5 = ~116.7 kg 1RM) -> Musí být uznán jako PR!
         val workingSet1 = repository.addSet(session1.id, "ex_bench", 100.0, 5)
-        repository.updateSet(workingSet1.copy(isCompleted = true, setType = WorkoutSetType.NORMAL))
+        repository.updateSet(workingSet1.id) { it.copy(isCompleted = true, setType = WorkoutSetType.NORMAL) }
 
         val setsSess1 = repository.getSetsForSession(session1.id).first()
         assertTrue(setsSess1.first { it.id == workingSet1.id }.isPersonalRecord)
@@ -226,7 +230,7 @@ class WorkoutRepositoryTest {
         // Sezení 2: Pracovní set (105 kg × 5 = 122.5 kg 1RM) překonává předchozí pracovní 100×5, ačkoliv je nižší než starý warmup 150×10
         val session2 = repository.startWorkout("Session 2")
         val workingSet2 = repository.addSet(session2.id, "ex_bench", 105.0, 5)
-        repository.updateSet(workingSet2.copy(isCompleted = true, setType = WorkoutSetType.NORMAL))
+        repository.updateSet(workingSet2.id) { it.copy(isCompleted = true, setType = WorkoutSetType.NORMAL) }
 
         val setsSess2 = repository.getSetsForSession(session2.id).first()
         assertTrue(setsSess2.first { it.id == workingSet2.id }.isPersonalRecord)
@@ -347,6 +351,10 @@ private class FakeWorkoutDao : WorkoutDao {
         templates.value = templates.value.filter { it.id != templateId }
     }
 
+    override suspend fun getSetById(setId: String): WorkoutSetEntity? = sets.value.firstOrNull { it.id == setId }
+    override suspend fun getSetsForSessionSnapshot(sessionId: String): List<WorkoutSetEntity> = sets.value.filter { it.sessionId == sessionId }
+    override suspend fun getTemplatesSnapshot(): List<WorkoutTemplateEntity> = templates.value
+
     override suspend fun getAllExercisesList(): List<ExerciseEntity> = exercises.value
     override suspend fun getAllSessionsList(): List<WorkoutSessionEntity> = sessions.value
     override fun getAllCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSetEntity>> =
@@ -359,7 +367,8 @@ private class FakeMutationDao : MutationDao {
     val mutations = mutableListOf<SyncMutationEntity>()
     private val flow = MutableStateFlow<List<SyncMutationEntity>>(emptyList())
 
-    override fun getPendingMutations(): Flow<List<SyncMutationEntity>> = flow
+    override fun getPendingMutations(maxRetries: Int): Flow<List<SyncMutationEntity>> = flow.map { rows -> rows.filter { it.retryCount < maxRetries } }
+    override fun getUnsentMutationsCount(): Flow<Int> = flow.map { it.size }
 
     override suspend fun insertMutation(mutation: SyncMutationEntity) {
         mutations.add(mutation)

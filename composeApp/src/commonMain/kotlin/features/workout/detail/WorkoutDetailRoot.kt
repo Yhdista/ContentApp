@@ -1,5 +1,9 @@
 package features.workout.detail
 
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,14 +24,16 @@ fun WorkoutDetailRoot(
         viewModel.load(sessionId)
     }
 
-    LaunchedEffect(Unit) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 is WorkoutDetailContract.Effect.NavigateBack -> {
                     onNavigateBack()
                 }
                 is WorkoutDetailContract.Effect.ShowSnackbar -> {
-                    // Feedback message
+                    launch { snackbarHostState.showSnackbar(effect.message) }
                 }
             }
         }
@@ -36,6 +42,7 @@ fun WorkoutDetailRoot(
     WorkoutDetailScreen(
         state = state,
         onIntent = viewModel::onIntent,
-        modifier = modifier
+        modifier = modifier,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     )
 }

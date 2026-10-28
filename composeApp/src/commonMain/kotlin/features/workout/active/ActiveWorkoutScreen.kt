@@ -41,6 +41,7 @@ import features.workout.ui.components.PlateCalculatorSheet
 import features.workout.ui.components.RestTimerBar
 import features.workout.ui.components.WorkoutThumbBar
 import ui.designsystem.nucleus.AppSpacing
+import ui.designsystem.atoms.feedback.ErrorNotice
 import ui.designsystem.templates.UniversalScreenTemplate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +49,8 @@ import ui.designsystem.templates.UniversalScreenTemplate
 fun ActiveWorkoutScreen(
     state: ActiveWorkoutContract.State,
     onIntent: (ActiveWorkoutContract.Intent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    snackbarHost: @Composable () -> Unit = {}
 ) {
     val colorScheme = MaterialTheme.colorScheme
     var isPlateCalculatorOpen by remember { mutableStateOf(false) }
@@ -59,6 +61,7 @@ fun ActiveWorkoutScreen(
     val timerText = "$elapsedMinutes:$elapsedSeconds"
 
     UniversalScreenTemplate(
+        snackbarHost = snackbarHost,
         modifier = modifier,
         topBar = {
             TopAppBar(
@@ -136,6 +139,7 @@ fun ActiveWorkoutScreen(
         },
         thumbActionZone = {
             WorkoutThumbBar(
+                enabled = !state.isSaving,
                 onAddExercise = { onIntent(ActiveWorkoutContract.Intent.OpenExercisePicker(true)) },
                 onFinishWorkout = { onIntent(ActiveWorkoutContract.Intent.FinishWorkout) },
                 onCancelWorkout = { onIntent(ActiveWorkoutContract.Intent.CancelWorkout) }
@@ -152,6 +156,9 @@ fun ActiveWorkoutScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
             ) {
+                state.error?.let { error ->
+                    item { ErrorNotice(error.asString(), onRetry = { onIntent(ActiveWorkoutContract.Intent.LoadWorkout) }) }
+                }
                 if (state.workoutExercises.isEmpty()) {
                     item {
                         Box(

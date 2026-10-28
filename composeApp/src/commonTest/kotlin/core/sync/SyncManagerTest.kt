@@ -3,7 +3,10 @@ package core.sync
 import core.common.ApplicationScope
 import core.database.MutationDao
 import core.database.SyncMutationEntity
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +35,30 @@ class SyncManagerTest {
         testScope = TestScope(testDispatcher)
         fakeMutationDao = FakeSyncMutationDao()
         appScope = ApplicationScope(testDispatcher)
-        syncManager = SyncManager(fakeMutationDao, appScope)
+        syncManager = SyncManager(fakeMutationDao, appScope, networkUploader = { true })
+    }
+
+    @Test
+    fun cancellingSyncResetsBusyState() = testScope.runTest {
+        val manager = SyncManager(fakeMutationDao, appScope, networkUploader = { awaitCancellation() })
+        fakeMutationDao.insertMutation(SyncMutationEntity("cancel", "session", "s1", "INSERT", "{}", 1000L))
+        manager.startSyncLoop()
+        testScope.testScheduler.runCurrent()
+        assertTrue(manager.isSyncing.value)
+        appScope.cancel()
+        testScope.testScheduler.runCurrent()
+        assertFalse(manager.isSyncing.value)
+    }
+
+    @Test
+    fun unconfiguredSyncPreservesOutboxWithoutAttempts() = testScope.runTest {
+        val manager = SyncManager(fakeMutationDao, appScope)
+        fakeMutationDao.insertMutation(SyncMutationEntity("local", "session", "s1", "INSERT", "{}", 1000L))
+        manager.startSyncLoop()
+        testScope.testScheduler.advanceTimeBy(10_000)
+        val mutation = fakeMutationDao.getAllMutationsSnapshot().single()
+        assertEquals(0, mutation.retryCount)
+        assertFalse(manager.isSyncing.value)
     }
 
     @Test
@@ -137,7 +163,8 @@ class SyncManagerTest {
         private val list = mutableListOf<SyncMutationEntity>()
         private val flow = MutableStateFlow<List<SyncMutationEntity>>(emptyList())
 
-        override fun getPendingMutations(): Flow<List<SyncMutationEntity>> = flow.asStateFlow()
+        override fun getPendingMutations(maxRetries: Int): Flow<List<SyncMutationEntity>> = flow.map { rows -> rows.filter { it.retryCount < maxRetries } }
+        override fun getUnsentMutationsCount(): Flow<Int> = flow.map { it.size }
 
         fun getAllMutationsSnapshot(): List<SyncMutationEntity> = list.toList()
 

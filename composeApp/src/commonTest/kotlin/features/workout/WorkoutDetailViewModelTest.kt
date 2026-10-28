@@ -184,7 +184,9 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
 
     override suspend fun startWorkout(title: String): WorkoutSession = error("Not needed")
     override suspend fun addSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int, rpe: Double?): WorkoutSet = error("Not needed")
-    override suspend fun updateSet(set: WorkoutSet) {}
+    override suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet = error("Not used")
+    override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) {}
+
     override suspend fun deleteSet(setId: String) {}
     override suspend fun completeWorkout(sessionId: String): WorkoutSession? = null
     override suspend fun cancelWorkout(sessionId: String) {}
@@ -206,6 +208,4 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
     }
     override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
     override suspend fun getAllCompletedSets(): List<WorkoutSet> = sets.value.filter { it.isCompleted }
-    override suspend fun exportWorkoutDataCsv(): String = ""
-    override suspend fun exportWorkoutDataJson(): String = ""
 }

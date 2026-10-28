@@ -1,6 +1,9 @@
 package features.workout.history
 
 import androidx.lifecycle.viewModelScope
+import core.result.DataError
+import core.ui.toUiText
+import kotlinx.coroutines.Job
 import core.common.AppClock
 import core.common.SystemAppClock
 import core.platform.NoOpPlatformClipboard
@@ -8,6 +11,7 @@ import core.platform.PlatformClipboard
 import core.viewmodel.BaseViewModel
 import features.workout.domain.Exercise
 import features.workout.domain.WeeklyActivityCalculator
+import features.workout.domain.WorkoutDataExport
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutTemplate
@@ -16,14 +20,23 @@ import kotlinx.coroutines.launch
 
 class WorkoutHistoryViewModel(
     private val workoutRepository: WorkoutRepository,
+    private val dataExport: WorkoutDataExport,
     private val platformClipboard: PlatformClipboard = NoOpPlatformClipboard(),
     private val appClock: AppClock = SystemAppClock()
 ) : BaseViewModel<WorkoutHistoryContract.State, WorkoutHistoryContract.Intent, WorkoutHistoryContract.Effect>(
     WorkoutHistoryContract.State()
 ) {
 
+    private var loadJob: Job? = null
+    private var statsJob: Job? = null
+
     init {
         onIntent(WorkoutHistoryContract.Intent.LoadHistory)
+    }
+
+    override fun onOperationFailure(error: DataError.Local) {
+        updateState { copy(error = error.toUiText(), isLoading = false) }
+        sendEffect(WorkoutHistoryContract.Effect.ShowSnackbar(error.toUiText().asString()))
     }
 
     override fun handleIntent(intent: WorkoutHistoryContract.Intent) {
@@ -68,14 +81,16 @@ class WorkoutHistoryViewModel(
             }
             is WorkoutHistoryContract.Intent.OpenExerciseStats -> openExerciseStats(intent.exercise)
             is WorkoutHistoryContract.Intent.CloseExerciseStats -> {
+                statsJob?.cancel()
                 updateState { copy(isExerciseStatsOpen = false, selectedStatsExercise = null, exerciseStats = null) }
             }
         }
     }
 
     private fun loadHistory() {
-        viewModelScope.launch {
-            updateState { copy(isLoading = true) }
+        loadJob?.cancel()
+        loadJob = launchOperation {
+            updateState { copy(isLoading = true, error = null) }
             workoutRepository.ensureDefaultExercises()
             workoutRepository.ensureDefaultTemplates()
 
@@ -142,7 +157,7 @@ class WorkoutHistoryViewModel(
     )
 
     private fun startNewWorkout() {
-        viewModelScope.launch {
+        launchOperation {
             if (uiState.value.activeSession == null) {
                 workoutRepository.startWorkout()
             }
@@ -151,7 +166,7 @@ class WorkoutHistoryViewModel(
     }
 
     private fun startWorkoutFromTemplate(templateId: String) {
-        viewModelScope.launch {
+        launchOperation {
             if (uiState.value.activeSession == null) {
                 workoutRepository.startWorkoutFromTemplate(templateId)
                 updateState { copy(isTemplatePickerOpen = false) }
@@ -161,9 +176,9 @@ class WorkoutHistoryViewModel(
     }
 
     private fun openExportDialog() {
-        viewModelScope.launch {
-            val csv = workoutRepository.exportWorkoutDataCsv()
-            val json = workoutRepository.exportWorkoutDataJson()
+        launchOperation {
+            val csv = dataExport.exportWorkoutDataCsv()
+            val json = dataExport.exportWorkoutDataJson()
             val completedSets = workoutRepository.getAllCompletedSets()
             updateState {
                 copy(
@@ -187,6 +202,7 @@ class WorkoutHistoryViewModel(
     }
 
     private fun openExerciseStats(exercise: Exercise) {
+        statsJob?.cancel()
         updateState {
             copy(
                 isExerciseStatsOpen = true,
@@ -194,7 +210,7 @@ class WorkoutHistoryViewModel(
                 exerciseStats = null
             )
         }
-        viewModelScope.launch {
+        statsJob = launchOperation {
             workoutRepository.getExerciseStats(exercise.id).collect { stats ->
                 updateState {
                     if (selectedStatsExercise?.id == exercise.id) {

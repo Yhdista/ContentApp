@@ -10,8 +10,11 @@ const val DEFAULT_MAX_SYNC_RETRIES = 5
 
 @Dao
 interface MutationDao {
-    @Query("SELECT * FROM sync_mutations WHERE retryCount < $DEFAULT_MAX_SYNC_RETRIES ORDER BY createdAt ASC")
-    fun getPendingMutations(): Flow<List<SyncMutationEntity>>
+    @Query("SELECT * FROM sync_mutations WHERE retryCount < :maxRetries ORDER BY createdAt ASC")
+    fun getPendingMutations(maxRetries: Int = DEFAULT_MAX_SYNC_RETRIES): Flow<List<SyncMutationEntity>>
+
+    @Query("SELECT COUNT(*) FROM sync_mutations")
+    fun getUnsentMutationsCount(): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMutation(mutation: SyncMutationEntity)

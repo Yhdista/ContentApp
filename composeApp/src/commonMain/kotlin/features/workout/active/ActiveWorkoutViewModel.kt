@@ -1,8 +1,9 @@
 package features.workout.active
 
 import androidx.lifecycle.viewModelScope
+import core.result.DataError
+import core.ui.toUiText
 import core.common.AppClock
-import core.common.ApplicationScope
 import core.feedback.NoOpPlatformFeedback
 import core.feedback.PlatformFeedback
 import core.viewmodel.BaseViewModel
@@ -21,7 +22,6 @@ import kotlinx.coroutines.launch
 
 class ActiveWorkoutViewModel(
     private val workoutRepository: WorkoutRepository,
-    private val appScope: ApplicationScope,
     private val clock: AppClock,
     private val platformFeedback: PlatformFeedback = NoOpPlatformFeedback()
 ) : BaseViewModel<ActiveWorkoutContract.State, ActiveWorkoutContract.Intent, ActiveWorkoutContract.Effect>(
@@ -31,12 +31,19 @@ class ActiveWorkoutViewModel(
     private var restTimerJob: Job? = null
     private var workoutTimerJob: Job? = null
     private var statsJob: Job? = null
+    private var loadJob: Job? = null
 
     init {
         onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
     }
 
+    override fun onOperationFailure(error: DataError.Local) {
+        updateState { copy(error = error.toUiText(), isLoading = false, isSaving = false) }
+        sendEffect(ActiveWorkoutContract.Effect.ShowSnackbar(error.toUiText().asString()))
+    }
+
     override fun handleIntent(intent: ActiveWorkoutContract.Intent) {
+        if (uiState.value.isSaving) return
         when (intent) {
             is ActiveWorkoutContract.Intent.LoadWorkout -> loadWorkout()
             is ActiveWorkoutContract.Intent.OpenExercisePicker -> updateState { copy(isPickerVisible = intent.isOpen) }
@@ -64,8 +71,9 @@ class ActiveWorkoutViewModel(
     }
 
     private fun loadWorkout() {
-        viewModelScope.launch {
-            updateState { copy(isLoading = true) }
+        loadJob?.cancel()
+        loadJob = launchOperation {
+            updateState { copy(isLoading = true, error = null) }
             workoutRepository.ensureDefaultExercises()
 
             // Načtení katalogu cviků
@@ -110,7 +118,7 @@ class ActiveWorkoutViewModel(
 
     private fun startWorkoutTimer(startTime: Long) {
         workoutTimerJob?.cancel()
-        workoutTimerJob = viewModelScope.launch {
+        workoutTimerJob = launchOperation {
             while (isActive) {
                 val elapsed = ((clock.nowMillis() - startTime) / 1000).coerceAtLeast(0L)
                 updateState { copy(workoutElapsedSeconds = elapsed) }
@@ -132,7 +140,7 @@ class ActiveWorkoutViewModel(
     }
 
     private fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) {
-        appScope.launch {
+        launchOperation {
             val exercise = workoutRepository.createCustomExercise(name, muscleGroup, defaultRestSeconds)
             addExercise(exercise)
         }
@@ -145,7 +153,7 @@ class ActiveWorkoutViewModel(
             return
         }
         updateState { copy(selectedStatsExercise = exercise, exerciseStats = null) }
-        statsJob = viewModelScope.launch {
+        statsJob = launchOperation {
             workoutRepository.getExerciseStats(exercise.id).collect { stats ->
                 updateState {
                     if (selectedStatsExercise?.id == exercise.id) {
@@ -157,27 +165,16 @@ class ActiveWorkoutViewModel(
     }
 
     private fun removeExercise(exerciseId: String) {
-        val sessionId = uiState.value.session?.id
-        val setsToDelete = uiState.value.sets.filter { it.sessionId == sessionId && it.exerciseId == exerciseId }
-
-        updateState {
-            copy(
-                workoutExercises = workoutExercises.filterNot { it.id == exerciseId },
-                sets = sets.filterNot { it.exerciseId == exerciseId }
-            )
-        }
-
-        if (sessionId == null) return
-        appScope.launch {
-            setsToDelete.forEach { set ->
-                workoutRepository.deleteSet(set.id)
-            }
+        val sessionId = uiState.value.session?.id ?: return
+        launchOperation {
+            workoutRepository.removeExerciseFromWorkout(sessionId, exerciseId)
+            updateState { copy(workoutExercises = workoutExercises.filterNot { it.id == exerciseId }) }
         }
     }
 
     private fun addSet(exerciseId: String) {
         val sessionId = uiState.value.session?.id ?: return
-        appScope.launch {
+        launchOperation {
             val existingSets = uiState.value.sets.filter { it.exerciseId == exerciseId }
             val lastSet = existingSets.lastOrNull()
             val weight = lastSet?.weightKg ?: 60.0
@@ -193,18 +190,16 @@ class ActiveWorkoutViewModel(
     }
 
     private fun toggleSetComplete(set: WorkoutSet) {
-        val targetComplete = !set.isCompleted
-        appScope.launch {
-            workoutRepository.updateSet(set.copy(isCompleted = targetComplete))
-        }
+        launchOperation {
+            val updated = workoutRepository.updateSet(set.id) { it.copy(isCompleted = !it.isCompleted) }
+            // Start feedback only after the transaction succeeds.
+            if (updated.isCompleted) {
+                val exercise = uiState.value.workoutExercises.find { it.id == set.exerciseId }
+                    ?: uiState.value.availableExercises.find { it.id == set.exerciseId }
+                val restSeconds = exercise?.defaultRestSeconds ?: 90
 
-        // Auto-trigger Rest Timer při odškrtnutí
-        if (targetComplete) {
-            val exercise = uiState.value.workoutExercises.find { it.id == set.exerciseId }
-                ?: uiState.value.availableExercises.find { it.id == set.exerciseId }
-            val restSeconds = exercise?.defaultRestSeconds ?: 90
-
-            startRestTimer(restSeconds)
+                startRestTimer(restSeconds)
+            }
         }
     }
 
@@ -218,7 +213,7 @@ class ActiveWorkoutViewModel(
             )
         }
 
-        restTimerJob = viewModelScope.launch {
+        restTimerJob = launchOperation {
             while (isActive && uiState.value.restTimerRemainingSeconds > 0) {
                 delay(1000)
                 val remaining = uiState.value.restTimerRemainingSeconds - 1
@@ -262,42 +257,31 @@ class ActiveWorkoutViewModel(
     }
 
     private fun updateWeight(set: WorkoutSet, weightKg: Double) {
-        appScope.launch {
-            workoutRepository.updateSet(set.copy(weightKg = weightKg))
+        launchOperation {
+            workoutRepository.updateSet(set.id) { it.copy(weightKg = weightKg) }
         }
     }
 
     private fun updateReps(set: WorkoutSet, reps: Int) {
-        appScope.launch {
-            workoutRepository.updateSet(set.copy(reps = reps))
+        launchOperation {
+            workoutRepository.updateSet(set.id) { it.copy(reps = reps) }
         }
     }
 
     private fun updateRpe(set: WorkoutSet, rpe: Double?) {
-        appScope.launch {
-            workoutRepository.updateSet(set.copy(rpe = rpe))
+        launchOperation {
+            workoutRepository.updateSet(set.id) { it.copy(rpe = rpe) }
         }
     }
 
     private fun changeSetType(set: WorkoutSet, newType: WorkoutSetType) {
-        appScope.launch {
-            workoutRepository.updateSet(set.copy(setType = newType))
+        launchOperation {
+            workoutRepository.updateSet(set.id) { it.copy(setType = newType) }
         }
     }
 
     private fun deleteSet(set: WorkoutSet) {
-        appScope.launch {
-            workoutRepository.deleteSet(set.id)
-            val remaining = uiState.value.sets
-                .filter { it.sessionId == set.sessionId && it.exerciseId == set.exerciseId && it.id != set.id }
-                .sortedBy { it.setNumber }
-            remaining.forEachIndexed { index, item ->
-                val expectedNumber = index + 1
-                if (item.setNumber != expectedNumber) {
-                    workoutRepository.updateSet(item.copy(setNumber = expectedNumber))
-                }
-            }
-        }
+        launchOperation { workoutRepository.deleteSet(set.id) }
     }
 
     fun cancelTimers() {
@@ -314,22 +298,24 @@ class ActiveWorkoutViewModel(
 
     private fun finishWorkout() {
         val session = uiState.value.session ?: return
-        cancelTimers()
-        updateState { copy(session = null) }
-
-        // Uložení chráněno v ApplicationScope pro přežití navigace a zničení ViewModelu
-        appScope.launch {
+        if (uiState.value.isSaving) return
+        updateState { copy(isSaving = true, error = null) }
+        launchOperation {
             workoutRepository.completeWorkout(session.id)
+            cancelTimers()
+            updateState { copy(isSaving = false) }
             sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)
         }
     }
 
     private fun cancelWorkout() {
         val session = uiState.value.session ?: return
-        cancelTimers()
-
-        appScope.launch {
+        if (uiState.value.isSaving) return
+        updateState { copy(isSaving = true, error = null) }
+        launchOperation {
             workoutRepository.cancelWorkout(session.id)
+            cancelTimers()
+            updateState { copy(isSaving = false) }
             sendEffect(ActiveWorkoutContract.Effect.WorkoutCancelled)
         }
     }

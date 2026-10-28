@@ -2,6 +2,7 @@ package features.workout
 
 import features.workout.domain.Exercise
 import features.workout.domain.MuscleGroup
+import features.workout.domain.WorkoutDataExport
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
@@ -43,7 +44,7 @@ class WorkoutHistoryViewModelTest {
         Dispatchers.setMain(testDispatcher)
         fakeRepository = HistoryFakeWorkoutRepository()
         fakeClipboard = FakePlatformClipboard()
-        viewModel = WorkoutHistoryViewModel(fakeRepository, fakeClipboard)
+        viewModel = WorkoutHistoryViewModel(fakeRepository, fakeRepository, fakeClipboard)
     }
 
     @AfterTest
@@ -227,7 +228,7 @@ class WorkoutHistoryViewModelTest {
     }
 }
 
-private class HistoryFakeWorkoutRepository : WorkoutRepository {
+private class HistoryFakeWorkoutRepository : WorkoutRepository, WorkoutDataExport {
     private val completed = MutableStateFlow<List<WorkoutSession>>(emptyList())
     private val active = MutableStateFlow<WorkoutSession?>(null)
     private val pendingMutations = MutableStateFlow(0)
@@ -265,7 +266,9 @@ private class HistoryFakeWorkoutRepository : WorkoutRepository {
     }
 
     override suspend fun addSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int, rpe: Double?): WorkoutSet = error("Not needed")
-    override suspend fun updateSet(set: WorkoutSet) {}
+    override suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet = error("Not used")
+    override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) {}
+
     override suspend fun deleteSet(setId: String) {}
     override suspend fun completeWorkout(sessionId: String): WorkoutSession? = null
     override suspend fun cancelWorkout(sessionId: String) {}

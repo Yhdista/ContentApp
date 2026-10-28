@@ -15,7 +15,6 @@ import features.workout.domain.ExerciseStats
 import features.workout.domain.ExerciseStatsCalculator
 import features.workout.domain.MuscleGroup
 import features.workout.domain.PersonalRecordCalculator
-import features.workout.domain.WorkoutDataExporter
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
@@ -40,7 +39,8 @@ import kotlin.uuid.Uuid
 class OfflineFirstWorkoutRepository(
     private val localDataSource: WorkoutLocalDataSource,
     private val mutationDao: MutationDao,
-    private val clock: AppClock
+    private val clock: AppClock,
+    private val writes: WorkoutWriteCoordinator
 ) : WorkoutRepository {
 
     private val json = Json { encodeDefaults = true }
@@ -48,17 +48,9 @@ class OfflineFirstWorkoutRepository(
     override fun getExercises(): Flow<List<Exercise>> =
         localDataSource.observeExercises()
 
-    override suspend fun ensureDefaultExercises() {
+    override suspend fun ensureDefaultExercises() = writes.write {
         if (localDataSource.getExercisesCount() == 0) {
-            val defaults = listOf(
-                Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, defaultRestSeconds = 120),
-                Exercise("ex_squat", "Dřep s činkou", MuscleGroup.LEGS, defaultRestSeconds = 180),
-                Exercise("ex_deadlift", "Mrtvý tah", MuscleGroup.BACK, defaultRestSeconds = 180),
-                Exercise("ex_ohp", "Tlaky na ramena (OHP)", MuscleGroup.SHOULDERS, defaultRestSeconds = 120),
-                Exercise("ex_pullup", "Shyby na hrazdě", MuscleGroup.BACK, defaultRestSeconds = 90),
-                Exercise("ex_biceps", "Bicepsový zdvih", MuscleGroup.ARMS, defaultRestSeconds = 60),
-                Exercise("ex_plank", "Plank", MuscleGroup.CORE, defaultRestSeconds = 60)
-            )
+            val defaults = WorkoutDefaults.exercises
             localDataSource.saveExercises(defaults)
         }
     }
@@ -67,9 +59,10 @@ class OfflineFirstWorkoutRepository(
         name: String,
         muscleGroup: MuscleGroup,
         defaultRestSeconds: Int
-    ): Exercise {
+    ): Exercise = writes.write {
         val now = clock.nowMillis()
         val trimmedName = name.trim()
+        require(trimmedName.isNotEmpty() && defaultRestSeconds > 0)
         val exerciseId = "custom-ex-${Uuid.random()}"
         val exercise = Exercise(
             id = exerciseId,
@@ -94,7 +87,7 @@ class OfflineFirstWorkoutRepository(
                 createdAt = now
             )
         )
-        return exercise
+        return@write exercise
     }
 
     override fun getActiveSession(): Flow<WorkoutSession?> =
@@ -104,7 +97,7 @@ class OfflineFirstWorkoutRepository(
         localDataSource.observeCompletedSessions()
 
     override fun getPendingSyncMutationsCount(): Flow<Int> =
-        mutationDao.getPendingMutations().map { it.size }
+        mutationDao.getUnsentMutationsCount()
 
     override suspend fun getSessionById(sessionId: String): WorkoutSession? =
         localDataSource.getSessionById(sessionId)
@@ -112,10 +105,10 @@ class OfflineFirstWorkoutRepository(
     override fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>> =
         localDataSource.observeSetsForSession(sessionId)
 
-    override suspend fun startWorkout(title: String): WorkoutSession {
+    override suspend fun startWorkout(title: String): WorkoutSession = writes.write {
         val existing = localDataSource.getActiveSession()
         if (existing != null) {
-            return existing
+            return@write existing
         }
         val now = clock.nowMillis()
         val sessionId = "workout-${Uuid.random()}"
@@ -143,7 +136,7 @@ class OfflineFirstWorkoutRepository(
                 createdAt = now
             )
         )
-        return session
+        return@write session
     }
 
     override suspend fun addSet(
@@ -152,8 +145,12 @@ class OfflineFirstWorkoutRepository(
         weightKg: Double,
         reps: Int,
         rpe: Double?
-    ): WorkoutSet {
-        val currentSets = localDataSource.observeSetsForSession(sessionId).first()
+    ): WorkoutSet = writes.write {
+        require(weightKg.isFinite() && weightKg >= 0 && reps >= 0)
+        require(rpe == null || (rpe.isFinite() && rpe in 0.0..10.0))
+        val session = localDataSource.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
+        check(!session.isCompleted) { "Cannot edit a completed workout" }
+        val currentSets = localDataSource.getSetsForSessionSnapshot(sessionId)
         val exerciseSets = currentSets.filter { it.exerciseId == exerciseId }
         val nextSetNumber = (exerciseSets.maxOfOrNull { it.setNumber } ?: 0) + 1
         val lastPerformance = getLastPerformance(exerciseId)
@@ -184,11 +181,20 @@ class OfflineFirstWorkoutRepository(
         )
         localDataSource.saveSet(workoutSet)
         enqueueInsertSetMutation(workoutSet, now)
-        return workoutSet
+        return@write workoutSet
     }
 
-    override suspend fun updateSet(set: WorkoutSet) {
-        val currentSets = localDataSource.observeSetsForSession(set.sessionId).first()
+    override suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet = writes.write {
+        val current = localDataSource.getSetById(setId) ?: throw NoSuchElementException("Set not found")
+        val session = localDataSource.getSessionById(current.sessionId) ?: throw NoSuchElementException("Session not found")
+        check(!session.isCompleted) { "Cannot edit a completed workout" }
+        val set = update(current)
+        require(set.id == current.id && set.sessionId == current.sessionId && set.exerciseId == current.exerciseId) {
+            "An edit cannot change set identity"
+        }
+        require(set.weightKg.isFinite() && set.weightKg >= 0 && set.reps >= 0)
+        require(set.rpe == null || (set.rpe.isFinite() && set.rpe in 0.0..10.0))
+        val currentSets = localDataSource.getSetsForSessionSnapshot(set.sessionId)
         val exerciseSets = currentSets.filter { it.exerciseId == set.exerciseId }
         val isPR = if (set.isCompleted) {
             evaluateIsPersonalRecord(
@@ -214,7 +220,8 @@ class OfflineFirstWorkoutRepository(
             rpe = set.rpe,
             isCompleted = set.isCompleted,
             isPersonalRecord = isPR,
-            setType = set.setType.name
+            setType = set.setType.name,
+            setNumber = set.setNumber
         )
         mutationDao.insertMutation(
             SyncMutationEntity(
@@ -226,6 +233,7 @@ class OfflineFirstWorkoutRepository(
                 createdAt = now
             )
         )
+        updatedSet
     }
 
     private suspend fun evaluateIsPersonalRecord(
@@ -270,7 +278,10 @@ class OfflineFirstWorkoutRepository(
         )
     }
 
-    override suspend fun deleteSet(setId: String) {
+    override suspend fun deleteSet(setId: String) = writes.write {
+        val deleted = localDataSource.getSetById(setId) ?: return@write
+        val session = localDataSource.getSessionById(deleted.sessionId) ?: throw NoSuchElementException("Session not found")
+        check(!session.isCompleted) { "Cannot edit a completed workout" }
         localDataSource.deleteSet(setId)
         val now = clock.nowMillis()
         mutationDao.insertMutation(
@@ -283,10 +294,26 @@ class OfflineFirstWorkoutRepository(
                 createdAt = now
             )
         )
+        localDataSource.getSetsForSessionSnapshot(deleted.sessionId)
+            .filter { it.exerciseId == deleted.exerciseId }
+            .sortedBy { it.setNumber }
+            .forEachIndexed { index, set ->
+                if (set.setNumber != index + 1) {
+                    updateSet(set.id) { it.copy(setNumber = index + 1) }
+                }
+            }
     }
 
-    override suspend fun completeWorkout(sessionId: String): WorkoutSession? {
-        val sets = localDataSource.observeSetsForSession(sessionId).first()
+    override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) = writes.write {
+        localDataSource.getSetsForSessionSnapshot(sessionId)
+            .filter { it.exerciseId == exerciseId }
+            .forEach { deleteSet(it.id) }
+    }
+
+    override suspend fun completeWorkout(sessionId: String): WorkoutSession? = writes.write {
+        val session = localDataSource.getSessionById(sessionId) ?: return@write null
+        if (session.isCompleted) return@write session
+        val sets = localDataSource.getSetsForSessionSnapshot(sessionId)
         val completedSets = sets.filter { it.isCompleted }
         val totalVolume = completedSets.sumOf { it.weightKg * it.reps }
         val now = clock.nowMillis()
@@ -308,10 +335,10 @@ class OfflineFirstWorkoutRepository(
                 createdAt = now
             )
         )
-        return getSessionById(sessionId)
+        return@write getSessionById(sessionId)
     }
 
-    override suspend fun cancelWorkout(sessionId: String) {
+    override suspend fun cancelWorkout(sessionId: String) = writes.write {
         localDataSource.deleteSessionWithSets(sessionId)
         val now = clock.nowMillis()
         mutationDao.insertMutation(
@@ -342,38 +369,9 @@ class OfflineFirstWorkoutRepository(
     override fun getTemplates(): Flow<List<WorkoutTemplate>> =
         localDataSource.observeTemplates()
 
-    override suspend fun ensureDefaultTemplates() {
+    override suspend fun ensureDefaultTemplates() = writes.write {
         if (localDataSource.getTemplatesCount() == 0) {
-            val templates = listOf(
-                WorkoutTemplate(
-                    id = "tmpl_push",
-                    name = "Push Day",
-                    description = "Hrudník, ramena a triceps",
-                    exercises = listOf(
-                        WorkoutTemplateExercise("ex_bench", "Bench press", 3, 60.0, 8, 0),
-                        WorkoutTemplateExercise("ex_ohp", "Tlaky na ramena (OHP)", 3, 40.0, 10, 1)
-                    )
-                ),
-                WorkoutTemplate(
-                    id = "tmpl_pull",
-                    name = "Pull Day",
-                    description = "Záda, biceps a zadní ramena",
-                    exercises = listOf(
-                        WorkoutTemplateExercise("ex_deadlift", "Mrtvý tah", 4, 100.0, 5, 0),
-                        WorkoutTemplateExercise("ex_pullup", "Shyby na hrazdě", 3, 0.0, 8, 1),
-                        WorkoutTemplateExercise("ex_biceps", "Bicepsový zdvih", 3, 15.0, 12, 2)
-                    )
-                ),
-                WorkoutTemplate(
-                    id = "tmpl_legs",
-                    name = "Leg Day",
-                    description = "Kvadricepsy, hamstringy a lýtka",
-                    exercises = listOf(
-                        WorkoutTemplateExercise("ex_squat", "Dřep s činkou", 4, 80.0, 8, 0),
-                        WorkoutTemplateExercise("ex_plank", "Plank", 3, 0.0, 60, 1)
-                    )
-                )
-            )
+            val templates = WorkoutDefaults.templates
             localDataSource.saveTemplates(templates)
         }
     }
@@ -382,7 +380,7 @@ class OfflineFirstWorkoutRepository(
         name: String,
         description: String,
         exercises: List<WorkoutTemplateExercise>
-    ): WorkoutTemplate {
+    ): WorkoutTemplate = writes.write {
         val now = clock.nowMillis()
         val trimmedName = name.trim()
         val templateId = "tmpl-${Uuid.random()}"
@@ -408,16 +406,17 @@ class OfflineFirstWorkoutRepository(
                 createdAt = now
             )
         )
-        return template
+        return@write template
     }
 
-    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession {
-        val template = localDataSource.getTemplateById(templateId)
-        val title = template?.name ?: "Trénink ze šablony"
+    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession = writes.write {
+        localDataSource.getActiveSession()?.let { return@write it }
+        val template = requireNotNull(localDataSource.getTemplateById(templateId)) { "Template not found" }
+        val title = template.name
         val session = startWorkout(title = title)
         val now = clock.nowMillis()
 
-        for (ex in template?.exercises.orEmpty()) {
+        for (ex in template.exercises) {
             val lastPerf = getLastPerformance(ex.exerciseId)
             val weight = if (ex.defaultWeightKg > 0.0) ex.defaultWeightKg else 20.0
             val reps = if (ex.defaultReps > 0) ex.defaultReps else 10
@@ -439,11 +438,11 @@ class OfflineFirstWorkoutRepository(
                 enqueueInsertSetMutation(set, now)
             }
         }
-        return session
+        return@write session
     }
 
-    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate {
-        val sessionSets = localDataSource.observeSetsForSession(sessionId).first()
+    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = writes.write {
+        val sessionSets = localDataSource.getSetsForSessionSnapshot(sessionId)
         val exercisesMap = sessionSets.groupBy { it.exerciseId }
         val templateExercises = mutableListOf<WorkoutTemplateExercise>()
 
@@ -465,7 +464,7 @@ class OfflineFirstWorkoutRepository(
             )
         }
 
-        return createTemplate(
+        return@write createTemplate(
             name = templateName,
             description = "Vytvořeno z tréninku",
             exercises = templateExercises
@@ -486,18 +485,4 @@ class OfflineFirstWorkoutRepository(
     override suspend fun getAllCompletedSets(): List<WorkoutSet> =
         localDataSource.getAllCompletedSets()
 
-    override suspend fun exportWorkoutDataCsv(): String {
-        val sessions = localDataSource.getAllSessions()
-        val exercises = localDataSource.getAllExercises()
-        val sets = localDataSource.getAllCompletedSets()
-        return WorkoutDataExporter.exportToCsv(sessions, exercises, sets)
-    }
-
-    override suspend fun exportWorkoutDataJson(): String {
-        val sessions = localDataSource.getAllSessions()
-        val exercises = localDataSource.getAllExercises()
-        val sets = localDataSource.getAllCompletedSets()
-        val templates = localDataSource.observeTemplates().first()
-        return WorkoutDataExporter.exportToJson(sessions, exercises, sets, templates)
-    }
 }

@@ -2,6 +2,12 @@ package core.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import core.result.DataError
+import core.result.onFailure
+import core.result.safeLocalCall
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import core.mvi.UiEffect
 import core.mvi.UiIntent
 import core.mvi.UiState
@@ -27,6 +33,13 @@ abstract class BaseViewModel<S : UiState, I : UiIntent, E : UiEffect>(
         Napier.d(tag = this@BaseViewModel::class.simpleName) { "Intent received: $intent" }
         handleIntent(intent)
     }
+
+    /** Expected storage failures reach screen state; cancellation always propagates. */
+    protected fun launchOperation(block: suspend CoroutineScope.() -> Unit): Job = viewModelScope.launch {
+        safeLocalCall { coroutineScope(block) }.onFailure(::onOperationFailure)
+    }
+
+    protected abstract fun onOperationFailure(error: DataError.Local)
 
     protected abstract fun handleIntent(intent: I)
 

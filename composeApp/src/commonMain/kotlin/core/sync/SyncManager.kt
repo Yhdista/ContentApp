@@ -6,6 +6,8 @@ import core.database.MutationDao
 import core.database.SyncMutationEntity
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -14,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import kotlin.random.Random
 
 /**
  * Asynchronní Outbox engine zodpovědný za spolehlivé odesílání
@@ -29,7 +30,7 @@ class SyncManager(
     private val mutationDao: MutationDao,
     private val applicationScope: ApplicationScope,
     private val maxRetries: Int = DEFAULT_MAX_SYNC_RETRIES,
-    private val networkUploader: suspend (SyncMutationEntity) -> Boolean = ::defaultSimulateNetworkUpload
+    private val networkUploader: (suspend (SyncMutationEntity) -> Boolean)? = null
 ) {
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
@@ -38,23 +39,38 @@ class SyncManager(
     val lastSyncLog: StateFlow<String> = _lastSyncLog.asStateFlow()
 
     private var syncJob: Job? = null
+    private val startGuard = Mutex()
+
+    init { require(maxRetries > 0) }
 
     fun startSyncLoop() {
-        if (syncJob?.isActive == true) return
-
-        syncJob = applicationScope.launch {
-            mutationDao.getPendingMutations().collect { mutations ->
-                val actionable = mutations.filter { it.retryCount < maxRetries }
-                if (actionable.isNotEmpty()) {
-                    _isSyncing.value = true
-                    for (mutation in actionable) {
-                        processMutation(mutation)
+        if (networkUploader == null) {
+            _lastSyncLog.value = "Synchronizace není nakonfigurovaná; data zůstávají lokálně."
+            return
+        }
+        if (!startGuard.tryLock()) return
+        try {
+            if (syncJob?.isActive == true) return
+            syncJob = applicationScope.launch(start = CoroutineStart.LAZY) {
+                try {
+                    mutationDao.getPendingMutations(maxRetries).collect { mutations ->
+                        val actionable = mutations.filter { it.retryCount < maxRetries }
+                        _isSyncing.value = actionable.isNotEmpty()
+                        for (mutation in actionable) processMutation(mutation)
+                        _isSyncing.value = false
                     }
-                    _isSyncing.value = false
-                } else {
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    _lastSyncLog.value = "Synchronizace byla přerušena chybou lokálního úložiště."
+                    Napier.e("Sync loop stopped", error)
+                } finally {
                     _isSyncing.value = false
                 }
             }
+            syncJob?.start()
+        } finally {
+            startGuard.unlock()
         }
     }
 
@@ -63,7 +79,7 @@ class SyncManager(
             _lastSyncLog.value = "Odesílám mutaci: ${mutation.entityName} (id: ${mutation.id.take(8)}...)"
 
             val success = withTimeout(3000) {
-                networkUploader(mutation)
+                requireNotNull(networkUploader).invoke(mutation)
             }
 
             if (success) {
@@ -71,7 +87,7 @@ class SyncManager(
                 _lastSyncLog.value = "Synchronizováno OK: ${mutation.recordId}"
                 Napier.d("Sync úspěch pro mutaci ${mutation.id}")
             } else {
-                handleFailure(mutation, "Simulovaná chyba sítě (drop)")
+                handleFailure(mutation, "Server nepotvrdil přijetí mutace")
             }
         } catch (e: TimeoutCancellationException) {
             handleFailure(mutation, "Timeout požadavku (>3s)")
@@ -95,15 +111,4 @@ class SyncManager(
         }
     }
 
-    companion object {
-        /**
-         * Výchozí simulátor odeslání sítě:
-         * - Přidává umělou latenci 600 ms
-         * - Náhodně způsobí 20% chybovost pro ověření retry logiky
-         */
-        suspend fun defaultSimulateNetworkUpload(mutation: SyncMutationEntity): Boolean {
-            delay(600)
-            return Random.nextInt(100) >= 20
-        }
-    }
 }
