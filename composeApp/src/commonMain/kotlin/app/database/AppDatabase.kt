@@ -7,7 +7,8 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import features.workout.data.dao.WorkoutDao
-import features.workout.data.entity.ExerciseEntity
+import features.exercises.data.ExerciseEntity
+import features.exercises.data.ExerciseDao
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
 import features.workout.data.entity.WorkoutTemplateEntity
@@ -29,6 +30,7 @@ import features.workout.data.entity.WorkoutTemplateExerciseEntity
 abstract class AppDatabase : RoomDatabase() {
     abstract fun mutationDao(): MutationDao
     abstract fun workoutDao(): WorkoutDao
+    abstract fun exerciseDao(): ExerciseDao
 }
 
 @Suppress("KotlinNoActualForExpect")

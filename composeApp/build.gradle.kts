@@ -22,6 +22,13 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":foundation"))
             implementation(project(":designsystem"))
+            implementation(project(":core:storage"))
+            implementation(project(":core:presentation"))
+            implementation(project(":feature:exercises:api"))
+            implementation(project(":feature:exercises:impl"))
+            implementation(project(":feature:workout:api"))
+            implementation(project(":feature:workout:impl"))
+            implementation(libs.jetbrains.navigation.compose)
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)

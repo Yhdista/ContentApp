@@ -26,6 +26,7 @@ actual val platformModule: Module = module {
     } onClose { it?.close() }
     single { get<AppDatabase>().mutationDao() }
     single { get<AppDatabase>().workoutDao() }
+    single { get<AppDatabase>().exerciseDao() }
     single<AppClock> { AndroidAppClock() }
     single<PlatformFeedback> { AndroidPlatformFeedback(androidContext()) }
     single<PlatformClipboard> { AndroidPlatformClipboard(androidContext()) }

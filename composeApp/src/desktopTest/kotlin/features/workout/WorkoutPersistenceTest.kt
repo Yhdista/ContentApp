@@ -2,19 +2,28 @@ package features.workout
 
 import androidx.sqlite.use
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import core.storage.CommandCoordinator
+import core.storage.RoomCommandCoordinator
+import features.workout.data.entity.WorkoutSessionEntity
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import app.database.AppDatabase
 import app.database.configureAppDatabase
 import app.database.AppDatabaseConstructor
-import app.database.RoomWorkoutWriteCoordinator
 import core.common.AppClock
 import core.common.ApplicationScope
 import core.database.MutationDao
 import core.database.SyncMutationEntity
-import features.workout.data.OfflineFirstWorkoutRepository
 import features.workout.data.dao.WorkoutDao
-import features.workout.data.datasource.RoomWorkoutLocalDataSource
 import features.workout.data.entity.WorkoutTemplateExerciseEntity
+import features.exercises.api.Exercise
+import features.exercises.api.ExerciseCatalog
+import features.exercises.api.MuscleGroup
+import features.workout.domain.WorkoutRepository
+import features.workout.workoutFeatureModule
+import features.exercises.data.exerciseFeatureModule
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.CancellationException
 import java.nio.file.Files
@@ -38,17 +47,96 @@ class WorkoutPersistenceTest {
         .configureAppDatabase().build()
 
     private fun TestScope.writes(db: AppDatabase) =
-        RoomWorkoutWriteCoordinator(db, ApplicationScope(backgroundScope.coroutineContext))
+        RoomCommandCoordinator(db, ApplicationScope(backgroundScope.coroutineContext))
 
     private fun repository(
         db: AppDatabase,
-        writes: RoomWorkoutWriteCoordinator,
+        writes: RoomCommandCoordinator,
         outbox: MutationDao = db.mutationDao(),
         dao: WorkoutDao = db.workoutDao()
-    ) = OfflineFirstWorkoutRepository(
-        RoomWorkoutLocalDataSource(dao), outbox,
-        object : AppClock { override fun nowMillis() = 1000L }, writes
-    )
+    ): WorkoutRepository {
+        val application = koinApplication {
+            modules(module {
+                single { dao }
+                single { outbox }
+                single { db.exerciseDao() }
+                single<CommandCoordinator> { writes }
+                single<AppClock> { object : AppClock { override fun nowMillis() = 1000L } }
+            }, exerciseFeatureModule(), workoutFeatureModule())
+        }
+        return application.koin.get<WorkoutRepository>().also { application.close() }
+    }
+
+    @Test
+    fun genericCoordinatorCommitsBothWritesAndReturnsValue() = runTest {
+        val db = database()
+        try {
+            val room: RoomDatabase = db
+            val coordinator: CommandCoordinator = RoomCommandCoordinator(room, ApplicationScope(backgroundScope.coroutineContext))
+            val result = coordinator.write {
+                db.workoutDao().insertSession(WorkoutSessionEntity("generic", "Committed", 1L, null, false, 0.0))
+                db.mutationDao().insertMutation(SyncMutationEntity("generic-outbox", "workout_session", "generic", "INSERT", "{}", 1L))
+                "committed"
+            }
+            assertEquals("committed", result)
+            assertEquals("Committed", db.workoutDao().getSessionById("generic")?.title)
+            assertEquals(1, db.mutationDao().getUnsentMutationsCount().first())
+        } finally { db.close() }
+    }
+
+    @Test
+    fun genericCoordinatorRollsBackBothWritesOnFailure() = runTest {
+        val db = database()
+        try {
+            val room: RoomDatabase = db
+            val coordinator: CommandCoordinator = RoomCommandCoordinator(room, ApplicationScope(backgroundScope.coroutineContext))
+            assertFailsWith<IllegalStateException> {
+                coordinator.write {
+                    db.workoutDao().insertSession(WorkoutSessionEntity("generic", "Rollback", 1L, null, false, 0.0))
+                    db.mutationDao().insertMutation(SyncMutationEntity("generic-outbox", "workout_session", "generic", "INSERT", "{}", 1L))
+                    error("Fail after both writes")
+                }
+            }
+            assertNull(db.workoutDao().getSessionById("generic"))
+            assertEquals(0, db.mutationDao().getUnsentMutationsCount().first())
+        } finally { db.close() }
+    }
+
+    @Test
+    fun catalogueRetainsStableIdsAndJoinsCallerTransaction() = runTest {
+        val db = database()
+        try {
+            val writes = writes(db)
+            val application = koinApplication {
+                modules(module {
+                    single { db.exerciseDao() }
+                    single<CommandCoordinator> { writes }
+                }, exerciseFeatureModule())
+            }
+            val catalogue = application.koin.get<ExerciseCatalog>().also { application.close() }
+            val bench = Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, 90)
+            val squat = Exercise("ex_squat", "Squat", MuscleGroup.LEGS, 120)
+            writes.write {
+                catalogue.saveExercise(squat)
+                catalogue.saveExercises(listOf(bench))
+            }
+            assertEquals(listOf(bench, squat), catalogue.getAllExercises())
+            assertEquals(listOf(bench, squat), catalogue.observeExercises().first())
+            assertEquals(bench, catalogue.getExerciseById("ex_bench"))
+            assertNull(catalogue.getExerciseById("missing"))
+            assertEquals(2, catalogue.getExercisesCount())
+            assertFailsWith<IllegalStateException> {
+                writes.write {
+                    catalogue.saveExercise(bench.copy(name = "Changed"))
+                    catalogue.saveExercise(Exercise("third", "Third", MuscleGroup.BACK))
+                    error("Rollback catalogue changes")
+                }
+            }
+            assertEquals(bench, catalogue.getExerciseById("ex_bench"))
+            assertNull(catalogue.getExerciseById("third"))
+            assertEquals(2, catalogue.getExercisesCount())
+        } finally { db.close() }
+    }
 
     @Test
     fun failedOutboxInsertRollsBackSession() = runTest {
