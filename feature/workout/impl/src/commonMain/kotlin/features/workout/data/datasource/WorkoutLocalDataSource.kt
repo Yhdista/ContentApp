@@ -3,7 +3,6 @@ package features.workout.data.datasource
 import features.exercises.api.Exercise
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
-import features.workout.domain.WorkoutTemplate
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -48,13 +47,4 @@ internal interface WorkoutLocalDataSource {
     suspend fun getAllSets(): List<WorkoutSet>
     suspend fun getAllWorkoutExercises(): List<features.workout.domain.WorkoutExercise>
 
-    suspend fun routinePrescription(id: String): features.workout.domain.WorkoutStartPrescription
-    suspend fun saveWorkoutAsRoutine(sessionId: String, name: String): WorkoutTemplate
-    // Templates
-    fun observeTemplates(): Flow<List<WorkoutTemplate>>
-    suspend fun getTemplatesSnapshot(): List<WorkoutTemplate>
-    suspend fun getTemplateById(templateId: String): WorkoutTemplate?
-    suspend fun getTemplatesCount(): Int
-    suspend fun saveTemplate(template: WorkoutTemplate)
-    suspend fun saveTemplates(templates: List<WorkoutTemplate>)
 }

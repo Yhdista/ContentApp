@@ -25,16 +25,18 @@ internal class WorkoutDetailContract {
         val exercisesWithSets: List<ExerciseWithSets> = emptyList(),
         val durationFormatted: String = "—",
         val isLoading: Boolean = false,
+        val isCreatingRoutine: Boolean = false,
         val error: UiText? = null
     ) : UiState
 
     sealed class Intent : UiIntent {
         data class LoadDetail(val sessionId: String) : Intent()
         data object BackClicked : Intent()
-        data class SaveAsTemplate(val templateName: String) : Intent()
+        data object CreateRoutine : Intent()
     }
 
     sealed class Effect : UiEffect {
+        data class RoutineDraft(val draftId: String) : Effect()
         data object NavigateBack : Effect()
         data class ShowSnackbar(val message: String) : Effect()
     }

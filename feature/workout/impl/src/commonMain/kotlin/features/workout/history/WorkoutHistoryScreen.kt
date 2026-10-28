@@ -39,7 +39,6 @@ import core.common.formatCleanWeight
 import core.model.ItemSyncStatus
 import features.workout.ui.components.ExercisePickerSheet
 import features.workout.ui.components.ExerciseStatsSheet
-import features.workout.ui.components.TemplatePickerSheet
 import features.workout.ui.components.WeeklyStreakCard
 import features.workout.ui.components.WorkoutExportDialog
 import features.workout.ui.components.WorkoutHistoryItemCard
@@ -181,12 +180,12 @@ internal fun WorkoutHistoryScreen(
                                 .background(colorScheme.surface)
                                 .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(14.dp))
                                 .clickable(role = Role.Button) {
-                                    onIntent(WorkoutHistoryContract.Intent.OpenTemplatePicker)
+                                    onIntent(WorkoutHistoryContract.Intent.OpenRoutines)
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "📋 Šablony",
+                                text = "📋 Rutiny",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = colorScheme.onSurface
@@ -447,13 +446,7 @@ internal fun WorkoutHistoryScreen(
         }
     )
 
-    if (state.isTemplatePickerOpen) {
-        TemplatePickerSheet(
-            templates = state.templates,
-            onSelectTemplate = { onIntent(WorkoutHistoryContract.Intent.StartWorkoutFromTemplate(it)) },
-            onDismiss = { onIntent(WorkoutHistoryContract.Intent.CloseTemplatePicker) }
-        )
-    }
+
 
     if (state.isExerciseCatalogOpen) {
         ExercisePickerSheet(

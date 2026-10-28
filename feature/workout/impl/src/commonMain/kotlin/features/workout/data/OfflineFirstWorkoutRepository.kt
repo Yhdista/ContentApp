@@ -18,8 +18,6 @@ import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
-import features.workout.domain.WorkoutTemplate
-import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -39,8 +37,7 @@ internal class OfflineFirstWorkoutRepository(
     private val localDataSource: WorkoutLocalDataSource,
     private val mutationDao: MutationDao,
     private val clock: AppClock,
-    private val writes: CommandCoordinator,
-    private val store: features.workout.domain.WorkoutStore
+    private val writes: CommandCoordinator
 ) : WorkoutRepository {
 
     private val json = Json { encodeDefaults = true }
@@ -397,48 +394,6 @@ internal class OfflineFirstWorkoutRepository(
         return sets.maxOfOrNull {
             PersonalRecordCalculator.calculateOneRepMax(it.weightKg, it.reps)
         } ?: 0.0
-    }
-
-    override fun getTemplates(): Flow<List<WorkoutTemplate>> =
-        localDataSource.observeTemplates()
-
-    override suspend fun ensureDefaultTemplates() = writes.write {
-        ensureDefaultExercises()
-        if (localDataSource.getTemplatesCount() == 0) {
-            val templates = WorkoutDefaults.templates
-            localDataSource.saveTemplates(templates)
-        }
-    }
-
-    override suspend fun createTemplate(
-        name: String,
-        description: String,
-        exercises: List<WorkoutTemplateExercise>
-    ): WorkoutTemplate = writes.write {
-        val now = clock.nowMillis()
-        val trimmedName = name.trim()
-        val templateId = "tmpl-${Uuid.random()}"
-        val template = WorkoutTemplate(
-            id = templateId,
-            name = trimmedName,
-            description = description.trim(),
-            exercises = exercises.mapIndexed { idx, ex -> ex.copy(orderIndex = idx) }
-        )
-        localDataSource.saveTemplate(template)
-
-        return@write template
-    }
-
-    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession = writes.write {
-        localDataSource.getActiveSession()?.let { return@write it }
-        when (val result = store.createFromPrescription(localDataSource.routinePrescription(templateId))) {
-            is core.result.Result.Success -> getSessionById(result.data.sessionId)!!
-            is core.result.Result.Error -> error("Workout start failed: ${result.error}")
-        }
-    }
-
-    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = writes.write {
-        localDataSource.saveWorkoutAsRoutine(sessionId, templateName)
     }
 
     override fun getExerciseStats(exerciseId: String): Flow<ExerciseStats?> {

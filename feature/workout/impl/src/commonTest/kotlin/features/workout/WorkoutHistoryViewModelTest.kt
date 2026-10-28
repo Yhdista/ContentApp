@@ -6,8 +6,6 @@ import features.workout.domain.WorkoutDataExport
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
-import features.workout.domain.WorkoutTemplate
-import features.workout.domain.WorkoutTemplateExercise
 import features.workout.history.WorkoutHistoryContract
 import features.workout.history.WorkoutHistoryViewModel
 import kotlinx.coroutines.Dispatchers
@@ -44,10 +42,7 @@ class WorkoutHistoryViewModelTest {
         Dispatchers.setMain(testDispatcher)
         fakeRepository = HistoryFakeWorkoutRepository()
         fakeClipboard = FakePlatformClipboard()
-        viewModel = WorkoutHistoryViewModel(fakeRepository, fakeRepository, fakeClipboard,
-            startRoutineWorkout = features.workout.domain.StartRoutineWorkout { id ->
-                core.result.Result.Success(features.workout.domain.StartOutcome.Created(fakeRepository.startWorkoutFromTemplate(id).id))
-            })
+        viewModel = WorkoutHistoryViewModel(fakeRepository, fakeRepository, fakeClipboard)
     }
 
     @AfterTest
@@ -121,22 +116,13 @@ class WorkoutHistoryViewModelTest {
         assertEquals(3, viewModel.uiState.value.pendingSyncCount)
     }
 
-    @Test
-    fun testStartWorkoutFromTemplateStartsActiveSessionAndNavigates() = runTest(testDispatcher) {
-        viewModel.onIntent(WorkoutHistoryContract.Intent.OpenTemplatePicker)
+    @Test fun routinesEntryNavigatesWithoutStartingWorkout() = runTest(testDispatcher) {
+        val effects = mutableListOf<WorkoutHistoryContract.Effect>()
+        val job = launch { viewModel.effect.collect { effects.add(it) } }
+        viewModel.onIntent(WorkoutHistoryContract.Intent.OpenRoutines)
         testScheduler.runCurrent()
-        assertTrue(viewModel.uiState.value.isTemplatePickerOpen)
-
-        var effectReceived: WorkoutHistoryContract.Effect? = null
-        val job = backgroundScope.launch(testDispatcher) {
-            viewModel.effect.collect { effectReceived = it }
-        }
-
-        viewModel.onIntent(WorkoutHistoryContract.Intent.StartWorkoutFromTemplate("t1"))
-        testScheduler.runCurrent()
-
-        assertEquals(WorkoutHistoryContract.Effect.NavigateToActiveWorkout, effectReceived)
-        assertFalse(viewModel.uiState.value.isTemplatePickerOpen)
+        assertEquals(listOf<WorkoutHistoryContract.Effect>(WorkoutHistoryContract.Effect.NavigateToRoutines), effects)
+        assertEquals(null, viewModel.uiState.value.activeSession)
         job.cancel()
     }
 
@@ -235,7 +221,6 @@ private class HistoryFakeWorkoutRepository : WorkoutRepository, WorkoutDataExpor
     private val completed = MutableStateFlow<List<WorkoutSession>>(emptyList())
     private val active = MutableStateFlow<WorkoutSession?>(null)
     private val pendingMutations = MutableStateFlow(0)
-    private val templates = MutableStateFlow<List<WorkoutTemplate>>(emptyList())
 
     fun setCompletedSessions(list: List<WorkoutSession>) {
         completed.value = list
@@ -283,19 +268,6 @@ private class HistoryFakeWorkoutRepository : WorkoutRepository, WorkoutDataExpor
     override suspend fun getLastPerformance(exerciseId: String): String? = null
     override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double = 0.0
 
-    override fun getTemplates(): Flow<List<WorkoutTemplate>> = templates.asStateFlow()
-    override suspend fun ensureDefaultTemplates() {
-        if (templates.value.isEmpty()) {
-            templates.value = listOf(
-                WorkoutTemplate("t1", "Push Day", "Tlaky", emptyList())
-            )
-        }
-    }
-    override suspend fun createTemplate(name: String, description: String, exercises: List<WorkoutTemplateExercise>): WorkoutTemplate = error("Not needed")
-    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession {
-        return startWorkout("Push Day")
-    }
-    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = error("Not needed")
     override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
     override suspend fun getAllCompletedSets(): List<WorkoutSet> = emptyList()
     override suspend fun exportWorkoutDataCsv(): String = "header\nrow1"

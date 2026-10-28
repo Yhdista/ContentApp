@@ -7,7 +7,6 @@ import features.exercises.api.Exercise
 import features.exercises.api.ExerciseCatalog
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
-import features.workout.domain.WorkoutTemplate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -15,8 +14,7 @@ import kotlinx.coroutines.flow.first
 
 internal class RoomWorkoutLocalDataSource(
     private val workoutDao: WorkoutDao,
-    private val catalogue: ExerciseCatalog,
-    private val routines: features.routines.api.RoutineRepository
+    private val catalogue: ExerciseCatalog
 ) : WorkoutLocalDataSource {
 
     override fun observeExercises(): Flow<List<Exercise>> = catalogue.observeExercises()
@@ -98,58 +96,4 @@ internal class RoomWorkoutLocalDataSource(
         }.sortedWith(compareBy({ it.sessionId }, { it.exerciseOrder ?: Int.MAX_VALUE }, { it.setNumber }, { it.id }))
     }
 
-    override suspend fun routinePrescription(id: String): features.workout.domain.WorkoutStartPrescription {
-        val routine=routines.getById(id) ?: throw NoSuchElementException("Routine not found")
-        check(!routine.archived)
-        require(features.routines.api.RoutineValidation.validate(routine)==null)
-        return features.workout.domain.WorkoutStartPrescription(routine.name,routine.exercises.map { e ->
-            val exercise=catalogue.getExerciseById(e.exerciseId) ?: throw NoSuchElementException("Exercise not found")
-            check(!exercise.archived)
-            features.workout.domain.WorkoutExercisePrescription(e.id,e.exerciseId,exercise.name,exercise.muscleGroup,e.restSeconds,
-                e.sets.map { features.workout.domain.WorkoutSetPrescription(it.weightKg,it.reps,it.setType) })
-        },routine.id,routine.revision)
-    }
-    @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
-    override suspend fun saveWorkoutAsRoutine(sessionId: String, name: String): WorkoutTemplate {
-        val sets=getSetsForSessionSnapshot(sessionId)
-        val routine=features.routines.api.Routine(kotlin.uuid.Uuid.random().toString(),name,"Vytvořeno z tréninku",exercises=
-            sets.groupBy { it.workoutExerciseId ?: it.exerciseId }.values.map { entrySets ->
-                val first=entrySets.first()
-                features.routines.api.RoutineExercise(kotlin.uuid.Uuid.random().toString(),first.exerciseId,first.restSecondsSnapshot ?: 90,
-                    entrySets.map { features.routines.api.RoutineSet(kotlin.uuid.Uuid.random().toString(),it.weightKg,it.reps,it.setType) })
-            })
-        return when(val result=routines.save(routine,null)) {
-            is core.result.Result.Success -> project(result.data,catalogue.getAllExercises().associateBy { it.id })
-            is core.result.Result.Error -> error("Routine save failed: ${result.error}")
-        }
-    }
-
-    // Transitional UI projection only: routines own all persisted template data.
-    override fun observeTemplates() = combine(routines.observeAll(),catalogue.observeExercises()) { routines,exercises ->
-        val byId=exercises.associateBy { it.id }
-        routines.map { project(it,byId) }
-    }
-    override suspend fun getTemplatesSnapshot(): List<WorkoutTemplate> {
-        val byId=catalogue.getAllExercises().associateBy { it.id }
-        return routines.observeAll(true).first().map { project(it,byId) }
-    }
-    override suspend fun getTemplateById(templateId: String) = routines.getById(templateId)?.let {
-        project(it,catalogue.getAllExercises().associateBy { exercise -> exercise.id })
-    }
-    override suspend fun getTemplatesCount() = routines.observeAll(true).first().size
-    override suspend fun saveTemplate(template: WorkoutTemplate) {
-        val routine=features.routines.api.Routine(template.id,template.name,template.description,exercises=template.exercises.mapIndexed { index,e ->
-            features.routines.api.RoutineExercise("${template.id}:$index",e.exerciseId,catalogue.getExerciseById(e.exerciseId)?.defaultRestSeconds ?: 90,
-                List(e.targetSets) { n -> features.routines.api.RoutineSet("${template.id}:$index:$n",e.defaultWeightKg,e.defaultReps) })
-        })
-        when(val result=routines.save(routine,null)) {
-            is core.result.Result.Success -> Unit
-            is core.result.Result.Error -> error("Routine save failed: ${result.error}")
-        }
-    }
-    override suspend fun saveTemplates(templates: List<WorkoutTemplate>) { templates.forEach { saveTemplate(it) } }
-    private fun project(routine: features.routines.api.Routine, catalogueById: Map<String,Exercise>) = WorkoutTemplate(routine.id,routine.name,routine.notes,
-        routine.exercises.mapIndexed { index,e -> features.workout.domain.WorkoutTemplateExercise(e.exerciseId,
-            catalogueById[e.exerciseId]?.name ?: "Neznámý cvik",e.sets.size,e.sets.firstOrNull()?.weightKg ?: 0.0,
-            e.sets.firstOrNull()?.reps ?: 0,index) })
 }

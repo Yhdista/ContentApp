@@ -63,8 +63,6 @@ internal fun WorkoutDetailScreen(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val session = state.session
-    var showSaveDialog by remember { mutableStateOf(false) }
-    var templateNameInput by remember(session?.title) { mutableStateOf(session?.title ?: "Můj trénink") }
 
     UniversalScreenTemplate(
         snackbarHost = snackbarHost,
@@ -80,7 +78,7 @@ internal fun WorkoutDetailScreen(
                             color = colorScheme.onBackground
                         )
                         Text(
-                            text = "Souhrn výkonu & sérií",
+                            text = session?.let { if(it.sourcePlan != null) "🗓️ Z plánu · revize ${it.sourcePlan?.planRevision}" else if(it.sourceRoutineId != null) "📋 Z rutiny · revize ${it.sourceRoutineRevision}" else "🏋️ Samostatný trénink" } ?: "Souhrn výkonu & sérií",
                             style = MaterialTheme.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant
                         )
@@ -111,12 +109,12 @@ internal fun WorkoutDetailScreen(
                             .padding(end = AppSpacing.sm)
                             .clip(RoundedCornerShape(8.dp))
                             .background(colorScheme.surfaceVariant)
-                            .clickable(role = Role.Button) { showSaveDialog = true }
+                            .clickable(enabled = !state.isCreatingRoutine, role = Role.Button) { onIntent(WorkoutDetailContract.Intent.CreateRoutine) }
                             .padding(horizontal = AppSpacing.sm, vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "💾 Uložit jako šablonu",
+                            text = "📋 Vytvořit rutinu",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary
@@ -285,59 +283,6 @@ internal fun WorkoutDetailScreen(
         }
     )
 
-    // Dialog pro uložení sezení jako šablony
-    if (showSaveDialog) {
-        AlertDialog(
-            onDismissRequest = { showSaveDialog = false },
-            containerColor = colorScheme.surface,
-            title = {
-                Text(
-                    text = "Uložit jako rutinu / šablonu",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                    Text(
-                        text = "Vytvořte si z tohoto tréninku opakovatelnou šablonu pro rychlé spuštění kdykoliv v budoucnu.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colorScheme.onSurfaceVariant
-                    )
-                    OutlinedTextField(
-                        value = templateNameInput,
-                        onValueChange = { templateNameInput = it },
-                        label = { Text("Název šablony") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val name = templateNameInput.trim()
-                        if (name.isNotBlank()) {
-                            onIntent(WorkoutDetailContract.Intent.SaveAsTemplate(name))
-                            showSaveDialog = false
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorScheme.primary,
-                        contentColor = colorScheme.onPrimary
-                    )
-                ) {
-                    Text("Uložit")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showSaveDialog = false }) {
-                    Text("Zrušit", color = colorScheme.onSurfaceVariant)
-                }
-            }
-        )
-    }
 }
 
 @Composable

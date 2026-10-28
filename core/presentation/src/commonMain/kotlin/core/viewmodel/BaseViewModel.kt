@@ -30,7 +30,7 @@ abstract class BaseViewModel<S : UiState, I : UiIntent, E : UiEffect>(
     val effect = _effect.receiveAsFlow()
 
     fun onIntent(intent: I) {
-        Napier.d(tag = this@BaseViewModel::class.simpleName) { "Intent received: $intent" }
+        Napier.d(tag = this@BaseViewModel::class.simpleName) { "Intent: ${intent::class.simpleName}" }
         handleIntent(intent)
     }
 

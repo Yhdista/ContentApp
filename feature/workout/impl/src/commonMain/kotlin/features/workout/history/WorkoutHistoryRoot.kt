@@ -15,6 +15,7 @@ import core.viewmodel.rememberScreenViewModel
 fun WorkoutHistoryRoot(
     onNavigateToActiveWorkout: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToRoutines: () -> Unit,
     modifier: Modifier = Modifier,
     isDarkTheme: Boolean = true,
     onToggleTheme: () -> Unit = {}
@@ -26,6 +27,7 @@ fun WorkoutHistoryRoot(
     LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
             when (effect) {
+                WorkoutHistoryContract.Effect.NavigateToRoutines -> onNavigateToRoutines()
                 is WorkoutHistoryContract.Effect.NavigateToActiveWorkout -> {
                     onNavigateToActiveWorkout()
                 }

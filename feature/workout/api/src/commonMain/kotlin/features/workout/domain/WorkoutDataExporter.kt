@@ -56,10 +56,10 @@ object WorkoutDataExporter {
 
     fun exportToJson(
         sessions: List<WorkoutSession>, exercises: List<Exercise>, sets: List<WorkoutSet>,
-        templates: List<WorkoutTemplate> = emptyList(), workoutExercises: List<WorkoutExercise> = emptyList()
+        workoutExercises: List<WorkoutExercise> = emptyList()
     ): String = kotlinx.serialization.json.Json { prettyPrint=true; encodeDefaults=true }.encodeToString(
-        WorkoutExport(sessions.maxOfOrNull { it.startTimeEpochMs } ?: 0L,sessions.size,exercises.size,sets.size,templates.size,
-            sessions,exercises,sets.sortedWith(compareBy({ it.sessionId },{ it.exerciseOrder ?: Int.MAX_VALUE },{ it.setNumber })),templates,workoutExercises))
+        WorkoutExport(sessions.maxOfOrNull { it.startTimeEpochMs } ?: 0L,sessions.size,exercises.size,sets.size,
+            sessions,exercises,sets.sortedWith(compareBy({ it.sessionId },{ it.exerciseOrder ?: Int.MAX_VALUE },{ it.setNumber })),workoutExercises))
 
     private fun escapeCsv(value: String): String {
         return if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
@@ -73,7 +73,7 @@ object WorkoutDataExporter {
 
 @Serializable
 private data class WorkoutExport(
-    val exportedAtEpochMs: Long,val sessionsCount: Int,val exercisesCount: Int,val setsCount: Int,val templatesCount: Int,
-    val sessions: List<WorkoutSession>,val exercises: List<Exercise>,val sets: List<WorkoutSet>,val templates: List<WorkoutTemplate>,
+    val exportedAtEpochMs: Long,val sessionsCount: Int,val exercisesCount: Int,val setsCount: Int,
+    val sessions: List<WorkoutSession>,val exercises: List<Exercise>,val sets: List<WorkoutSet>,
     val workoutExercises: List<WorkoutExercise>
 )

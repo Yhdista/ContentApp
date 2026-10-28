@@ -18,10 +18,12 @@ kotlin {
             api(project(":foundation"))
             api(libs.androidx.lifecycle.viewmodel)
             api(compose.runtime)
+            api("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
             api(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.napier)
         }
+        androidMain.dependencies { implementation(libs.androidx.activity.compose) }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)

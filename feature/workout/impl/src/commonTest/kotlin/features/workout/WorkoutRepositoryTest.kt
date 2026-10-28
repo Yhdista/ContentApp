@@ -40,11 +40,10 @@ class WorkoutRepositoryTest {
         fakeMutationDao = FakeMutationDao()
         fakeClock = RepoFakeClock(time = 1000000L)
         repository = OfflineFirstWorkoutRepository(
-            localDataSource = RoomWorkoutLocalDataSource(fakeDao, fakeCatalog, FakeRoutines()),
+            localDataSource = RoomWorkoutLocalDataSource(fakeDao, fakeCatalog),
             mutationDao = fakeMutationDao,
             clock = fakeClock,
-            writes = directWrites,
-            store = features.workout.data.RoomWorkoutStore(fakeDao, directWrites, fakeMutationDao, fakeClock)
+            writes = directWrites
         )
     }
 
@@ -121,57 +120,6 @@ class WorkoutRepositoryTest {
         // Ověření zápisu do sync_mutations outboxu
         val mutations = fakeMutationDao.mutations
         assertTrue(mutations.any { it.recordId == session.id && it.operation == "COMPLETE" })
-    }
-
-    @Test
-    fun testEnsureDefaultTemplatesSeedsWhenEmpty() = runTest {
-        assertEquals(0, repository.getTemplates().first().size)
-        repository.ensureDefaultTemplates()
-        val templates = repository.getTemplates().first()
-        assertTrue(templates.isNotEmpty())
-        assertTrue(templates.any { it.name.startsWith("Push Day") })
-        assertTrue(templates.any { it.name.startsWith("Pull Day") })
-        assertTrue(templates.any { it.name.startsWith("Leg Day") })
-    }
-
-    @Test
-    fun testStartWorkoutFromTemplatePrepopulatesExercisesAndSets() = runTest {
-        repository.ensureDefaultTemplates()
-        val templates = repository.getTemplates().first()
-        val pushDay = templates.first { it.id == "tmpl_push" }
-
-        val session = repository.startWorkoutFromTemplate(pushDay.id)
-        assertNotNull(session)
-        assertEquals(pushDay.name, session.title)
-
-        val sets = repository.getSetsForSession(session.id).first()
-        assertTrue(sets.isNotEmpty())
-        // Push Day má 2 cviky po 3 sériích -> 6 sérií
-        assertEquals(6, sets.size)
-        assertTrue(sets.all { !it.isCompleted })
-        assertEquals(listOf(1, 2, 3), sets.filter { it.exerciseId == "ex_bench" }.map { it.setNumber })
-        assertEquals(listOf(1, 2, 3), sets.filter { it.exerciseId == "ex_ohp" }.map { it.setNumber })
-
-        // Ověření zápisu všech 6 sérií ze šablony do Outboxu
-        val setInsertMutations = fakeMutationDao.mutations.filter { it.entityName == "workout_set" && it.operation == "INSERT" }
-        assertEquals(6, setInsertMutations.size)
-    }
-
-    @Test
-    fun testSaveSessionAsTemplate() = runTest {
-        val session = repository.startWorkout("Full Body")
-        repository.addSet(session.id, "ex_bench", weightKg = 70.0, reps = 8)
-        repository.addSet(session.id, "ex_bench", weightKg = 70.0, reps = 8)
-        repository.addSet(session.id, "ex_squat", weightKg = 90.0, reps = 5)
-
-        val template = repository.saveSessionAsTemplate(session.id, "Moje Full Body")
-        assertNotNull(template)
-        assertEquals("Moje Full Body", template.name)
-        assertEquals(2, template.exercises.size)
-        val benchEx = template.exercises.first { it.exerciseId == "ex_bench" }
-        assertEquals(2, benchEx.targetSets)
-        assertEquals(70.0, benchEx.defaultWeightKg)
-        assertEquals(8, benchEx.defaultReps)
     }
 
     @Test
@@ -356,14 +304,3 @@ private class FakeExerciseCatalog : ExerciseCatalog {
 }
 
 private val directWrites = object : CommandCoordinator { override suspend fun <T> write(block: suspend () -> T): T = block() }
-private class FakeRoutines : features.routines.api.RoutineRepository {
-    private val rows=MutableStateFlow<List<features.routines.api.Routine>>(emptyList())
-    override fun observeAll(includeArchived: Boolean)=rows.asStateFlow()
-    override fun observeById(id: String)=rows.map { list -> list.firstOrNull { it.id==id } }
-    override suspend fun getById(id: String)=rows.value.firstOrNull { it.id==id }
-    override suspend fun save(routine: features.routines.api.Routine,expectedRevision: Long?): core.result.Result<features.routines.api.Routine,features.routines.api.RoutineError> {
-        val saved=routine.copy(revision=1); rows.value=rows.value.filterNot { it.id==routine.id }+saved; return core.result.Result.Success(saved)
-    }
-    override suspend fun duplicate(id: String): core.result.Result<features.routines.api.Routine,features.routines.api.RoutineError> = error("unused")
-    override suspend fun archive(id: String,expectedRevision: Long): core.result.Result<Unit,features.routines.api.RoutineError> = error("unused")
-}

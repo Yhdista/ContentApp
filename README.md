@@ -1,53 +1,66 @@
 # 🏗️ ContentApp
 
-🏋️ Kotlin Multiplatform POC tréninkové aplikace a výchozí základ pro další aplikace. Obsahuje lokální ukládání přes Room, MVI obrazovky, šablony, historii, statistiky a export. Sdílený kód se kompiluje pro Android, desktop JVM a iOS; samostatný iOS host v repozitáři není.
+🏋️ Kotlin Multiplatform POC pro samostatné tréninky, opakovatelné rutiny a cyklické plány. Room uchovává lokální data, MVI řídí obrazovky a jedna typovaná navigace spojuje Android a desktop. Sdílený kód se kompiluje také pro iOS; samostatný iOS host v repozitáři není.
 
-## 🧭 Dokumentace pro vývoj
+## 🧭 Dokumentace
 
 | 🔎 Co hledáš | Dokument |
 | --- | --- |
-| 💾 moduly, adresáře, odpovědnosti vrstev, DI a transakce | [Architektura projektu](docs/architecture.md) |
-| ⚡ přesné použití State, Intent, Effect, ViewModel, Root a Screen | [Praktický průvodce MVI](docs/mvi.md) |
-| 📱 průchod změnou váhy, lifecycle a návod na další obrazovku | [MVI příklady a postup](docs/mvi.md) |
-| 📋🗓️ návrh samostatných rutin a tréninkových plánů — zatím neimplementováno | [Návrh další etapy](docs/superpowers/specs/2026-10-28-routines-trainingplans-design.md) |
+| 🧱 moduly, DI, transakce a migrace | [Architektura](docs/architecture.md) |
+| 🧠 State, Intent, Effect, lifecycle a durable drafty | [Praktický průvodce MVI](docs/mvi.md) |
+| 📋🗓️ schválená obchodní pravidla | [Návrh rutin a plánů](docs/superpowers/specs/2026-10-28-routines-trainingplans-design.md) |
+| 🌐 historický audit na druhém počítači | [Mesh příprava](docs/reviews/2026-10-28-mesh-preparation.md) |
 
-## 🗂️ Struktura
+## 📱 Průchod aplikací
 
-| 📦 Gradle modul | Obsah | Závislosti na jiných modulech |
-| --- | --- | --- |
-| 🧱 `foundation` | Result/chyby, čas, aplikační scope, MVI kontrakty, platformní adaptéry a obecné modely | žádné |
-| 🎨 `designsystem` | téma, typografie, rozestupy, základní prvky a šablona obrazovky | `foundation` |
-| 📱 `composeApp` | platformní vstupy, aplikační DI, databáze, navigace a workout feature | `foundation`, `designsystem` |
+- 🏋️ **Tréninky:** nový volný trénink, pokračování, historie, statistiky a export skutečných výkonů.
+- 📋 **Rutiny:** seznam včetně archivovaných položek, detail a editor jednotlivých sérií. Cvik může být zařazen vícekrát; každé zařazení má vlastní pauzu, pořadí a identitu.
+- 🗓️ **Plány:** cyklus pojmenovaných slotů odkazujících na rutiny. Dokončení plánového workoutu posune jeho původní plán právě jednou. Ostatní sloty lze spustit samostatně bez posunu plánu.
+- 🧭 **Kontrola postupu:** po změně zdrojového plánu nebo ručním posunu během tréninku vyberte výslovně další slot. Do potvrzení je plánový start i přeskočení blokované.
+- 💾 **Rozepsané návrhy:** tlačítko „Nový nebo rozepsaný…“ obnoví nový draft; „Upravit / pokračovat v návrhu“ obnoví draft konkrétní položky. Přepnutí záložky jej zachová. Zpět nabídne pokračovat nebo zahodit. Autosave nevytváří publikovanou rutinu/plán.
+- 🔒 **Konflikt revize:** načíst aktuální uloženou verzi, nebo uložit vlastní nepublikovaný obsah jako novou kopii s novými ID.
+- 📤 **Workout → rutina:** detail historie otevře návrh ze skutečných sérií, typů a pauz. Žádné průměrování; nová rutina vznikne až tlačítkem Uložit.
 
-🗂️ Sdílené moduly nemají přístup k workout feature. Aplikaci skládá `composeApp/src/commonMain/kotlin/app`; konkrétní funkce žijí v `features/workout`. Podrobnosti, pravidla přidávání dalších funkcí a omezení jsou v [architektuře](docs/architecture.md).
+## 🗂️ Moduly
 
-## 💾 Zápis a životní cyklus
+| 📦 Modul | Vlastnictví |
+| --- | --- |
+| `foundation` | Result/chyby, čas, ApplicationScope, MVI markery, platformní adaptéry |
+| `core:storage` | CommandCoordinator, Room writer, outbox/sync a lokální DraftStore/OrderedDrafts |
+| `core:presentation` | BaseViewModel, entry-scoped ViewModel holder a editor Back handler |
+| `designsystem` | téma, nucleus Material facades, obecné prvky a layouty |
+| `feature:exercises:{api,impl}` | společný katalog cviků |
+| `feature:workout:{api,impl}` | session, snímek předpisu, skutečné série, historie, export |
+| `feature:routines:{api,impl}` | předpisy, validace, drafty a obrazovky rutin |
+| `feature:trainingplans:{api,impl}` | cyklus, kurzor/revize postupu, výběr aktuálního plánu a obrazovky |
+| `composeApp` | platformní vstupy, složení DB/DI, integrační workflow a typovaný NavHost |
 
-💾 UI posílá intent do ViewModelu. Repository předá celý příkaz do `WorkoutWriteCoordinator`, jehož aplikační implementace příkazy řadí a provádí ve společné Room transakci. Změna dat i její outbox záznam se uloží společně. Přijatý příkaz může doběhnout po zrušení čekající obrazovky; dokončení UI zůstává ve scope ViewModelu.
+🧱 Žádná feature implementace nezávisí na implementaci jiné feature. Workout API nezná rutiny ani plány; integrační akce skládá aplikace.
 
-💾 Editace podle ID pracují s aktuální uloženou hodnotou. Odebrání cviku i smazání a přečíslování sérií jsou celé transakční příkazy. Dokončený trénink další editace odmítá.
+## 💾 Data a hranice POC
 
-## 🔄 Synchronizace a migrace
+💾 Změna agregátu a jeho jednotlivé outbox mutace se commitnou atomicky. Přijaté příkazy vlastní aplikační fronta; procesní ukončení před commitem stále znamená rollback. Editor uchovává i neplatný číselný text a při publikaci atomicky odstraní draft. Starý autosave jej po publikaci neoživí.
 
-⚠️ **Backend synchronizace není implementovaný.** Bez explicitního uploaderu se outbox neodesílá ani nemaže. Testy používají injektované deterministické uploadery. Připojení skutečného backendu vyžaduje vlastní protokol včetně idempotence, pořadí mutací a řešení konfliktů.
+♻️ **Room schéma 7** a migrace **6 → 7** zachovávají ID šablon jako rutin, historii i staré mutace. Neplatné historické hodnoty se nezkracují; UI nabízí opravu. Staré pořadí workoutu je označeno jako rekonstruované, chybějící původní předpis zůstává neznámý. Migrace 1–5 nejsou implementované; destruktivní fallback je zakázaný.
 
-🔄 Room schéma verze 6 je uložené v `composeApp/schemas`. Destruktivní migrace jsou vypnuté. Při chybějící migraci otevření starší databáze selže a data zůstanou zachovaná. Historické migrace z verzí 1–5 nejsou součástí tohoto POC; další změny schématu musí mít migraci a test zachování dat.
+🔄 **Skutečný backend sync není implementovaný.** Bez uploaderu se outbox neodesílá ani nemaže. Kalendář, notifikace a automatická progrese nejsou součástí této etapy.
 
-## 🚀 Spuštění
+📤 **CSV/JSON export je export workoutů a jejich snímků, nikoli úplná záloha aplikace.** Neexportuje definice rutin/plánů, jejich postup ani drafty. Staré template projekce/API byly odstraněny; UI exportu slouží výkonům. Obnova z exportu zatím není implementovaná.
+
+🧭 Navigation Compose `2.8.0-alpha10` používá [malý adaptační krok](composeApp/src/commonMain/kotlin/app/navigation/RestorableGraph.kt) pro obnovu prázdných argumentů mimo Android. Test obnovuje skutečný NavHost; podrobnosti a odstranění workaroundu při upgradu jsou v architektuře.
+
+## 🚀 Spuštění a ověření
 
 ```sh
 ./gradlew :composeApp:run
 ./gradlew :composeApp:installDebug
-```
 
-## 🧪 Ověření
-
-```sh
-./gradlew :composeApp:desktopTest :foundation:desktopTest \
-  :composeApp:testDebugUnitTest :foundation:testDebugUnitTest \
+# Všechny moduly, nikoli jen aplikace:
+./gradlew desktopTest testDebugUnitTest \
   :composeApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64
+
+# Skutečné Root → ViewModel → Room → NavHost interakce přes Desktop Skia:
+./gradlew :composeApp:desktopTest --tests '*LibrarySmokeTest' --tests '*TypedNavigationTest'
 ```
 
-🧪 Common testy ověřují výpočty, ViewModely a orchestrace. Desktop integrační testy používají skutečný Room a Bundled SQLite pro rollback, souběh, zrušení volajícího, dávkové změny a ochranu před smazáním dat při chybějící migraci. Kompilace iOS sama nedokazuje běh aplikace na zařízení.
-
-🗃️ Původní [architektonický rozbor](docs/reviews/2026-10-28-architecture-review.md) zachycuje stav před těmito úpravami.
+🧪 Testy zahrnují raw draft/reopen, konflikt a kopii, rollback při selhání smazání draftu, odmítnutí pozdního autosave, skutečnou v6 fixture, workout snapshoty a idempotentní postup plánu. Skia smoke vytváří obrázky v `composeApp/build/task5-visual`; pokrývá editor, Zpět, záložky, uložení, plánový start/dokončení a světlé/tmavé téma. Android APK a iOS compile samy nedokazují běh na zařízení.

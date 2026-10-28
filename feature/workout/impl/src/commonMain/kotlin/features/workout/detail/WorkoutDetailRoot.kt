@@ -15,6 +15,7 @@ import core.viewmodel.rememberScreenViewModel
 fun WorkoutDetailRoot(
     sessionId: String,
     onNavigateBack: () -> Unit,
+    onRoutineDraft: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel: WorkoutDetailViewModel = rememberScreenViewModel(key = "detail_$sessionId")
@@ -29,6 +30,7 @@ fun WorkoutDetailRoot(
     LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
             when (effect) {
+                is WorkoutDetailContract.Effect.RoutineDraft -> onRoutineDraft(effect.draftId)
                 is WorkoutDetailContract.Effect.NavigateBack -> {
                     onNavigateBack()
                 }

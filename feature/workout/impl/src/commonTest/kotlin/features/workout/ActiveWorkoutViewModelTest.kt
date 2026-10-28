@@ -11,8 +11,6 @@ import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
-import features.workout.domain.WorkoutTemplate
-import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
@@ -505,11 +503,6 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
     override suspend fun getLastPerformance(exerciseId: String): String? = "80 kg × 8"
     override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double = 0.0
 
-    override fun getTemplates(): Flow<List<WorkoutTemplate>> = MutableStateFlow(emptyList())
-    override suspend fun ensureDefaultTemplates() {}
-    override suspend fun createTemplate(name: String, description: String, exercises: List<WorkoutTemplateExercise>): WorkoutTemplate = error("Not needed")
-    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession = startWorkout("From template")
-    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = error("Not needed")
     override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
     override suspend fun getAllCompletedSets(): List<WorkoutSet> = sets.value.filter { it.isCompleted }
 }

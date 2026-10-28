@@ -10,5 +10,6 @@ internal class RoomDraftStore(private val dao: EditorDraftDao, private val write
 }
 
 fun draftStorageModule(): Module = module {
+    single { OrderedDrafts(get(), get()) }
     single<DraftStore> { RoomDraftStore(get(), get()) }
 }

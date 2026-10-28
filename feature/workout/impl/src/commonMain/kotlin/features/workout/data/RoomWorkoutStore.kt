@@ -32,13 +32,16 @@ internal class RoomWorkoutStore(
         val session = WorkoutSession(newId(), prescription.title, clock.nowMillis(), sourceRoutineId=prescription.sourceRoutineId,
             sourceRoutineRevision=prescription.sourceRoutineRevision, sourcePlan=prescription.sourcePlan)
         dao.insertSession(session.toEntity()); enqueue("workout_session",session.id,"INSERT",Json.encodeToString(session))
+        val previous = prescription.exercises.map { it.exerciseId }.distinct().associateWith { id ->
+            dao.getLastPerformanceForExercise(id)?.let { "${it.weightKg} kg × ${it.reps}" }
+        }
         prescription.exercises.forEachIndexed { index, e ->
             // Prescription entry IDs describe source instances; persisted IDs are fresh for every workout.
             val entry=WorkoutExercise(newId(),session.id,e.exerciseId,e.name,e.muscleGroup,e.restSeconds,index)
             dao.insertExercise(entry.toEntity()); enqueue("workout_exercise",entry.id,"INSERT",Json.encodeToString(entry))
             e.sets.forEachIndexed { setIndex, p ->
                 val set=WorkoutSet(newId(),session.id,e.exerciseId,setIndex+1,p.weightKg,p.reps,setType=p.setType,
-                    workoutExerciseId=entry.id,prescribedWeightKg=p.weightKg,prescribedReps=p.reps,prescribedSetType=p.setType)
+                    previousPerformance=previous[e.exerciseId],workoutExerciseId=entry.id,prescribedWeightKg=p.weightKg,prescribedReps=p.reps,prescribedSetType=p.setType)
                 dao.insertOrUpdateSet(set.toEntity()); enqueue("workout_set",set.id,"INSERT",Json.encodeToString(set))
             }
         }

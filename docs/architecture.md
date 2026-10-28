@@ -1,199 +1,117 @@
 # 🏗️ Architektura a použití POC jako základu
 
-📅 Stav po úpravách z 28. 10. 2026. Tento dokument popisuje implementaci; původní rozbor v `reviews/2026-10-28-architecture-review.md` je historický snímek před opravami.
+📅 Implementovaný stav po rutinách a cyklických plánech (28. 10. 2026). [MVI průvodce](mvi.md) vysvětluje prezentační tok; [README](../README.md) uvádí spuštění, příkazy a produktová omezení. Původní [rozbor](reviews/2026-10-28-architecture-review.md) a [mesh příprava](reviews/2026-10-28-mesh-preparation.md) jsou historické záznamy.
 
-## 🧭 Jak dokumentaci číst
-
-- 🧭 Tento dokument popisuje moduly, vrstvy, datové záruky, DI a umístění souborů.
-- 🧭 [Praktický průvodce MVI](mvi.md) vysvětluje State, Intent, Effect, Root/Screen, konkrétní průchod editací a přidání další obrazovky.
-- 🧭 [README](../README.md) obsahuje spuštění a ověřovací příkazy.
-
-## 🏗️ Hranice modulů
+## 🧱 Hranice modulů
 
 ```mermaid
 flowchart TD
-    App[composeApp: app + workout] --> Foundation[foundation]
+    App[composeApp: DB, DI, workflow, NavHost] --> W[workout impl]
+    App --> R[routines impl]
+    App --> P[trainingplans impl]
+    App --> C[exercises impl]
+    W --> WA[workout API]
+    R --> RA[routines API]
+    P --> PA[trainingplans API]
+    P --> RA
+    R --> WA
+    PA --> WA
+    W --> CA[exercises API]
+    R --> CA
+    C --> CA
+    W --> Storage[core storage]
+    R --> Storage
+    P --> Storage
+    App --> Presentation[core presentation]
+    Presentation --> Foundation[foundation]
+    Storage --> Foundation
     App --> Design[designsystem]
-    Design --> Foundation
 ```
 
-🧱 `foundation` obsahuje obecné Kotlin kontrakty a malé platformní adaptéry: čas, schránku, zvuk/haptiku, Result a chyby, MVI markery, formátování a aplikační CoroutineScope. Nezávisí na Room, workout doméně, Compose ani Koin. `UiText` je zatím jednoduchý textový obal s českými chybovými zprávami; lokalizace do resources není vyřešená.
+🧱 Každá produktová feature má `api` a `impl`. API vlastní serializovatelné routes, modely a veřejné kontrakty. Implementace vlastní Room adaptér, validaci příkazů a interní ViewModely; veřejné Roots berou callbacky. Cizí DAO ani cizí `impl` do feature nepatří. App smí znát všechny entity, aby sestavila jednu databázi.
 
-🧱 `designsystem` obsahuje sdílené Compose UI. Barevná paleta odpovídá současnému produktu a při založení jiné aplikace se může změnit; workout obrazovky ani entity sem nepatří.
+🧱 `foundation` zůstává bez Compose, Room a Koin. Obsahuje obecné chyby, čas, aplikační scope, MVI markery a platformní adaptéry. `UiText` je zatím jednoduchý obal s českými texty; plná lokalizace resources zůstává omezením POC.
 
-🧱 `composeApp/app` vlastní DI, složení databáze a navigaci. `composeApp/features/workout` vlastní doménu, prezentaci, mapování, DAO a repository. Prezentační helpery `core/viewmodel` a outbox infrastruktura zatím zůstávají v aplikačním modulu; nesmí se kvůli tomu obracet závislost sdílených knihoven na aplikaci.
+🎨 `designsystem` nezná fitness modely ani ViewModely. Nové obrazovky používají Material konstrukce přes `nucleus/LibraryComponents.kt`: vstupy, akce, volby, dialog, page a hlavní záložky. `molecules/EditorNotices.kt` skládá obecné chybové/prázdné stavy. Interaktivní prvky mají min. 48 dp, page zpracuje insets a IME; previews pokrývají obě témata. Starší workout UI stále používá i přímé Material prvky.
 
-🧱 Workout feature zůstává balíčkem v aplikaci. Vynucené Gradle hranice se týkají sdílených knihoven. Další feature Gradle modul má smysl při potřebě samostatné kompilace nebo opětovného použití; není potřeba zakládat modul pro každou třídu.
-
-## 🗂️ Mapa adresářů
-
-🗂️ Následující strom ukazuje významné cesty; vynechává build výstupy a některé jednotlivé soubory. Název Gradle modulu není totéž co Kotlin package: například `foundation` exportuje balíčky začínající `core`.
+## 🗂️ Mapa kódu
 
 ```text
-ContentApp/
-├── settings.gradle.kts                  # registrace tří Gradle modulů
-├── gradle/libs.versions.toml             # společný katalog verzí
-├── foundation/
-│   └── src/
-│       ├── commonMain/kotlin/core/
-│       │   ├── common/                  # AppClock, ApplicationScope, NumberFormatter
-│       │   ├── mvi/                     # UiState, UiIntent, UiEffect, MviContract
-│       │   ├── result/                  # Result, DataError, safeLocalCall
-│       │   ├── ui/                      # UiText a mapování chyb na text
-│       │   ├── feedback/                # PlatformFeedback rozhraní
-│       │   ├── platform/                # PlatformClipboard rozhraní
-│       │   └── model/                   # ItemSyncStatus
-│       ├── androidMain/kotlin/core/     # Android adaptéry času, zvuku a schránky
-│       ├── desktopMain/kotlin/core/     # JVM adaptéry
-│       ├── iosMain/kotlin/core/         # Foundation/UIKit adaptéry
-│       └── commonTest/                  # testy Result a bezpečného volání
-├── designsystem/
-│   └── src/commonMain/kotlin/ui/designsystem/
-│       ├── nucleus/                     # AppTheme, AppColors, AppSpacing, AppTypography
-│       ├── atoms/feedback/              # StatusBadge, ErrorNotice
-│       └── templates/                   # UniversalScreenTemplate
-└── composeApp/
-    ├── schemas/app.database.AppDatabase/ # verzované Room schéma
-    └── src/
-        ├── commonMain/kotlin/
-        │   ├── app/
-        │   │   ├── di/                  # Koin: skládání konkrétní aplikace
-        │   │   ├── database/            # AppDatabase, konfigurace, writer koordinátor
-        │   │   └── navigation/          # AppNavHost, AppNavigationState, back handling
-        │   ├── core/
-        │   │   ├── viewmodel/           # BaseViewModel a rememberScreenViewModel
-        │   │   ├── database/            # generické outbox entity a DAO
-        │   │   ├── sync/                # SyncManager
-        │   │   └── network/             # HttpClientFactory; aktuální sync jej nepoužívá
-        │   └── features/workout/
-        │       ├── domain/              # modely, kontrakty a výpočty
-        │       ├── data/
-        │       │   ├── dao/             # Room SQL dotazy
-        │       │   ├── entity/          # databázové entity
-        │       │   ├── mapper/          # Entity ↔ Domain
-        │       │   ├── datasource/      # lokální adaptér schovávající Room
-        │       │   └── model/           # serializovatelné sync payloady
-        │       ├── active/              # Contract, ViewModel, Root, Screen
-        │       ├── history/             # Contract, ViewModel, Root, Screen
-        │       ├── detail/              # Contract, ViewModel, Root, Screen
-        │       └── ui/components/       # prvky závislé na workout doméně
-        ├── androidMain/                 # Application, Activity, platformní DI a BackHandler
-        ├── desktopMain/                 # main(), platformní DI
-        ├── iosMain/                     # platformní DI; samostatný iOS host chybí
-        ├── commonTest/                  # výpočty, ViewModely, repository, navigace, sync
-        └── desktopTest/                 # integrační testy nad skutečným Room/SQLite
+foundation/src/commonMain/kotlin/core/       # common, result, ui, mvi, feedback, platform
+core/storage/src/commonMain/kotlin/core/    # storage, database, sync, network
+core/presentation/src/commonMain/kotlin/core/viewmodel/
+designsystem/src/commonMain/kotlin/ui/designsystem/
+feature/exercises/{api,impl}/src/commonMain/kotlin/features/exercises/
+feature/workout/api/src/commonMain/kotlin/features/workout/domain/
+feature/workout/impl/src/commonMain/kotlin/features/workout/
+  data/                                    # DAO/entity/mapper/datasource/repository
+  active/ history/ detail/ ui/components/  # MVI a fitness UI
+feature/routines/{api,impl}/src/commonMain/kotlin/features/routines/
+  api/                                     # v API modulu
+  data/ presentation/                      # v impl modulu
+feature/trainingplans/{api,impl}/src/commonMain/kotlin/features/trainingplans/
+  api/ data/ presentation/                  # stejné rozdělení
+composeApp/src/commonMain/kotlin/app/
+  database/ di/ workflow/ navigation/
+composeApp/schemas/app.database.AppDatabase/ # závazné schema6 + schema7
+composeApp/src/desktopTest/                  # skutečný Room, migrace, Skia/NavHost
 ```
 
-🗂️ Repository, export a koordinátorové rozhraní leží přímo v `features/workout/data`, mimo vnitřní adresáře stromu. Seedovací obsah je ve `WorkoutDefaults.kt`.
+## 🧩 Vlastnictví vrstev
 
-## 🧩 Odpovědnosti vrstev
-
-| 🧩 Část | Co vlastní | Co do ní nepatří | Příklad |
-| --- | --- | --- | --- |
-| 📱 Screen | vykreslení, předání uživatelského záměru, drobný lokální vizuální stav | DI, DAO a spouštění datových zápisů | [ActiveWorkoutScreen](../composeApp/src/commonMain/kotlin/features/workout/active/ActiveWorkoutScreen.kt) |
-| 🔌 Root | získání ViewModelu, odběr stavu/efektů, propojení navigace a snackbar hostu | SQL a doménová rozhodnutí | [ActiveWorkoutRoot](../composeApp/src/commonMain/kotlin/features/workout/active/ActiveWorkoutRoot.kt) |
-| 🧠 ViewModel | UI stav, zpracování intentů, sledování dat, efekty | znalost Room entit a konkrétního AppDatabase | [ActiveWorkoutViewModel](../composeApp/src/commonMain/kotlin/features/workout/active/ActiveWorkoutViewModel.kt) |
-| 🛡️ Domain | workout modely, rozhraní, čisté výpočty | Compose, Room, Android UI a Koin | [WorkoutRepository](../composeApp/src/commonMain/kotlin/features/workout/domain/WorkoutRepository.kt), [PersonalRecordCalculator](../composeApp/src/commonMain/kotlin/features/workout/domain/PersonalRecordCalculator.kt) |
-| 🔄 Repository | složení celého datového příkazu, kontrola aktuálních dat, tvorba mutací | navigation callbacky a čtení UI state | [OfflineFirstWorkoutRepository](../composeApp/src/commonMain/kotlin/features/workout/data/OfflineFirstWorkoutRepository.kt) |
-| 🗄️ LocalDataSource | překlad mezi DAO a doménovými modely, složení lokálních dat | rozhodování o navigaci | [RoomWorkoutLocalDataSource](../composeApp/src/commonMain/kotlin/features/workout/data/datasource/RoomWorkoutLocalDataSource.kt) |
-| 💾 DAO + Entity | SQL a reprezentace tabulek | texty obrazovek a Compose | [WorkoutDao](../composeApp/src/commonMain/kotlin/features/workout/data/dao/WorkoutDao.kt) |
-| 🔌 Aplikační skládání | výběr implementací, DB, scope, navigační destinace | přenos workout závislostí do foundation | [Koin](../composeApp/src/commonMain/kotlin/app/di/Koin.kt) |
-
-🧩 Doména používá `Flow`, takže „bez UI/framework závislostí“ neznamená „bez knihoven“. Use-case třída pro každé volání zde není: ViewModel volá doménové repository rozhraní přímo a výpočetní pravidla jsou samostatné kalkulátory.
-
-## 🔌 Dependency injection a spuštění
-
-🔌 [Koin.kt](../composeApp/src/commonMain/kotlin/app/di/Koin.kt) skládá:
-
-| 🔌 Koin modul | Registrace | Životnost |
+| Vrstva | Zodpovědnost | Příklad |
 | --- | --- | --- |
-| 🔌 `coreModule` | `ApplicationScope` | singleton; při zavření Koin se zruší |
-| 🔌 `workoutDataModule` | writer koordinátor, local data source, export, repository, sync | singletony |
-| 🔌 `workoutPresentationModule` | tři ViewModely | `factoryOf`: nová instance při požadavku z DI |
-| 🔌 `platformModule` | databáze a DAO, AppClock, feedback a clipboard | platformní singletony; databáze má close callback |
+| 📱 Screen | stav a callbacky, vykreslení | [RoutineEditorScreen](../feature/routines/impl/src/commonMain/kotlin/features/routines/presentation/RoutineEditorScreen.kt) |
+| 🔌 Root | entry ViewModel, lifecycle odběr a navigační callback | stejný soubor jako nový Screen |
+| 🧠 ViewModel | UI stav, validace návrhu, příkazy/efekty | [RoutineEditorViewModel](../feature/routines/impl/src/commonMain/kotlin/features/routines/presentation/RoutineEditorViewModel.kt) |
+| 🛡️ API | doménové modely/kontrakty, bez Room | [RoutineRepository](../feature/routines/api/src/commonMain/kotlin/features/routines/api/RoutineRepository.kt) |
+| 💾 Repository | CAS revize, aktuální reference, agregát a granularní outbox | [RoomRoutineRepository](../feature/routines/impl/src/commonMain/kotlin/features/routines/data/RoomRoutineRepository.kt) |
+| 🔗 App workflow | společná transakce více feature | [TrainingWorkflow](../composeApp/src/commonMain/kotlin/app/workflow/TrainingWorkflow.kt) |
 
-🔌 `commonModule` zahrne první tři moduly; `initKoin` přidá platformní modul a zavolá `startSyncLoop()`. Bez uploaderu smyčka frontu nezpracovává.
+## 🔌 DI a životní cyklus
 
-🔌 Android inicializuje DI v [ContentApplication](../composeApp/src/androidMain/kotlin/com/yhdista/contentapp/ContentApplication.kt) a zobrazí `AppNavHost` z [MainActivity](../composeApp/src/androidMain/kotlin/com/yhdista/contentapp/MainActivity.kt). Desktop provádí inicializaci v [main.kt](../composeApp/src/desktopMain/kotlin/main.kt). Pro budoucí iOS host existuje `initKoinIos()`.
+🔌 [Koin.kt](../composeApp/src/commonMain/kotlin/app/di/Koin.kt) skládá platformní databázi/čas/feedback, společný `ApplicationScope`, singleton `RoomCommandCoordinator`, `DraftStore`, `OrderedDrafts`, datové feature moduly a prezentační factories. Routiny dostávají úzký `RoutineUsage`; app implementace počítá dotčené nearchivované plány, každý pouze jednou i při více slotech stejné rutiny.
 
-🔌 `factoryOf` neurčuje životní cyklus obrazovky. Ten řeší `rememberScreenViewModel`: vytvoří ViewModelStore, do kterého přes ViewModelProvider jednou získá instanci z Koin. Při běžné rekompozici se používá stejná instance; při odstranění obrazovky z kompozice se store vyčistí.
+♻️ [rememberScreenViewModel](../core/presentation/src/commonMain/kotlin/core/viewmodel/ViewModelLifecycle.kt) používá `LocalViewModelStoreOwner` poskytnutý nav entry a Koin factory. Odchod z kompozice nečistí vlastní soukromý store. Dvě entry mají dvě instance; návrat použije původní a skutečný pop ji vyčistí. Procesní rekreace načte business data a editorový draft z DB.
 
-## 🧠 Tok UI a chyb
+🧠 BaseViewModel zůstává ve `core:presentation`. Intenty loguje pouze názvem typu, bez názvů, poznámek, hledání, exportů či JSON payloadů. Writer loguje pouze typ výjimky, nikoli její zprávu.
 
-🧠 Business vstupy Screen jsou state a onIntent; navíc přijímá prezentační parametry jako Modifier a snackbarHost. Podrobný rozbor s ukázkami je v [MVI průvodci](mvi.md). Root získá ViewModel, pozoruje stav a efekty a zajistí navigaci nebo snackbar. BaseViewModel poskytuje atomickou aktualizaci stavu a `launchOperation`: chyby lokálního úložiště mapuje přes `safeLocalCall`, zatímco CancellationException propouští.
+## 💾 Příkazy a drafty
 
-🧠 Repository kontrakt používá suspend operace a výjimky, které prezentace převádí na Result/UiText. Flow může skončit chybou; celá pozorovací operace ji zachytí a nabídne obnovu dat. Kontrakt netvrdí, že každá metoda vrací Result.
+💾 [CommandCoordinator](../core/storage/src/commonMain/kotlin/core/storage/CommandCoordinator.kt) řadí celé příkazy v aplikačním scope. Room adaptér otevře writer transaction, vnořené zápisy používají savepoint. Feature nesmí proměnit dílčí `Result.Error` na úspěch vnější transakce; workflow při chybě vyhodí interní abort a přeloží jej až mimo celou transakci.
 
-🔄 Opakované LoadWorkout/LoadHistory ruší předchozí odběr. Přepnutí statistik ruší předchozí odběr statistik. Stav chyby je vidět na obrazovce a tlačítko „Obnovit data“ načte aktuální stav úložiště; automaticky neopakuje editaci ani mazání.
+💾 [OrderedDrafts](../core/storage/src/commonMain/kotlin/core/storage/OrderedDrafts.kt) je druhá, doménově nezávislá aplikační FIFO pro lokální návrhy. `put` přijme snapshot synchronně a vrátí Deferred acknowledgement. Zrušení čekajícího ViewModelu neodstraní přijatý edit. Otevření čeká za staršími zápisy a vrátí aktuální raw payload. Generace invaliduje zastaralé session po znovuotevření či úspěšném terminal commandu.
 
-## 💾 Vlastnictví zápisů
+💾 Publikace zmrazí vstupy (`isSaving`), zařadí terminal command za autosavy a teprve uvnitř něj otevře transakci: uložit agregát/CAS/outbox → smazat draft → commit → úspěšný efekt. Chyba smazání vrátí zpět agregát i outbox; draft zůstane. Fronta se nikdy nečeká zevnitř DB writeru. Discard používá stejné pořadí, chybu ukáže a zůstane v editoru.
 
-💾 `WorkoutWriteCoordinator` je malé rozhraní, jehož aplikační adaptér `RoomWorkoutWriteCoordinator` vlastní konkrétní databázi a ApplicationScope.
+📝 Draft payload verze 1 uchovává raw číselné řetězce, původní `expectedRevision`, stabilní ID dětí, pořadí a migrační hodnoty. Text `-` nebo `1.` se nevrací přes validovaný doménový model. Zvolená resume strategie má jeden nový návrh (`new`) a jeden návrh na zdroj (`edit:<id>`, `workout:<sessionId>`), oddělený podle kind `routines`/`trainingplans`. Samostatná knihovna více nových draftů zatím není.
 
-1. 💾 Volající předá celý příkaz do FIFO fronty.
-2. 💾 Aplikační worker získá writer connection a otevře IMMEDIATE transakci.
-3. 💾 Repository čte aktuální hodnoty přes suspend snapshot dotazy, provede změny a vloží outbox.
-4. 💾 Úspěch transakci commitne, chyba ji rollbackne a dokončí výsledek chybou.
-5. 💾 Zrušení čekajícího volajícího neruší už přijatý příkaz.
+🔒 Save-copy validuje aktuální neuložený obsah, vygeneruje nové aggregate/owned-child ID a ukládá s null expectedRevision; nekopíruje starý repository záznam. Reload přepíše editor až po úspěšném načtení a durable zápisu. Autosave neznamená publikaci, proto je editor stále „rozepsaný“.
 
-💾 Vnořené repository příkazy používají stejnou transakci. Uvnitř příkazu se nesmí spouštět paralelní práce ani síťové volání. Editační callback musí být čistý a pracovat s předanou aktuální hodnotou; nesmí v sobě držet stav obrazovky.
+## 🏋️ Workout a postup plánu
 
-💾 To řeší odchod z obrazovky, nikoli zaručené dokončení při ukončení procesu. SQLite transakce při přerušení necommitnuté změny vrátí zpět. Pro práci po restartu procesu je nutná perzistentní úloha a platformní strategie.
+📋 Start rutiny/aktuálního slotu kopíruje immutable prescription do workout entry/set tabulek, včetně názvů, pořadí, pauz a zdrojových revizí. Actual hodnoty lze měnit, prescribed hodnoty nikoli. Duplicitní cvik má vlastní entry ID. Předchozí výkon se načte také při prescription startu.
 
-💾 Aplikační scope a databáze se zavřou při zavření Koin kontextu. Scope vlastní práci celé aplikace; ViewModel jej už neinjektuje.
+🔗 Veřejné akce `StartRoutineWorkout`, `StartPlanWorkout`, `CompleteWorkout` vlastní workout API; implementace je v app. `Created` otevře workout, `ResumedExisting` nejprve zobrazí zprávu. Existující session se druhým startem nemění. Aktivní obrazovka dokončuje přes `CompleteWorkout`, aby session, posun plánu a outbox sdílely commit.
 
-## 🛡️ Konzistence workout dat
+🗓️ Postup má oddělenou `progressRevision`. Dokončení vyžaduje shodu plan revision, slotu i progress revision; jinak zachová výkon a nastaví `needsReview`. Archivovaný plán už neposouvá. Ruční potvrzení dalšího slotu vymaže review a zvýší revizi. Výběr aktuálního plánu je lokální preference, postup ostatních plánů neresetuje.
 
-- 🛡️ Start kontroluje existující aktivní session uvnitř stejné transakce jako vložení.
-- 🛡️ Start ze šablony zahrnuje session i všechny série; opakované volání nepřidá série do existující session.
-- 🛡️ `updateSet(id, update)` načte aktuální řádek a až pak aplikuje změnu. Identita se měnit nesmí.
-- 🛡️ Dokončení tréninku spočítá souhrn a uloží stav v jedné transakci. Následné přidávání, úpravy a mazání sérií dokončené session jsou odmítnuté.
-- 🛡️ Smazání série zahrnuje i přečíslování zbylých sérií a odpovídající mutace. Odebrání cviku je jedna transakce pro všechny jeho série.
-- 🛡️ Uložení šablony zahrnuje hlavičku, cviky a outbox společně.
-- 🛡️ `WorkoutDataExport` má oddělený kontrakt a implementaci; formátuje konzistentní snapshot dat mimo transakci.
-- 🛡️ `WorkoutDefaults` obsahuje příkladový produktový obsah mimo obecné knihovny.
+📤 `CreateRoutineDraft` z workout API je app adaptér nad `RoutineDraftFactory`. Zkopíruje skutečné jednotlivé série podle entry/order/type/rest do návrhu. Nepublikuje rutinu ani outbox. CSV/JSON nyní exportují pouze workout data/snapshoty a katalog; definice rutin, plány, postup ani drafty nejsou zálohovány. Legacy template shim byl odstraněn.
 
-## 🔄 Synchronizace
+## ♻️ Schéma 7 a synchronizace
 
-🔄 SyncManager se spouští z aplikačního skládání, ne z composable navigace. Výchozí uploader chybí, takže se fronta bez backendu nezpracovává. Žádný náhodný simulátor nepotvrzuje a nemaže uživatelské mutace.
+♻️ [Migrace 6 → 7](../composeApp/src/commonMain/kotlin/app/database/Migrations.kt) převádí templates na rutiny se stejnými aggregate ID, přidává normalizované plans/progress/selection, drafts, workout entries a nullable prescribed/source data. Neplatné původní scalar hodnoty zůstávají v `LegacyRoutineValues`; editor je zachová při nesouvisející změně a odstraní až explicitním potvrzením opravy. Chybějící katalog má archivovaný placeholder. Historické pořadí workoutu může být jen rekonstruované.
 
-🔄 U nakonfigurovaného uploaderu je retry limit stejný v SQL dotazu a manageru. Počet neodeslaných změn zahrnuje i položky s vyčerpanými pokusy. Nulový počet záznamů v lokálně používané aplikaci se zobrazuje jako „LOKÁLNĚ“, nikoli jako potvrzení cloudové synchronizace. Busy stav se resetuje i při zrušení sync smyčky.
+🔄 Staré outbox mutace včetně ID/payloadu zůstávají; legacy typy vyžadují budoucí adaptér. Žádný skutečný cloud uploader není zapojen. Migrace 1–5 ani destruktivní fallback nejsou podporované. Granulární nové mutace neskládají celý agregát do jednoho sync JSON řádku.
 
-🔄 Tento engine není hotový synchronizační protokol. Před reálným backendem je potřeba doplnit idempotenci, závislosti/pořadí mutací, příjem vzdálených změn, konflikty, obnovu odložených položek, autentizaci a platformní background scheduling.
+## 🧭 Jedna typovaná navigace
 
-## 💾 Databáze
+🧭 [AppNavHost](../composeApp/src/commonMain/kotlin/app/navigation/AppNavHost.kt) obsahuje devět serializovatelných feature routes pro historii, aktivní workout, detail workoutu, seznam/detail/editor rutin a plánů. Přenášejí pouze ID. Tabs Tréninky/Rutiny/Plány používají framework save/restore; Back z editoru jde přes jediný intent (toolbar i Android system Back). Workout se popne na zdrojový detail.
 
-💾 Všechny platformy používají společnou konfiguraci BundledSQLiteDriver a IO query context. AppDatabase skládá workout tabulky a generický outbox; tato znalost je vlastnictvím aplikace.
+🛠️ V připnuté verzi `org.jetbrains.androidx.navigation:2.8.0-alpha10` neandroidí `NavBackStackEntryState.fromBundle` zahazuje entry s null argumenty. Proto [withRestorableEntries](../composeApp/src/commonMain/kotlin/app/navigation/RestorableGraph.kt) přidá všem destinations včetně root grafu privátní default `_hostEntry=true`. Hlídá kolizi s argumenty; doménové routes argument nepoužívají. Není to vlastní stack. Při upgradu odstranit až po průchodu skutečného host recreation testu.
 
-💾 Schéma 6 je exportované. Není potřeba měnit databázovou verzi kvůli přesunu tříd nebo novým dotazům, které nemění tabulky. Destruktivní fallback je odstraněný. Chybějící migrace zachová soubor a vyvolá chybu při otevření; není náhradou za implementovanou migraci.
+## 🧪 Ověření a další aplikace
 
-⚠️ Historické verze 1–5 nemají v repozitáři schémata ani ověřené migrace. Nelze poctivě tvrdit jejich podporu. Před nasazením upgradu na tato zařízení je potřeba získat původní schémata a napsat odpovídající migrace. Pro další verzi se přidá schéma a test upgrade se zachováním dat i outboxu.
+🧪 Common testy feature ověřují modely, ViewModely, chyby, konflikty a raw návrhy. Desktop používá reálný Room/Bundled SQLite pro rollback/CAS/migraci. [TypedNavigationTest](../composeApp/src/desktopTest/kotlin/app/navigation/TypedNavigationTest.kt) ověřuje oddělené entry ViewModely, návrat, pop clear i obnovení argumentů po nové kompozici. [LibrarySmokeTest](../composeApp/src/desktopTest/kotlin/app/navigation/LibrarySmokeTest.kt) vykresluje skutečné Roots/DI/Room přes Desktop Skia v izolované DB a ukládá screenshoty. Testový host poskytuje lifecycle/saveable owner a simulovaný Main dispatcher.
 
-## 🧭 Navigace a obnova
-
-🧭 Aplikační navigace drží malý explicitní back stack. Saver ukládá destinace a argumenty; po obnovení obrazovka načte data z repository. Android BackHandler odstraňuje položku ze stacku. Desktop a iOS používají explicitní tlačítka obrazovek; nativní iOS swipe-back není implementovaný.
-
-🧭 ViewModelStore zůstává navázaný na přítomnost obrazovky v kompozici a při jejím opuštění se čistí. Nejde o zachování ViewModelu přes rekreaci hosta. Lokální business data přežijí v databázi, rozepsaný text a odpočet pauzy se zatím přes rekreaci hosta neobnovují. Pro složitější navigaci je vhodné navázat ViewModelStore na navigační entry podporovaného navigačního řešení.
-
-## 🚀 Jak založit další aplikaci
-
-1. 🚀 Zachovat nebo převzít moduly foundation a designsystem. Rozhodnout, zda budou kopírovanou šablonou, nebo společně verzovanými knihovnami.
-2. 🚀 V aplikačním modulu změnit identitu aplikace, platformní vstupy, téma a konfiguraci.
-3. 🚀 Nahradit workout feature vlastní doménou. Konkrétní entity, seedování a payloady se nepřenášejí do foundation.
-4. 🚀 V aplikaci složit databázi a DI a definovat celé transakční příkazy.
-5. 🚀 U každé feature ověřit změnu ze starého UI snímku, opakovaný intent, chybu úložiště a odchod z obrazovky během zápisu.
-6. 🚀 Síťovou a background infrastrukturu doplnit podle skutečného backendového kontraktu.
-
-🚀 Stávající toolchain zůstává na dosavadním KMP/AGP zapojení s legacy Gradle přepínači. Kompletní migrace Gradle/AGP konfigurace ani plošný upgrade knihoven nebyly součástí tohoto refaktoringu.
-
-## 🧪 Kam patří testy
-
-| 🧪 Co se mění | Vhodné ověření | Existující příklad |
-| --- | --- | --- |
-| 🧪 čistý výpočet | common unit test s konkrétními vstupy a výsledkem | [PersonalRecordCalculatorTest](../composeApp/src/commonTest/kotlin/features/workout/PersonalRecordCalculatorTest.kt) |
-| ⚡ Intent → State/Effect | ViewModel test s řízeným časem a datovou závislostí | [ActiveWorkoutViewModelTest](../composeApp/src/commonTest/kotlin/features/workout/ActiveWorkoutViewModelTest.kt) |
-| 💾 transakce, SQL, souběh, zrušení volajícího | skutečný Room a Bundled SQLite | [WorkoutPersistenceTest](../composeApp/src/desktopTest/kotlin/features/workout/WorkoutPersistenceTest.kt) |
-| 🧭 obnovení navigačních argumentů | test save/restore a návratu | [AppNavigationStateTest](../composeApp/src/commonTest/kotlin/app/navigation/AppNavigationStateTest.kt) |
-| 🔄 odesílání a retry | deterministický injektovaný uploader | [SyncManagerTest](../composeApp/src/commonTest/kotlin/core/sync/SyncManagerTest.kt) |
-
-🧪 Fake DAO dokáže ověřit orchestraci, ale nedokazuje SQL rollback ani migraci. Pro transakční záruku má rozhodující hodnotu integrační test. Aktuální ověřovací příkazy jsou v [README](../README.md).
+🚀 Při nové feature založ malé API/impl, přidej route a public Root s callbacky, registruj DAO u app databáze a factory u feature modulu. Obecné prvky patří do foundation/storage/presentation/designsystem, produktová rozhodnutí zůstávají ve feature/app workflow. Platformní compile a APK jsou nutné, ale nenahrazují runtime ověření Android Back na zařízení ani iOS host.

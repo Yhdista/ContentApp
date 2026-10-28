@@ -8,7 +8,7 @@
 
 ```mermaid
 flowchart LR
-    State[StateFlow se stavem] --> Root[Root: collectAsState]
+    State[StateFlow se stavem] --> Root[Root: collectAsStateWithLifecycle]
     Root --> Screen[Screen: vykreslení]
     Screen -->|Intent| VM[ViewModel: onIntent / handleIntent]
     VM -->|updateState| State
@@ -25,20 +25,20 @@ flowchart LR
 - 🧠 `handleIntent` může založit více souběžných korutin. Intenty samy o sobě netvoří frontu.
 - 🧠 `updateState` používá atomické `MutableStateFlow.update`.
 - 🧠 Efekty putují přes `Channel(Channel.BUFFERED).receiveAsFlow()`.
-- 🧠 Celé datové příkazy řadí `RoomWorkoutWriteCoordinator`; tuto vlastnost nezajišťuje MVI ani StateFlow.
+- 🧠 Celé datové příkazy řadí `RoomCommandCoordinator`; tuto vlastnost nezajišťuje MVI ani StateFlow.
 
 ## 🗂️ Soubory jedné obrazovky
 
-📁 Příklad aktivního tréninku v `composeApp/src/commonMain/kotlin/features/workout/active/`:
+📁 Příklad aktivního tréninku v `feature/workout/impl/src/commonMain/kotlin/features/workout/active/`:
 
 | 📄 Soubor | Úloha |
 | --- | --- |
-| 📋 [ActiveWorkoutContract.kt](../composeApp/src/commonMain/kotlin/features/workout/active/ActiveWorkoutContract.kt) | definuje State, Intent a Effect |
-| 🧠 [ActiveWorkoutViewModel.kt](../composeApp/src/commonMain/kotlin/features/workout/active/ActiveWorkoutViewModel.kt) | zpracovává intenty, sleduje data a vytváří stav a efekty |
-| 🔌 [ActiveWorkoutRoot.kt](../composeApp/src/commonMain/kotlin/features/workout/active/ActiveWorkoutRoot.kt) | propojí ViewModel s Compose a navigací |
-| 📱 [ActiveWorkoutScreen.kt](../composeApp/src/commonMain/kotlin/features/workout/active/ActiveWorkoutScreen.kt) | vykreslí stav a převede callbacky prvků na intenty |
+| 📋 [ActiveWorkoutContract.kt](../feature/workout/impl/src/commonMain/kotlin/features/workout/active/ActiveWorkoutContract.kt) | definuje State, Intent a Effect |
+| 🧠 [ActiveWorkoutViewModel.kt](../feature/workout/impl/src/commonMain/kotlin/features/workout/active/ActiveWorkoutViewModel.kt) | zpracovává intenty, sleduje data a vytváří stav a efekty |
+| 🔌 [ActiveWorkoutRoot.kt](../feature/workout/impl/src/commonMain/kotlin/features/workout/active/ActiveWorkoutRoot.kt) | propojí ViewModel s Compose a navigací |
+| 📱 [ActiveWorkoutScreen.kt](../feature/workout/impl/src/commonMain/kotlin/features/workout/active/ActiveWorkoutScreen.kt) | vykreslí stav a převede callbacky prvků na intenty |
 
-📁 Stejné čtyři role používají balíčky `history` a `detail`. Root a Screen jsou v tomto projektu v samostatných souborech.
+📁 Stejné čtyři role používají balíčky `history` a `detail`. Workout Root a Screen jsou v samostatných souborech; nové rutiny/plány je mají vedle sebe v souboru Screen.
 
 ## 📋 State: co má uživatel vidět
 
@@ -160,7 +160,7 @@ sequenceDiagram
     participant Screen as ActiveWorkoutScreen
     participant VM as ActiveWorkoutViewModel
     participant Repo as WorkoutRepository
-    participant Writer as RoomWorkoutWriteCoordinator
+    participant Writer as RoomCommandCoordinator
     participant DB as Room / SQLite
     User->>Screen: změní váhu na 65 kg
     Screen->>VM: UpdateWeight(set, 65.0)
@@ -191,7 +191,7 @@ private fun updateWeight(set: WorkoutSet, weightKg: Double) {
 
 ## 💾 Dokončení tréninku a dvě různé životnosti
 
-💾 Skutečný `finishWorkout`:
+💾 Zkrácený průchod `finishWorkout` přes app workflow (úplná implementace také mapuje chybu):
 
 ```kotlin
 private fun finishWorkout() {
@@ -199,7 +199,10 @@ private fun finishWorkout() {
     if (uiState.value.isSaving) return
     updateState { copy(isSaving = true, error = null) }
     launchOperation {
-        workoutRepository.completeWorkout(session.id)
+        when (completeWorkout.complete(session.id)) {
+            is Result.Error -> { onOperationFailure(DataError.Local.UNKNOWN); return@launchOperation }
+            is Result.Success -> Unit
+        }
         cancelTimers()
         updateState { copy(isSaving = false) }
         sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)
@@ -217,7 +220,7 @@ private fun finishWorkout() {
 
 ## 🚦 Chyby, načítání a rušení odběrů
 
-🚦 [BaseViewModel](../composeApp/src/commonMain/kotlin/core/viewmodel/BaseViewModel.kt) implementuje:
+🚦 [BaseViewModel](../core/presentation/src/commonMain/kotlin/core/viewmodel/BaseViewModel.kt) implementuje:
 
 ```kotlin
 protected fun launchOperation(block: suspend CoroutineScope.() -> Unit): Job = viewModelScope.launch {
@@ -236,7 +239,7 @@ override fun onOperationFailure(error: DataError.Local) {
 }
 ```
 
-🚦 Tím zůstane chyba viditelná ve stavu a Root zároveň zobrazí zprávu. „Obnovit data“ posílá LoadWorkout; původní zápis se automaticky neopakuje. U detailu existuje také explicitní použití `safeLocalCall(...).onSuccess(...).onFailure(...)` při ukládání šablony. Obě varianty používají stejný chybový model.
+🚦 Tím zůstane chyba viditelná ve stavu a Root zároveň zobrazí zprávu. „Obnovit data“ posílá LoadWorkout; původní zápis se automaticky neopakuje. Detail historie používá `CreateRoutineDraft`: úspěch otevře editovatelný návrh a chyba ponechá detail s možností opakování.
 
 🚦 LoadWorkout a LoadHistory ruší uložený `loadJob`, než založí nové odběry. Výběr statistik obdobně používá `statsJob`. Při přidání podobného intentu je nutné určit, zda předchozí odběr zrušit; opakovaná rekompozice není důvod zakládat další collector.
 
@@ -244,30 +247,58 @@ override fun onOperationFailure(error: DataError.Local) {
 
 ## 🧬 Vytvoření a obnova ViewModelu
 
-♻️ [rememberScreenViewModel](../composeApp/src/commonMain/kotlin/core/viewmodel/ViewModelLifecycle.kt) vytváří ViewModelStore přes `remember(vmKey)` a používá Koin jako factory pro ViewModelProvider. DisposableEffect při opuštění kompozice volá `store.clear()`.
+♻️ [rememberScreenViewModel](../core/presentation/src/commonMain/kotlin/core/viewmodel/ViewModelLifecycle.kt) získá store z `LocalViewModelStoreOwner` nav entry a použije Koin factory. Odchod z kompozice store nečistí; skutečný pop ano. Dvě entry téhož typu mají nezávislé instance. Typované routes obsahují ID, po rekreaci se data načtou ze storage.
 
-♻️ Detail používá klíč odvozený od ID session a dostává `sessionId` z navigace. Aktivní trénink a historie spouštějí načtení v `init`; detail se načítá z Rootu pomocí `LaunchedEffect(sessionId)`.
+♻️ Nové Roots používají `collectAsStateWithLifecycle`; effect Channel zůstává jednorázový a není náhradou durable business stavu. Workout Rooty mají původní `collectAsState`, jejich životnost ale rovněž vlastní NavHost. Odpočet pauzy nemá garantovanou procesní obnovu.
 
-♻️ Aplikační Saver ukládá back stack a argumenty, ne ViewModely ani celý State. Po obnově se znovu načtou data z repository. Rozepsané formuláře, některý lokální Compose stav a odpočet pauzy zatím nemají zaručenou obnovu přes rekreaci hosta.
+## 💾 Raw draft → publikace → návrat
 
-♻️ Ve [MviContract.kt](../foundation/src/commonMain/kotlin/core/mvi/MviContract.kt) existuje i generické rozhraní `MviContract<S, I, E>`. Současné ViewModely ho neimplementují; používají BaseViewModel a markery UiState/UiIntent/UiEffect. Není potřeba toto rozhraní uměle přidávat ke každé obrazovce.
+📝 [RoutineEditorContract](../feature/routines/impl/src/commonMain/kotlin/features/routines/presentation/RoutineEditorContract.kt) a ekvivalent plánu rozlišují loading, draft, isSaving, error, conflict a confirmExit. `RoutineDraft` drží váhu/opakování/pauzu jako text; `-` je platný obsah návrhu, ale ne publikovatelné číslo. Uložený agregát a outbox se neúplným editorem nemění.
+
+👆 `Mutate` aplikuje změnu konkrétního pole nad aktuálním draftem ViewModelu. Dvě rychlé změny z téže kompozice se nepřepíší. `Edit` přijímá úplný snapshot (například v testu); ViewModel zařadí JSON do `OrderedDrafts.Session.put` synchronně před spuštěním čekající korutiny. Zánik obrazovky tak neodhodí již přijatý text.
+
+```mermaid
+sequenceDiagram
+    participant UI as Screen
+    participant VM as Editor ViewModel
+    participant Q as OrderedDrafts (ApplicationScope)
+    participant DB as CommandCoordinator / SQLite
+    UI->>VM: Mutate raw field
+    VM->>Q: put(snapshot), okamžité přijetí
+    Q->>DB: uložit lokální draft
+    UI->>VM: Save
+    VM->>VM: isSaving = true
+    VM->>Q: finish (za všemi přijatými put)
+    Q->>DB: transakce save + outbox + delete draft
+    DB-->>Q: commit
+    Q-->>VM: id, stará session je uzavřená
+    VM-->>UI: Saved(id) → navigační callback
+```
+
+🔒 Při revision conflict zůstává raw obsah i expectedRevision zachovaný. Reload nahradí obsah až po úspěšném čtení. SaveCopy generuje fresh aggregate/child ID z aktuálního návrhu, ne z uložené repository verze. Selhání draft delete abortuje i už provedené aggregate/outbox zápisy. Pozdní callback uzavřené session už nemůže draft obnovit.
+
+↩️ Toolbar a Android systémové Zpět posílají stejný Back intent. Autosave neznamená publikaci: nabídka zůstává „pokračovat“ nebo „zahodit“. Discard čeká za autosavy a naviguje až po úspěšném delete; chyba nechá editor otevřený. Přepnutí tabs zachovává draft i bez dialogu; route draftId jej umí obnovit po rekreaci.
+
+🛡️ Nikdy nečekej na draft FIFO uvnitř DB writeru, jinak se mohou dvě fronty vzájemně zablokovat. Doménový `Result.Error` uvnitř publikace musí vyvolat vnější abort. `isSaving` blokuje další vstupy, zatímco transakce kontroluje invarianty i pro jiné volající.
 
 ## 🛠️ Postup přidání další obrazovky
 
-1. 🛡️ **Urči doménový vstup a výstup.** Rozhraní pro čtení nebo celý datový příkaz patří do `features/<feature>/domain`; konkrétní Room/HTTP implementace do `data`. Stávající WorkoutWriteCoordinator je workout kontrakt, nikoli hotový obecný koordinátor všech budoucích domén.
+1. 🛡️ **Urči doménový vstup a výstup.** Rozhraní a serializovatelné routes patří do feature API; konkrétní Room implementace do impl/data. Sdílený CommandCoordinator je v core:storage a workflow napříč feature skládá app.
 2. 📋 **Vytvoř Contract.** State obsahuje business data a UI flags; Intent popisuje záměry a jejich argumenty; Effect obsahuje navigaci a krátká oznámení. Prázdná pole nepřidávej pouze kvůli stejné šabloně.
 3. 🧠 **Vytvoř ViewModel.** Dědí `BaseViewModel<State, Intent, Effect>`, přijímá rozhraní závislostí v konstruktoru a implementuje handleIntent a onOperationFailure. Obsluhy bez I/O mohou pouze volat updateState; suspend práci založ přes launchOperation.
 4. 🔀 **Urči pravidla souběhu.** U reloadu ruš předchozí odběr. U opakovaného submitu definuj busy stav nebo idempotenci. Pro zápisy potřebující společný commit předávej celý příkaz do datové transakce, nikoli několik dílčích zápisů z UI.
 5. 📱 **Vytvoř Screen.** Přijímá State a onIntent, případně UI sloty a Modifier. Nezískává Koin, ViewModel ani DAO. Prvky specifické pro feature patří do jejího `ui/components`; obecný prvek do designsystem.
 6. 🔌 **Vytvoř Root.** Získá ViewModel přes rememberScreenViewModel, pozoruje uiState a jedním collectorem effect. Převádí efekty na callbacky hosta nebo snackbar.
-7. 🧭 **Zaregistruj DI a navigaci.** Do aplikačního Koin přidej datové singletony a factoryOf pro ViewModel; do aplikačního navigačního stavu přidej destinaci, save/restore argumentů a vykreslení Rootu. Navigace se nedává do foundation.
+7. 🧭 **Zaregistruj DI a navigaci.** Do aplikačního Koin přidej datové singletony a factoryOf pro ViewModel; do jednoho typovaného NavHost přidej composable route a vykreslení Rootu. Navigace se nedává do foundation.
 8. 🧪 **Ověř pozorovatelné chování.** State po načtení, efekt po úspěchu, viditelnou chybu bez úspěšné navigace, opakovaný intent, souběžnou změnu a odchod během zápisu. Transakce ověř proti skutečné DB.
 
 ## 🧪 Kde hledat příklady testů
 
-- 🧪 [ActiveWorkoutViewModelTest](../composeApp/src/commonTest/kotlin/features/workout/ActiveWorkoutViewModelTest.kt): `editsFromSameUiSnapshotPreserveBothFields`, `failedFinishKeepsSessionAndExposesRecoverableError`, `mutatingIntentsAreIgnoredWhileFinishIsPending`.
+- 🧪 [ActiveWorkoutViewModelTest](../feature/workout/impl/src/commonTest/kotlin/features/workout/ActiveWorkoutViewModelTest.kt): `editsFromSameUiSnapshotPreserveBothFields`, `failedFinishKeepsSessionAndExposesRecoverableError`, `mutatingIntentsAreIgnoredWhileFinishIsPending`.
 - 🧪 [WorkoutPersistenceTest](../composeApp/src/desktopTest/kotlin/features/workout/WorkoutPersistenceTest.kt): `failedOutboxInsertRollsBackSession`, `acceptedCommandCommitsAfterCallerIsCancelled`, `failedExerciseRemovalRollsBackAllDeletedSets`.
-- 🧪 [AppNavigationStateTest](../composeApp/src/commonTest/kotlin/app/navigation/AppNavigationStateTest.kt): obnova destinace a návrat ze zásobníku.
+- 🧪 [TypedNavigationTest](../composeApp/src/desktopTest/kotlin/app/navigation/TypedNavigationTest.kt): skutečný NavHost, entry ownership, obnova argumentů a návrat ke zdroji.
+- 🧪 [RoutinePresentationTest](../feature/routines/impl/src/commonTest/kotlin/features/routines/presentation/RoutinePresentationTest.kt) a [PlanPresentationTest](../feature/trainingplans/impl/src/commonTest/kotlin/features/trainingplans/presentation/PlanPresentationTest.kt): raw návrhy, rychlé změny, konflikt/kopie, efekty po commitu a chyby.
+- 🧪 [LibrarySmokeTest](../composeApp/src/desktopTest/kotlin/app/navigation/LibrarySmokeTest.kt): reálné obrazovky, DB a navigace přes Desktop Skia, včetně obrázků.
 
 🧪 ViewModel testy řídí Main dispatcher a virtuální čas. Časovače se musí uklidit, aby test po dokončení stále neplánoval další tiky. Úspěšný fake repository test nedokazuje vlastnosti Room transakce; proto existují samostatné desktop integrační testy.
 

@@ -42,9 +42,3 @@ internal data class UpdateSetSyncPayload(
     val setType: String,
     val setNumber: Int
 )
-
-@Serializable
-internal data class CreateTemplateSyncPayload(
-    val name: String,
-    val exercisesCount: Int
-)

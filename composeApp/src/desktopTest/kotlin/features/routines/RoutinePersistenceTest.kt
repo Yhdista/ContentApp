@@ -270,6 +270,31 @@ class RoutinePersistenceTest {
         } finally { db.close(); Files.deleteIfExists(path) }
     }
 
+    @Test fun orderedDraftPublishDeleteFailureRollsBackAndSuccessCannotResurrect() = runTest {
+        val path = Files.createTempFile("publish-draft", ".db")
+        val db = database(path.toString())
+        try {
+            val s = services(db); seed(s)
+            val queue = core.storage.OrderedDrafts(s.drafts, ApplicationScope(backgroundScope.coroutineContext))
+            val editor = queue.open("routines", "editor").await()
+            editor.put("initial"); editor.put("latest raw -")
+            editor.barrier().await()
+            sql(path.toString(), "CREATE TRIGGER fail_draft_delete BEFORE DELETE ON editor_drafts BEGIN SELECT RAISE(ABORT, 'draft deletion failed'); END")
+            assertFailsWith<Exception> { editor.finish {
+                s.writes.write { success(s.routines.save(routine(),null)); s.drafts.delete("routines","editor") }
+            }.await() }
+            assertNull(s.routines.getById("routine")); assertEquals("latest raw -",s.drafts.get("routines","editor"))
+            assertEquals(0,db.mutationDao().getUnsentMutationsCount().first())
+            sql(path.toString(), "DROP TRIGGER fail_draft_delete")
+            editor.put("final"); editor.finish {
+                s.writes.write { success(s.routines.save(routine(),null)); s.drafts.delete("routines","editor") }
+            }.await()
+            assertNotNull(s.routines.getById("routine")); assertNull(s.drafts.get("routines","editor"))
+            assertFailsWith<IllegalStateException> { editor.put("late callback").await() }
+            assertNull(s.drafts.get("routines","editor"))
+        } finally { db.close(); Files.deleteIfExists(path) }
+    }
+
     @Test fun draftAndAggregatePublishJoinSameOuterTransaction() = runTest {
         val db = database()
         try {

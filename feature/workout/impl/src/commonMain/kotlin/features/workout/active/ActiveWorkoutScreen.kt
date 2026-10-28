@@ -74,7 +74,7 @@ internal fun ActiveWorkoutScreen(
                             color = colorScheme.onBackground
                         )
                         Text(
-                            text = "Aktivní sezení (Hevy styl)",
+                            text = state.session?.let { if(it.sourcePlan != null) "🗓️ Trénink z plánu · revize ${it.sourcePlan?.planRevision}" else if(it.sourceRoutineId != null) "📋 Samostatná rutina · revize ${it.sourceRoutineRevision}" else "🏋️ Samostatný trénink" } ?: "Trénink",
                             style = MaterialTheme.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant
                         )

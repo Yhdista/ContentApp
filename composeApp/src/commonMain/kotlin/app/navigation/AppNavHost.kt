@@ -1,73 +1,75 @@
 package app.navigation
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.*
+import androidx.navigation.toRoute
+import androidx.navigation.createGraph
+import features.workout.domain.*
 import features.workout.active.ActiveWorkoutRoot
 import features.workout.detail.WorkoutDetailRoot
 import features.workout.history.WorkoutHistoryRoot
-import ui.designsystem.nucleus.AppTheme
+import features.routines.api.*
+import features.routines.presentation.*
+import features.trainingplans.api.*
+import features.trainingplans.presentation.*
+import ui.designsystem.nucleus.*
 
-@Composable
-fun AppNavHost(
-    modifier: Modifier = Modifier
-) {
-    var isDarkThemeState by rememberSaveable { mutableStateOf<Boolean?>(null) }
-    val systemInDark = isSystemInDarkTheme()
-    val isDark = isDarkThemeState ?: systemInDark
+@kotlinx.serialization.Serializable
+internal data object AppGraphRoute
 
-    AppTheme(darkTheme = isDark) {
-        val navigation = rememberSaveable(saver = listSaver(
-            save = { state: AppNavigationState -> state.save() },
-            restore = { keys -> AppNavigationState.restore(keys) }
-        )) { AppNavigationState() }
-        PlatformBackHandler(navigation.canGoBack) { navigation.back() }
-
-        AnimatedContent(
-            targetState = navigation.current,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            modifier = modifier
-        ) { destination ->
-            when (destination) {
-                is AppDestination.History -> {
-                    WorkoutHistoryRoot(
-                        onNavigateToActiveWorkout = {
-                            navigation.navigate(AppDestination.ActiveWorkout)
-                        },
-                        onNavigateToDetail = { sessionId ->
-                            navigation.navigate(AppDestination.Detail(sessionId))
-                        },
-                        isDarkTheme = isDark,
-                        onToggleTheme = {
-                            isDarkThemeState = !isDark
-                        }
-                    )
-                }
-                is AppDestination.ActiveWorkout -> {
-                    ActiveWorkoutRoot(
-                        onNavigateBack = {
-                            navigation.back()
-                        }
-                    )
-                }
-                is AppDestination.Detail -> {
-                    WorkoutDetailRoot(
-                        sessionId = destination.sessionId,
-                        onNavigateBack = {
-                            navigation.back()
-                        }
-                    )
+@Composable fun AppNavHost(modifier: Modifier = Modifier) {
+    var darkOverride by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    val dark = darkOverride ?: isSystemInDarkTheme()
+    AppTheme(darkTheme = dark) {
+        val nav = rememberNavController()
+        val entry by nav.currentBackStackEntryAsState()
+        val destination = entry?.destination
+        val editor = destination?.hasRoute<RoutineEditorRoute>() == true || destination?.hasRoute<PlanEditorRoute>() == true
+        val selected = when {
+            destination?.hasRoute<RoutineListRoute>() == true || destination?.hasRoute<RoutineDetailRoute>() == true || destination?.hasRoute<RoutineEditorRoute>() == true -> 1
+            destination?.hasRoute<PlanListRoute>() == true || destination?.hasRoute<PlanDetailRoute>() == true || destination?.hasRoute<PlanEditorRoute>() == true -> 2
+            else -> 0
+        }
+        val currentDark by rememberUpdatedState(dark)
+        val graph = remember(nav) {
+            nav.createGraph(startDestination = WorkoutHistoryRoute, route = AppGraphRoute::class) {
+                composable<WorkoutHistoryRoute> { WorkoutHistoryRoot(
+                    onNavigateToActiveWorkout = { nav.navigate(ActiveWorkoutRoute) { launchSingleTop = true } },
+                    onNavigateToDetail = { nav.navigate(WorkoutDetailRoute(it)) },
+                    onNavigateToRoutines = { nav.navigate(RoutineListRoute) { launchSingleTop = true } },
+                    isDarkTheme = currentDark, onToggleTheme = { darkOverride = !currentDark }) }
+                composable<ActiveWorkoutRoute> { ActiveWorkoutRoot(onNavigateBack = { nav.popBackStack() }) }
+                composable<WorkoutDetailRoute> { backStack -> WorkoutDetailRoot(backStack.toRoute<WorkoutDetailRoute>().sessionId,
+                    onNavigateBack = { nav.popBackStack() }, onRoutineDraft = { nav.navigate(RoutineEditorRoute(it)) }) }
+                composable<RoutineListRoute> { RoutineListRoot({ nav.navigate(RoutineDetailRoute(it)) }, { nav.navigate(RoutineEditorRoute(it)) }) }
+                composable<RoutineDetailRoute> { backStack -> RoutineDetailRoot(backStack.toRoute<RoutineDetailRoute>().id,
+                    onDetail = { nav.navigate(RoutineDetailRoute(it)) }, onEditor = { nav.navigate(RoutineEditorRoute(it)) },
+                    onWorkout = { nav.navigate(ActiveWorkoutRoute) { launchSingleTop = true } }, onBack = { nav.popBackStack() }) }
+                composable<RoutineEditorRoute> { backStack -> RoutineEditorRoot(backStack.toRoute<RoutineEditorRoute>().draftId,
+                    onSaved = { nav.popBackStack(); nav.navigate(RoutineDetailRoute(it)) { launchSingleTop = true } }, onBack = { nav.popBackStack() }) }
+                composable<PlanListRoute> { PlanListRoot({ nav.navigate(PlanDetailRoute(it)) }, { nav.navigate(PlanEditorRoute(it)) }) }
+                composable<PlanDetailRoute> { backStack -> PlanDetailRoot(backStack.toRoute<PlanDetailRoute>().id,
+                    onDetail = { nav.navigate(PlanDetailRoute(it)) }, onEditor = { nav.navigate(PlanEditorRoute(it)) },
+                    onWorkout = { nav.navigate(ActiveWorkoutRoute) { launchSingleTop = true } }, onBack = { nav.popBackStack() },
+                    onRoutine = { nav.navigate(RoutineDetailRoute(it)) }) }
+                composable<PlanEditorRoute> { backStack -> PlanEditorRoot(backStack.toRoute<PlanEditorRoute>().draftId,
+                    onSaved = { nav.popBackStack(); nav.navigate(PlanDetailRoute(it)) { launchSingleTop = true } }, onBack = { nav.popBackStack() }) }
+            }.withRestorableEntries()
+        }
+        Column(modifier.fillMaxSize()) {
+            NavHost(nav, graph = graph, modifier = Modifier.weight(1f))
+            // Editors keep the same durable draft when switching tabs. System/toolbar Back offers discard.
+            AppTabs(selected) { index ->
+                val route: Any = when(index) { 1 -> RoutineListRoute; 2 -> PlanListRoute; else -> WorkoutHistoryRoute }
+                if(index != selected || editor) nav.navigate(route) {
+                    popUpTo(nav.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
                 }
             }
         }

@@ -27,18 +27,18 @@ import kotlin.test.*
 
 class TrainingWorkflowTest {
     private class Fixture(val db: AppDatabase, val workflow: TrainingWorkflow, val routines: RoutineRepository,
-        val plans: TrainingPlanRepository, val catalogue: ExerciseCatalog, val workouts: WorkoutRepository)
+        val plans: TrainingPlanRepository, val catalogue: ExerciseCatalog, val workouts: WorkoutRepository, val drafts: RoutineDraftFactory)
     private fun TestScope.fixture(path: String? = null, outbox: ((MutationDao) -> MutationDao)? = null): Fixture {
         val db = (if(path == null) Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }
             else Room.databaseBuilder<AppDatabase>(name=path) { AppDatabaseConstructor.initialize() }).configureAppDatabase().build()
         val app = koinApplication { modules(module {
-            single { db.workoutDao() }; single { db.exerciseDao() }; single { db.routineDao() }; single { db.trainingPlanDao() }
+            single { ApplicationScope(backgroundScope.coroutineContext) }; single { db.editorDraftDao() }; single { db.workoutDao() }; single { db.exerciseDao() }; single { db.routineDao() }; single { db.trainingPlanDao() }
             single { outbox?.invoke(db.mutationDao()) ?: db.mutationDao() }
             single<CommandCoordinator> { RoomCommandCoordinator(db, ApplicationScope(backgroundScope.coroutineContext)) }
             single<AppClock> { object: AppClock { override fun nowMillis() = 1000L } }
-        }, exerciseFeatureModule(), routineFeatureModule(), trainingPlanFeatureModule(), workoutFeatureModule()) }
+        }, draftStorageModule(), features.routines.presentation.routinePresentationModule(), exerciseFeatureModule(), routineFeatureModule(), trainingPlanFeatureModule(), workoutFeatureModule()) }
         val k = app.koin
-        return Fixture(db, TrainingWorkflow(k.get(), k.get(), k.get(), k.get(), k.get()), k.get(), k.get(), k.get(), k.get()).also { app.close() }
+        return Fixture(db, TrainingWorkflow(k.get(), k.get(), k.get(), k.get(), k.get()), k.get(), k.get(), k.get(), k.get(), k.get()).also { app.close() }
     }
     private fun <T> ok(result: Result<T, *>): T = assertIs<Result.Success<T>>(result).data
     private suspend fun Fixture.seed() {
@@ -46,6 +46,17 @@ class TrainingWorkflowTest {
         ok(routines.save(Routine("routine", "Morning", exercises=List(2) { e ->
             RoutineExercise("entry$e", "bench", 60 + e, List(2) { s -> RoutineSet("set$e$s", 20.0+s, 8+s, WorkoutSetType.DROPSET) }) }), null))
         ok(plans.save(TrainingPlan("plan", "Cycle", slots=listOf(PlanSlot("A", "A", "routine"), PlanSlot("B", "B", "routine"))), null))
+    }
+    @Test fun prescriptionStartRetainsPreviousCompletedPerformance() = runTest {
+        val f=fixture(); try {
+            f.seed()
+            val previous=f.workouts.startWorkout("Earlier")
+            val set=f.workouts.addSet(previous.id,"bench",75.0,6)
+            f.workouts.updateSet(set.id) { it.copy(isCompleted=true) }
+            ok(f.workflow.complete(previous.id))
+            val next=ok(f.workflow.startRoutine("routine")).sessionId
+            assertTrue(f.workouts.getSetsForSession(next).first().all { it.previousPerformance == "75.0 kg × 6" })
+        } finally { f.db.close() }
     }
     @Test fun concurrentStartsResumeWithoutChangingSnapshotsOrSource() = runTest {
         val f=fixture(); try {
@@ -129,11 +140,17 @@ class TrainingWorkflowTest {
             assertEquals(listOf(1,2,3),sets.filter { it.workoutExerciseId==entries[1].id }.map { it.setNumber })
             assertNull(sets.last().prescribedWeightKg)
             assertFailsWith<IllegalArgumentException> { f.workouts.updateSet(sets.first().id) { it.copy(prescribedWeightKg=999.0) } }
-            val copied=f.workouts.saveSessionAsTemplate(id,"Copy")
-            val routine=f.routines.getById(copied.id)!!
-            assertEquals(2,routine.exercises.size); assertEquals(listOf(21.0),routine.exercises[0].sets.map { it.weightKg })
-            assertEquals(listOf(20.0,21.0,55.0),routine.exercises[1].sets.map { it.weightKg })
-            assertEquals(WorkoutSetType.DROPSET,routine.exercises[1].sets.first().setType)
+            val before = f.db.mutationDao().getUnsentMutationsCount().first()
+            val draftId = f.drafts.fromWorkout(id)
+            val draft = Json.parseToJsonElement(f.db.editorDraftDao().get("routines",draftId)!!).jsonObject
+            val draftEntries = draft.getValue("exercises").jsonArray
+            assertEquals(2, draftEntries.size)
+            assertEquals(listOf("21.0"), draftEntries[0].jsonObject.getValue("sets").jsonArray.map { it.jsonObject.getValue("weight").jsonPrimitive.content })
+            assertEquals(listOf("20.0","21.0","55.0"), draftEntries[1].jsonObject.getValue("sets").jsonArray.map { it.jsonObject.getValue("weight").jsonPrimitive.content })
+            assertEquals("DROPSET",draftEntries[1].jsonObject.getValue("sets").jsonArray.first().jsonObject.getValue("type").jsonPrimitive.content)
+            assertEquals("61",draftEntries[1].jsonObject.getValue("rest").jsonPrimitive.content)
+            assertEquals(1,f.routines.observeAll().first().size)
+            assertEquals(before,f.db.mutationDao().getUnsentMutationsCount().first())
             f.catalogue.saveExercise(Exercise("bench","Renamed",MuscleGroup.ARMS,12,true))
             val csv=WorkoutDataExporter.exportToCsv(listOf(f.workouts.getSessionById(id)!!),f.catalogue.getAllExercises(),sets)
             assertTrue(csv.contains("Original bench")); assertFalse(csv.contains("Renamed")); assertTrue(csv.contains(entries[1].id))

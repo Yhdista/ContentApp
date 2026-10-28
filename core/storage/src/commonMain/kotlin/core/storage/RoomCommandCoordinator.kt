@@ -54,7 +54,7 @@ class RoomCommandCoordinator(
                 } catch (error: Exception) {
                     result.completeExceptionally(error)
                     currentCoroutineContext().ensureActive()
-                    Napier.e("Command failed; transaction rolled back", error)
+                    Napier.e("Command rolled back: ${error::class.simpleName}")
                 }
             }
             return result.await()

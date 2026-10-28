@@ -7,7 +7,6 @@ import features.workout.domain.WorkoutDataExporter
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
 import features.exercises.api.Exercise
-import features.workout.domain.WorkoutTemplate
 
 internal class LocalWorkoutDataExport(
     private val localDataSource: WorkoutLocalDataSource,
@@ -17,14 +16,13 @@ internal class LocalWorkoutDataExport(
         val sessions: List<WorkoutSession>,
         val exercises: List<Exercise>,
         val sets: List<WorkoutSet>,
-        val templates: List<WorkoutTemplate>,
         val entries: List<features.workout.domain.WorkoutExercise>
     )
 
     private suspend fun snapshot() = writes.write {
         val sessions=localDataSource.getAllSessions()
         Snapshot(sessions,localDataSource.getAllExercises(),localDataSource.getAllSets(),
-            localDataSource.getTemplatesSnapshot(),localDataSource.getAllWorkoutExercises())
+            localDataSource.getAllWorkoutExercises())
     }
 
     override suspend fun exportWorkoutDataCsv(): String {
@@ -34,6 +32,6 @@ internal class LocalWorkoutDataExport(
 
     override suspend fun exportWorkoutDataJson(): String {
         val data = snapshot()
-        return WorkoutDataExporter.exportToJson(data.sessions, data.exercises, data.sets, data.templates, data.entries)
+        return WorkoutDataExporter.exportToJson(data.sessions, data.exercises, data.sets, data.entries)
     }
 }

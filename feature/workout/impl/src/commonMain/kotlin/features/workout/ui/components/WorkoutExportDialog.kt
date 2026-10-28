@@ -66,7 +66,7 @@ internal fun WorkoutExportDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "💾 Export a záloha dat",
+                    text = "📤 Export tréninků",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface
@@ -76,7 +76,7 @@ internal fun WorkoutExportDialog(
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Vyexportujte kompletní tréninkovou historii do formátu CSV (kompatibilní s Hevy/Excel) nebo JSON zálohy.",
+                    text = "Vyexportujte tréninkovou historii do CSV nebo JSON. Export neobsahuje rutiny, plány ani rozpracované návrhy.",
                     fontSize = 13.sp,
                     color = colorScheme.onSurfaceVariant
                 )
@@ -108,7 +108,7 @@ internal fun WorkoutExportDialog(
                             selectedFormat = ExportFormat.JSON
                             copiedFeedback = false
                         },
-                        label = { Text("JSON (Záloha)") },
+                        label = { Text("JSON (Tréninky)") },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = colorScheme.primaryContainer,
                             selectedLabelColor = colorScheme.onPrimaryContainer,

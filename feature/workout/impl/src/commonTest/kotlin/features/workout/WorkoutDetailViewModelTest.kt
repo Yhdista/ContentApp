@@ -8,8 +8,6 @@ import features.exercises.api.MuscleGroup
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
-import features.workout.domain.WorkoutTemplate
-import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +40,7 @@ class WorkoutDetailViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         fakeRepository = DetailFakeWorkoutRepository()
-        viewModel = WorkoutDetailViewModel(fakeRepository)
+        viewModel = WorkoutDetailViewModel(fakeRepository, features.workout.domain.CreateRoutineDraft { core.result.Result.Success("workout:$it") })
     }
 
     @AfterTest
@@ -125,7 +123,7 @@ class WorkoutDetailViewModelTest {
     }
 
     @Test
-    fun testSaveAsTemplateSendsSnackbarEffect() = runTest(testDispatcher) {
+    fun testCreateRoutineOpensDraftAfterSuccess() = runTest(testDispatcher) {
         val session = WorkoutSession(
             id = "sess-1",
             title = "Bench Day",
@@ -143,12 +141,10 @@ class WorkoutDetailViewModelTest {
             viewModel.effect.collect { effectReceived = it }
         }
 
-        viewModel.onIntent(WorkoutDetailContract.Intent.SaveAsTemplate("Moje Šablona"))
+        viewModel.onIntent(WorkoutDetailContract.Intent.CreateRoutine)
         testScheduler.runCurrent()
 
-        assertTrue(effectReceived is WorkoutDetailContract.Effect.ShowSnackbar)
-        assertEquals(1, fakeRepository.savedTemplates.size)
-        assertEquals("Moje Šablona", fakeRepository.savedTemplates.first().name)
+        assertEquals(WorkoutDetailContract.Effect.RoutineDraft("workout:sess-1"), effectReceived)
         job.cancel()
     }
 }
@@ -157,7 +153,6 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
     val benchExercise = Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, defaultRestSeconds = 120)
     val squatExercise = Exercise("ex_squat", "Dřep", MuscleGroup.LEGS, defaultRestSeconds = 180)
 
-    val savedTemplates = mutableListOf<WorkoutTemplate>()
     private val exercises = MutableStateFlow(listOf(benchExercise, squatExercise))
     private val sessions = MutableStateFlow<Map<String, WorkoutSession>>(emptyMap())
     private val sets = MutableStateFlow<List<WorkoutSet>>(emptyList())
@@ -209,19 +204,6 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
     override suspend fun getLastPerformance(exerciseId: String): String? = null
     override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double = 0.0
 
-    override fun getTemplates(): Flow<List<WorkoutTemplate>> = MutableStateFlow(emptyList())
-    override suspend fun ensureDefaultTemplates() {}
-    override suspend fun createTemplate(name: String, description: String, exercises: List<WorkoutTemplateExercise>): WorkoutTemplate {
-        val tmpl = WorkoutTemplate("t-saved", name, description, exercises)
-        savedTemplates.add(tmpl)
-        return tmpl
-    }
-    override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession = error("Not needed")
-    override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate {
-        val tmpl = WorkoutTemplate("t-saved", templateName, "From session", emptyList())
-        savedTemplates.add(tmpl)
-        return tmpl
-    }
     override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
     override suspend fun getAllCompletedSets(): List<WorkoutSet> = sets.value.filter { it.isCompleted }
 }

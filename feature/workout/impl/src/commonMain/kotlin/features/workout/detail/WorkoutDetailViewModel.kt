@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 internal class WorkoutDetailViewModel(
-    private val workoutRepository: WorkoutRepository
+    private val workoutRepository: WorkoutRepository,
+    private val createRoutineDraft: features.workout.domain.CreateRoutineDraft
 ) : BaseViewModel<WorkoutDetailContract.State, WorkoutDetailContract.Intent, WorkoutDetailContract.Effect>(
     WorkoutDetailContract.State()
 ) {
@@ -29,7 +30,7 @@ internal class WorkoutDetailViewModel(
         when (intent) {
             is WorkoutDetailContract.Intent.LoadDetail -> loadDetail(intent.sessionId)
             is WorkoutDetailContract.Intent.BackClicked -> sendEffect(WorkoutDetailContract.Effect.NavigateBack)
-            is WorkoutDetailContract.Intent.SaveAsTemplate -> saveAsTemplate(intent.templateName)
+            is WorkoutDetailContract.Intent.CreateRoutine -> createRoutine()
         }
     }
 
@@ -37,16 +38,16 @@ internal class WorkoutDetailViewModel(
         onIntent(WorkoutDetailContract.Intent.LoadDetail(sessionId))
     }
 
-    private fun saveAsTemplate(templateName: String) {
-        val currentSession = uiState.value.session ?: return
+    private fun createRoutine() {
+        val current = uiState.value.session ?: return
+        if(uiState.value.isCreatingRoutine) return
+        updateState { copy(isCreatingRoutine = true) }
         launchOperation {
-            safeLocalCall {
-                workoutRepository.saveSessionAsTemplate(currentSession.id, templateName)
-            }.onSuccess {
-                sendEffect(WorkoutDetailContract.Effect.ShowSnackbar("Šablona '$templateName' byla úspěšně uložena."))
-            }.onFailure { error ->
-                sendEffect(WorkoutDetailContract.Effect.ShowSnackbar(error.toUiText().asString()))
+            when(val result = createRoutineDraft.create(current.id)) {
+                is core.result.Result.Success -> sendEffect(WorkoutDetailContract.Effect.RoutineDraft(result.data))
+                is core.result.Result.Error -> onOperationFailure(DataError.Local.UNKNOWN)
             }
+            updateState { copy(isCreatingRoutine = false) }
         }
     }
 

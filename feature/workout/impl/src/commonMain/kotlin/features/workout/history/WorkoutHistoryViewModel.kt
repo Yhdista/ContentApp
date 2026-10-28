@@ -14,7 +14,6 @@ import features.workout.domain.WeeklyActivityCalculator
 import features.workout.domain.WorkoutDataExport
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSession
-import features.workout.domain.WorkoutTemplate
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -22,8 +21,7 @@ internal class WorkoutHistoryViewModel(
     private val workoutRepository: WorkoutRepository,
     private val dataExport: WorkoutDataExport,
     private val platformClipboard: PlatformClipboard = NoOpPlatformClipboard(),
-    private val appClock: AppClock = SystemAppClock(),
-    private val startRoutineWorkout: features.workout.domain.StartRoutineWorkout
+    private val appClock: AppClock = SystemAppClock()
 ) : BaseViewModel<WorkoutHistoryContract.State, WorkoutHistoryContract.Intent, WorkoutHistoryContract.Effect>(
     WorkoutHistoryContract.State()
 ) {
@@ -56,13 +54,7 @@ internal class WorkoutHistoryViewModel(
                 }
             }
             is WorkoutHistoryContract.Intent.StartNewWorkout -> startNewWorkout()
-            is WorkoutHistoryContract.Intent.OpenTemplatePicker -> {
-                updateState { copy(isTemplatePickerOpen = true) }
-            }
-            is WorkoutHistoryContract.Intent.CloseTemplatePicker -> {
-                updateState { copy(isTemplatePickerOpen = false) }
-            }
-            is WorkoutHistoryContract.Intent.StartWorkoutFromTemplate -> startWorkoutFromTemplate(intent.templateId)
+            is WorkoutHistoryContract.Intent.OpenRoutines -> sendEffect(WorkoutHistoryContract.Effect.NavigateToRoutines)
             is WorkoutHistoryContract.Intent.ResumeActiveWorkout -> {
                 sendEffect(WorkoutHistoryContract.Effect.NavigateToActiveWorkout)
             }
@@ -93,7 +85,6 @@ internal class WorkoutHistoryViewModel(
         loadJob = launchOperation {
             updateState { copy(isLoading = true, error = null) }
             workoutRepository.ensureDefaultExercises()
-            workoutRepository.ensureDefaultTemplates()
 
             // Samostatný lehký odběr počtu čekajících mutací v Outboxu,
             // aby změna stavu synchronizace nespouštěla přepočet celé historie a čtení všech sérií.
@@ -106,11 +97,10 @@ internal class WorkoutHistoryViewModel(
             combine(
                 workoutRepository.getCompletedSessions(),
                 workoutRepository.getActiveSession(),
-                workoutRepository.getTemplates(),
                 workoutRepository.getExercises()
-            ) { completed, active, templates, exercises ->
+            ) { completed, active, exercises ->
                 val totalVolume = completed.sumOf { it.totalVolumeKg }
-                HistoryData(completed, active, templates, exercises, totalVolume)
+                HistoryData(completed, active, exercises, totalVolume)
             }.collect { data ->
                 val allSets = workoutRepository.getAllCompletedSets()
                 val exerciseMap = data.exercises.associateBy { it.id }
@@ -135,7 +125,6 @@ internal class WorkoutHistoryViewModel(
                     copy(
                         completedSessions = data.completed,
                         activeSession = data.active,
-                        templates = data.templates,
                         allExercises = data.exercises,
                         totalVolumeAllTimeKg = data.totalVolume,
                         totalWorkoutsCount = data.completed.size,
@@ -152,7 +141,6 @@ internal class WorkoutHistoryViewModel(
     private data class HistoryData(
         val completed: List<WorkoutSession>,
         val active: WorkoutSession?,
-        val templates: List<WorkoutTemplate>,
         val exercises: List<Exercise>,
         val totalVolume: Double
     )
@@ -161,19 +149,6 @@ internal class WorkoutHistoryViewModel(
         launchOperation {
             if (uiState.value.activeSession == null) {
                 workoutRepository.startWorkout()
-            }
-            sendEffect(WorkoutHistoryContract.Effect.NavigateToActiveWorkout)
-        }
-    }
-
-    private fun startWorkoutFromTemplate(templateId: String) {
-        launchOperation {
-            if (uiState.value.activeSession == null) {
-                when(startRoutineWorkout.start(templateId)) {
-                    is core.result.Result.Success -> Unit
-                    is core.result.Result.Error -> { onOperationFailure(DataError.Local.UNKNOWN); return@launchOperation }
-                }
-                updateState { copy(isTemplatePickerOpen = false) }
             }
             sendEffect(WorkoutHistoryContract.Effect.NavigateToActiveWorkout)
         }
@@ -200,7 +175,7 @@ internal class WorkoutHistoryViewModel(
         platformClipboard.copyToClipboard("Workout Data", text)
         sendEffect(
             WorkoutHistoryContract.Effect.ShowSnackbar(
-                if (isJson) "✓ JSON záloha zkopírována do schránky!" else "✓ CSV export zkopírován do schránky!"
+                if (isJson) "✓ JSON export tréninků zkopírován do schránky!" else "✓ CSV export zkopírován do schránky!"
             )
         )
     }

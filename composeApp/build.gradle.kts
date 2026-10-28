@@ -71,14 +71,6 @@ kotlin {
             implementation(libs.androidx.compose.ui.tooling)
             implementation(libs.material)
 
-            // Navigation 3
-            implementation(libs.androidx.navigation3.runtime)
-            implementation(libs.androidx.navigation3.ui)
-            
-            // Adaptive
-            implementation(libs.androidx.compose.adaptive)
-            implementation(libs.androidx.compose.adaptive.layout)
-            implementation(libs.androidx.compose.adaptive.navigation3)
         }
         
         iosMain.dependencies {
@@ -93,6 +85,8 @@ kotlin {
                 implementation(libs.ktor.client.okhttp)
             }
         }
+
+        val desktopTest by getting { dependencies { implementation(compose.desktop.uiTestJUnit4) } }
 
         commonTest.dependencies {
             implementation(kotlin("test"))

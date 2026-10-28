@@ -23,7 +23,6 @@ import features.workout.workoutFeatureModule
 import features.exercises.data.exerciseFeatureModule
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import features.workout.domain.WorkoutTemplateExercise
 import kotlinx.coroutines.CancellationException
 import java.nio.file.Files
 import kotlinx.coroutines.CompletableDeferred
@@ -232,22 +231,6 @@ class WorkoutPersistenceTest {
     }
 
     // RoutinePersistenceTest covers child failure after the legacy SQL tables were retired.
-    @Test
-    fun repeatedTemplateStartDoesNotDuplicateSets() = runTest {
-        val db = database()
-        try {
-            val repository = repository(db, writes(db))
-            repository.createCustomExercise("Bench", MuscleGroup.CHEST)
-            db.exerciseDao().insertExercise(features.exercises.data.ExerciseEntity("bench", "Bench", "CHEST", 90))
-            val template = repository.createTemplate("Push", "", listOf(
-                WorkoutTemplateExercise("bench", "Bench", 3, 60.0, 10, 0)
-            ))
-            val first = repository.startWorkoutFromTemplate(template.id)
-            val second = repository.startWorkoutFromTemplate(template.id)
-            assertEquals(first.id, second.id)
-            assertEquals(3, db.workoutDao().getSetsForSessionSnapshot(first.id).size)
-        } finally { db.close() }
-    }
     @Test
     fun cancelledCommandDoesNotPoisonQueue() = runTest {
         val db = database()
