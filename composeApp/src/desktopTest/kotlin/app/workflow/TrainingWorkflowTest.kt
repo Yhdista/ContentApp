@@ -27,7 +27,7 @@ import kotlin.test.*
 
 class TrainingWorkflowTest {
     private class Fixture(val db: AppDatabase, val workflow: TrainingWorkflow, val routines: RoutineRepository,
-        val plans: TrainingPlanRepository, val catalogue: ExerciseCatalog, val workouts: WorkoutRepository, val drafts: RoutineDraftFactory)
+        val plans: TrainingPlanRepository, val catalogue: ExerciseCatalog, val workouts: WorkoutRepository, val drafts: RoutineDraftFactory, val draftQueue: core.storage.OrderedDrafts)
     private fun TestScope.fixture(path: String? = null, outbox: ((MutationDao) -> MutationDao)? = null): Fixture {
         val db = (if(path == null) Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }
             else Room.databaseBuilder<AppDatabase>(name=path) { AppDatabaseConstructor.initialize() }).configureAppDatabase().build()
@@ -38,7 +38,7 @@ class TrainingWorkflowTest {
             single<AppClock> { object: AppClock { override fun nowMillis() = 1000L } }
         }, draftStorageModule(), features.routines.presentation.routinePresentationModule(), exerciseFeatureModule(), routineFeatureModule(), trainingPlanFeatureModule(), workoutFeatureModule()) }
         val k = app.koin
-        return Fixture(db, TrainingWorkflow(k.get(), k.get(), k.get(), k.get(), k.get()), k.get(), k.get(), k.get(), k.get(), k.get()).also { app.close() }
+        return Fixture(db, TrainingWorkflow(k.get(), k.get(), k.get(), k.get(), k.get()), k.get(), k.get(), k.get(), k.get(), k.get(), k.get()).also { app.close() }
     }
     private fun <T> ok(result: Result<T, *>): T = assertIs<Result.Success<T>>(result).data
     private suspend fun Fixture.seed() {
@@ -46,6 +46,23 @@ class TrainingWorkflowTest {
         ok(routines.save(Routine("routine", "Morning", exercises=List(2) { e ->
             RoutineExercise("entry$e", "bench", 60 + e, List(2) { s -> RoutineSet("set$e$s", 20.0+s, 8+s, WorkoutSetType.DROPSET) }) }), null))
         ok(plans.save(TrainingPlan("plan", "Cycle", slots=listOf(PlanSlot("A", "A", "routine"), PlanSlot("B", "B", "routine"))), null))
+    }
+    @Test fun workoutConversionResumesWithoutStealingLiveEditorLease() = runTest {
+        val f = fixture(); val owner = kotlinx.coroutines.Job()
+        try {
+            f.seed(); val workoutId = ok(f.workflow.startRoutine("routine")).sessionId
+            val draftId = f.drafts.fromWorkout(workoutId)
+            val session = f.draftQueue.open("routines", draftId, owner).await()
+            session.put("retained raw -").await()
+            val outbox = f.db.mutationDao().getUnsentMutationsCount().first()
+            assertEquals(draftId, f.drafts.fromWorkout(workoutId))
+            assertEquals("retained raw -", f.db.editorDraftDao().get("routines", draftId))
+            session.put("owner still works").await()
+            owner.cancel()
+            assertEquals(draftId, f.drafts.fromWorkout(workoutId))
+            assertEquals("owner still works", f.db.editorDraftDao().get("routines", draftId))
+            assertEquals(outbox, f.db.mutationDao().getUnsentMutationsCount().first())
+        } finally { owner.cancel(); f.db.close() }
     }
     @Test fun prescriptionStartRetainsPreviousCompletedPerformance() = runTest {
         val f=fixture(); try {

@@ -17,7 +17,7 @@
 - 📋 **Rutiny:** seznam včetně archivovaných položek, detail a editor jednotlivých sérií. Cvik může být zařazen vícekrát; každé zařazení má vlastní pauzu, pořadí a identitu.
 - 🗓️ **Plány:** cyklus pojmenovaných slotů odkazujících na rutiny. Dokončení plánového workoutu posune jeho původní plán právě jednou. Ostatní sloty lze spustit samostatně bez posunu plánu.
 - 🧭 **Kontrola postupu:** po změně zdrojového plánu nebo ručním posunu během tréninku vyberte výslovně další slot. Do potvrzení je plánový start i přeskočení blokované.
-- 💾 **Rozepsané návrhy:** tlačítko „Nový nebo rozepsaný…“ obnoví nový draft; „Upravit / pokračovat v návrhu“ obnoví draft konkrétní položky. Přepnutí záložky jej zachová. Zpět nabídne pokračovat nebo zahodit. Autosave nevytváří publikovanou rutinu/plán.
+- 💾 **Rozepsané návrhy:** tlačítko „Nový nebo rozepsaný…“ obnoví nový draft; „Upravit / pokračovat v návrhu“ obnoví draft konkrétní položky. Přepnutí záložky jej zachová. Zpět nabídne pokračovat nebo zahodit. Autosave nevytváří publikovanou rutinu/plán. Jeden návrh má vždy jeden živý editor; druhé otevření nabídne Zpět a opakování po zavření původního editoru, bez přepsání jeho obsahu.
 - 🔒 **Konflikt revize:** načíst aktuální uloženou verzi, nebo uložit vlastní nepublikovaný obsah jako novou kopii s novými ID.
 - 📤 **Workout → rutina:** detail historie otevře návrh ze skutečných sérií, typů a pauz. Žádné průměrování; nová rutina vznikne až tlačítkem Uložit.
 

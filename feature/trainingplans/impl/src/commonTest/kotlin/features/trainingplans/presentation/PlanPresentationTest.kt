@@ -29,6 +29,87 @@ class PlanPresentationTest {
     private fun editor() = PlanEditorViewModel("edit:existing", repository, queue, store, writes, routines).also { models.add(it) }
     private fun library() = PlanLibraryViewModel("existing", repository, routines, StartPlanWorkout { Result.Success(StartOutcome.ResumedExisting("active")) }, StartRoutineWorkout { Result.Success(StartOutcome.Created("solo")) }).also { models.add(it) }
 
+    @Test fun olderAutosaveFailureCannotUnlockSave() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        val accepted = vm.uiState.value.draft!!.copy(name = "Accepted before terminal")
+        store.putGate = CompletableDeferred(); store.failNextPut = true
+        vm.onIntent(PlanEditorContract.Intent.Edit(accepted)); testScheduler.runCurrent()
+        repository.gate = CompletableDeferred()
+        vm.onIntent(PlanEditorContract.Intent.Save); testScheduler.runCurrent()
+        store.putGate!!.complete(Unit); testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving, "Older autosave failure must not release terminal ownership")
+        vm.onIntent(PlanEditorContract.Intent.Edit(accepted.copy(name = "Must not be accepted")))
+        assertEquals(accepted, vm.uiState.value.draft)
+        repository.gate!!.complete(Unit); testScheduler.runCurrent()
+        assertEquals(accepted.name, repository.saved.single().name); assertNull(store.payload)
+    }
+    @Test fun olderAutosaveFailureCannotUnlockDiscard() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        val accepted = vm.uiState.value.draft!!.copy(name = "Accepted before terminal")
+        store.putGate = CompletableDeferred(); store.failNextPut = true
+        vm.onIntent(PlanEditorContract.Intent.Edit(accepted)); testScheduler.runCurrent()
+        store.deleteGate = CompletableDeferred()
+        vm.onIntent(PlanEditorContract.Intent.Discard); testScheduler.runCurrent()
+        store.putGate!!.complete(Unit); testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving, "Older autosave failure must not release terminal ownership")
+        vm.onIntent(PlanEditorContract.Intent.Edit(accepted.copy(name = "Must not be accepted")))
+        assertEquals(accepted, vm.uiState.value.draft)
+        store.deleteGate!!.complete(Unit); testScheduler.runCurrent()
+        assertNull(store.payload)
+    }
+    @Test fun olderAutosaveFailureCannotUnlockReload() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        val accepted = vm.uiState.value.draft!!.copy(name = "Accepted before terminal")
+        store.putGate = CompletableDeferred(); store.failNextPut = true
+        vm.onIntent(PlanEditorContract.Intent.Edit(accepted)); testScheduler.runCurrent()
+        repository.readGate = CompletableDeferred()
+        vm.onIntent(PlanEditorContract.Intent.Reload); testScheduler.runCurrent()
+        store.putGate!!.complete(Unit); testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving, "Older autosave failure must not release terminal ownership")
+        vm.onIntent(PlanEditorContract.Intent.Edit(accepted.copy(name = "Must not be accepted")))
+        assertEquals(accepted, vm.uiState.value.draft)
+        repository.readGate!!.complete(Unit); testScheduler.runCurrent()
+        assertEquals(repository.item.name, vm.uiState.value.draft!!.name); assertFalse(vm.uiState.value.isSaving)
+    }
+    @Test fun secondRetainedEditorCannotStealDraftAndRetriesAfterOwnerCloses() = runTest(dispatcher) {
+        val first = editor(); testScheduler.runCurrent()
+        val accepted = first.uiState.value.draft!!.copy(name = "First accepted", notes = "Unpublished")
+        first.onIntent(PlanEditorContract.Intent.Edit(accepted))
+        val second = editor(); testScheduler.runCurrent()
+        assertNull(second.uiState.value.draft, "A second live editor must not acquire the same draft")
+        assertNotNull(second.uiState.value.error)
+        second.onIntent(PlanEditorContract.Intent.Discard); testScheduler.runCurrent()
+        assertNotNull(store.payload, "Blocked entry cannot delete owner's draft")
+        first.onIntent(PlanEditorContract.Intent.Edit(accepted.copy(notes = "Latest accepted")))
+        first.viewModelScope.cancel()
+        second.onIntent(PlanEditorContract.Intent.Retry); testScheduler.runCurrent()
+        assertEquals("Latest accepted", second.uiState.value.draft!!.notes)
+        assertEquals(accepted.expectedRevision, second.uiState.value.draft!!.expectedRevision)
+        second.onIntent(PlanEditorContract.Intent.Save); testScheduler.runCurrent()
+        assertEquals("Latest accepted", repository.saved.single().notes); assertNull(store.payload)
+    }
+    @Test fun secondRetainedEditorCanDiscardAfterOwnerCloses() = runTest(dispatcher) {
+        val first = editor(); testScheduler.runCurrent()
+        val second = editor(); testScheduler.runCurrent()
+        assertNull(second.uiState.value.draft)
+        first.viewModelScope.cancel()
+        second.onIntent(PlanEditorContract.Intent.Retry); testScheduler.runCurrent()
+        val effects = mutableListOf<PlanEditorContract.Effect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { second.effect.collect { effects.add(it) } }
+        second.onIntent(PlanEditorContract.Intent.Discard); testScheduler.runCurrent()
+        assertNull(store.payload); assertIs<PlanEditorContract.Effect.Back>(effects.single())
+    }
+    @Test fun blockedEntryCanRetryAfterOwnerPublishesWithoutWaitingForClear() = runTest(dispatcher) {
+        val first = editor(); testScheduler.runCurrent()
+        val second = editor(); testScheduler.runCurrent()
+        assertNull(second.uiState.value.draft)
+        first.onIntent(PlanEditorContract.Intent.Save); testScheduler.runCurrent()
+        assertEquals(1, repository.saved.size)
+        second.onIntent(PlanEditorContract.Intent.Retry); testScheduler.runCurrent()
+        assertNotNull(second.uiState.value.draft); assertNull(second.uiState.value.error)
+        second.onIntent(PlanEditorContract.Intent.Discard); testScheduler.runCurrent()
+        assertNull(store.payload)
+    }
     @Test fun rapidFieldMutationsPreserveBothAcceptedChanges() = runTest(dispatcher) {
         val vm = editor(); testScheduler.runCurrent()
         vm.onIntent(PlanEditorContract.Intent.Mutate { it.copy(name = "Fast name") })
@@ -126,17 +207,23 @@ class PlanPresentationTest {
 }
 private class MemoryDrafts : DraftStore {
     var payload: String? = null; var failDelete = false
+    var putGate: CompletableDeferred<Unit>? = null; var deleteGate: CompletableDeferred<Unit>? = null; var failNextPut = false
     override suspend fun get(kind: String, id: String) = payload
-    override suspend fun put(kind: String, id: String, payload: String) { this.payload = payload }
-    override suspend fun delete(kind: String, id: String) { check(!failDelete); payload = null }
+    override suspend fun put(kind: String, id: String, payload: String) {
+        putGate?.await()
+        if (failNextPut) { failNextPut = false; error("Controlled older put failure") }
+        this.payload = payload
+    }
+    override suspend fun delete(kind: String, id: String) { deleteGate?.await(); check(!failDelete); payload = null }
 }
 private class Repository : TrainingPlanRepository {
     var item = TrainingPlan("existing", "Original", revision = 1, slots = listOf(PlanSlot("slot", "Den A", "routine")))
     var conflict = false; var failRead = false; var gate: CompletableDeferred<Unit>? = null
+    var readGate: CompletableDeferred<Unit>? = null
     val saved = mutableListOf<TrainingPlan>(); val expected = mutableListOf<Long?>()
     override fun observeAll(includeArchived: Boolean): Flow<List<TrainingPlan>> = flow { check(!failRead); emit(listOf(item)) }
     override fun observeById(id: String) = flowOf(item)
-    override suspend fun getById(id: String): TrainingPlan { check(!failRead); return item }
+    override suspend fun getById(id: String): TrainingPlan { readGate?.await(); check(!failRead); return item }
     override suspend fun save(plan: TrainingPlan, expectedRevision: Long?): Result<TrainingPlan,PlanError> {
         if(conflict) return Result.Error(PlanError.REVISION_CONFLICT)
         gate?.await(); saved.add(plan); expected.add(expectedRevision)

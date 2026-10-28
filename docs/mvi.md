@@ -279,7 +279,9 @@ sequenceDiagram
 
 ↩️ Toolbar a Android systémové Zpět posílají stejný Back intent. Autosave neznamená publikaci: nabídka zůstává „pokračovat“ nebo „zahodit“. Discard čeká za autosavy a naviguje až po úspěšném delete; chyba nechá editor otevřený. Přepnutí tabs zachovává draft i bez dialogu; route draftId jej umí obnovit po rekreaci.
 
-🛡️ Nikdy nečekej na draft FIFO uvnitř DB writeru, jinak se mohou dvě fronty vzájemně zablokovat. Doménový `Result.Error` uvnitř publikace musí vyvolat vnější abort. `isSaving` blokuje další vstupy, zatímco transakce kontroluje invarianty i pro jiné volající.
+🛡️ Nikdy nečekej na draft FIFO uvnitř DB writeru, jinak se mohou dvě fronty vzájemně zablokovat. Doménový `Result.Error` uvnitř publikace musí vyvolat vnější abort. `isSaving` blokuje další vstupy, zatímco transakce kontroluje invarianty i pro jiné volající. Uvolňuje jej pouze čekání vlastní terminal operace; chyba staršího autosave ani pomocného usage odběru nesmí odemknout rozpracovaný save/discard/reload.
+
+🔑 `OrderedDrafts.open(kind, id, ownerJob)` váže jeden živý editor na jeden zdroj. Druhá uchovaná nav entry dostane vysvětlení a Zpět/Retry, nikoli novou generaci původního draftu. Po zániku prvního ViewModelu (ne pouhé kompozice) se release zařadí za přijaté zápisy; Retry pak načte poslední durable obsah. Publish/discard uvolní lease při úspěchu. Zrušení během queued/read acquire nezanechá osiřelou lease. Převod workoutu při existující lease vrací stávající draftId a nesmí přepisovat obsah.
 
 ## 🛠️ Postup přidání další obrazovky
 

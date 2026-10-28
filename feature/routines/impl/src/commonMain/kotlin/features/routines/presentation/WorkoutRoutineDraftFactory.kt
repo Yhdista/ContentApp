@@ -1,5 +1,6 @@
 package features.routines.presentation
 
+import core.storage.DraftAlreadyOpen
 import core.storage.OrderedDrafts
 import features.routines.api.RoutineDraftFactory
 import features.workout.domain.WorkoutRepository
@@ -11,7 +12,7 @@ import kotlinx.serialization.json.Json
 internal class WorkoutRoutineDraftFactory(private val workouts: WorkoutRepository, private val drafts: OrderedDrafts) : RoutineDraftFactory {
     override suspend fun fromWorkout(sessionId: String): String {
         val id = "workout:$sessionId"
-        val session = drafts.open("routines", id).await()
+        val session = try { drafts.open("routines", id).await() } catch (_: DraftAlreadyOpen) { return id }
         if(session.payload == null) {
             val workout = workouts.getSessionById(sessionId) ?: error("Missing workout")
             val sets = workouts.getSetsForSession(sessionId).first()

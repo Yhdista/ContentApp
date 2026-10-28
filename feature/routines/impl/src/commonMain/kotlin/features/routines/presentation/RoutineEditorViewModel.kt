@@ -1,5 +1,7 @@
 package features.routines.presentation
 
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.job
 import core.result.DataError
 import core.result.Result
 import core.storage.*
@@ -19,7 +21,15 @@ internal class RoutineEditorViewModel(
     private var session: OrderedDrafts.Session? = null
     init { load() }
     override fun onOperationFailure(error: DataError.Local) {
-        updateState { copy(isLoading = false, isSaving = false, error = "Úložiště není dostupné. Zkuste akci znovu; návrh zůstává zachován.") }
+        updateState { copy(isLoading = false, error = "Úložiště není dostupné. Zkuste akci znovu; návrh zůstává zachován.") }
+    }
+    // Only this operation may release its terminal lock. Background autosave/usage errors cannot.
+    private fun launchTerminal(block: suspend () -> Unit) = launchOperation {
+        try { block() }
+        catch (failure: Exception) {
+            updateState { copy(isSaving = false) }
+            throw failure
+        }
     }
     override fun handleIntent(intent: RoutineEditorContract.Intent) {
         if (uiState.value.isSaving) return
@@ -51,14 +61,18 @@ internal class RoutineEditorViewModel(
             RoutineEditorContract.Intent.Discard -> {
                 val ack = session?.discard() ?: return
                 updateState { copy(isSaving = true) }
-                launchOperation { ack.await(); sendEffect(RoutineEditorContract.Effect.Back) }
+                launchTerminal { ack.await(); sendEffect(RoutineEditorContract.Effect.Back) }
             }
         }
     }
     private fun load() = launchOperation {
         updateState { copy(isLoading = true, error = null) }
-        val opened = drafts.open("routines", draftId).await()
-        session = opened
+        val opened = session ?: try {
+            drafts.open("routines", draftId, viewModelScope.coroutineContext.job).await().also { session = it }
+        } catch (_: DraftAlreadyOpen) {
+            updateState { copy(isLoading = false, error = "Tento návrh je otevřený v jiné obrazovce. Vraťte se do původního editoru; po jeho zavření můžete zkusit znovu.") }
+            return@launchOperation
+        }
         updateState { copy(canDiscard = true) }
         val draft = if (opened.payload != null) Json.decodeFromString<RoutineDraft>(opened.payload!!).also { require(it.version == 1) }
         else when {
@@ -75,7 +89,7 @@ internal class RoutineEditorViewModel(
         val current = uiState.value.draft ?: return
         if(current.expectedRevision == null) return
         updateState { copy(isSaving = true) }
-        launchOperation {
+        launchTerminal {
             val fresh = (repository.getById(current.id) ?: error("Missing source")).toDraft()
             session!!.put(Json.encodeToString(fresh)).await()
             updateState { copy(draft = fresh, conflict = false, error = null, isSaving = false) }
@@ -97,7 +111,7 @@ internal class RoutineEditorViewModel(
                 saved.id
             }
         }
-        launchOperation {
+        launchTerminal {
             try {
                 val id = ack.await()
                 sendEffect(RoutineEditorContract.Effect.Saved(id))

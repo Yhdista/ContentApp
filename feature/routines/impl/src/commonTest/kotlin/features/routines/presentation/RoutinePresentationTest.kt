@@ -22,13 +22,109 @@ class RoutinePresentationTest {
     private lateinit var queue: OrderedDrafts
     private lateinit var repository: Repository
     private val catalogue = Catalogue()
+    private var usage: RoutineUsage = RoutineUsage { flowOf(2) }
     private val writes = object : CommandCoordinator { override suspend fun <T> write(block: suspend () -> T) = block() }
     private val models = mutableListOf<androidx.lifecycle.ViewModel>()
     @BeforeTest fun before() { Dispatchers.setMain(dispatcher); scope = ApplicationScope(SupervisorJob() + dispatcher); store = MemoryDrafts(); queue = OrderedDrafts(store,scope); repository = Repository() }
     @AfterTest fun after() { models.forEach { it.viewModelScope.cancel() }; scope.cancel(); Dispatchers.resetMain() }
-    private fun editor() = RoutineEditorViewModel("edit:existing", repository, queue, store, writes, catalogue, RoutineUsage { flowOf(2) }).also { models.add(it) }
+    private fun editor() = RoutineEditorViewModel("edit:existing", repository, queue, store, writes, catalogue, usage).also { models.add(it) }
     private fun library() = RoutineLibraryViewModel("existing", repository, catalogue, RoutineUsage { flowOf(2) }, StartRoutineWorkout { Result.Success(StartOutcome.ResumedExisting("active")) }).also { models.add(it) }
 
+    @Test fun usageFailureCannotUnlockAcceptedPublish() = runTest(dispatcher) {
+        val usageGate = CompletableDeferred<Unit>()
+        usage = RoutineUsage { flow { emit(2); usageGate.await(); error("Controlled usage failure") } }
+        val vm = editor(); testScheduler.runCurrent()
+        val accepted = vm.uiState.value.draft!!
+        repository.gate = CompletableDeferred()
+        vm.onIntent(RoutineEditorContract.Intent.Save); testScheduler.runCurrent()
+        usageGate.complete(Unit); testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving)
+        vm.onIntent(RoutineEditorContract.Intent.Edit(accepted.copy(name = "Must reject")))
+        assertEquals(accepted, vm.uiState.value.draft)
+        repository.gate!!.complete(Unit); testScheduler.runCurrent()
+        assertEquals(accepted.name, repository.saved.single().name)
+    }
+    @Test fun olderAutosaveFailureCannotUnlockSave() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        val accepted = vm.uiState.value.draft!!.copy(name = "Accepted before terminal")
+        store.putGate = CompletableDeferred(); store.failNextPut = true
+        vm.onIntent(RoutineEditorContract.Intent.Edit(accepted)); testScheduler.runCurrent()
+        repository.gate = CompletableDeferred()
+        vm.onIntent(RoutineEditorContract.Intent.Save); testScheduler.runCurrent()
+        store.putGate!!.complete(Unit); testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving, "Older autosave failure must not release terminal ownership")
+        vm.onIntent(RoutineEditorContract.Intent.Edit(accepted.copy(name = "Must not be accepted")))
+        assertEquals(accepted, vm.uiState.value.draft)
+        repository.gate!!.complete(Unit); testScheduler.runCurrent()
+        assertEquals(accepted.name, repository.saved.single().name); assertNull(store.payload)
+    }
+    @Test fun olderAutosaveFailureCannotUnlockDiscard() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        val accepted = vm.uiState.value.draft!!.copy(name = "Accepted before terminal")
+        store.putGate = CompletableDeferred(); store.failNextPut = true
+        vm.onIntent(RoutineEditorContract.Intent.Edit(accepted)); testScheduler.runCurrent()
+        store.deleteGate = CompletableDeferred()
+        vm.onIntent(RoutineEditorContract.Intent.Discard); testScheduler.runCurrent()
+        store.putGate!!.complete(Unit); testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving, "Older autosave failure must not release terminal ownership")
+        vm.onIntent(RoutineEditorContract.Intent.Edit(accepted.copy(name = "Must not be accepted")))
+        assertEquals(accepted, vm.uiState.value.draft)
+        store.deleteGate!!.complete(Unit); testScheduler.runCurrent()
+        assertNull(store.payload)
+    }
+    @Test fun olderAutosaveFailureCannotUnlockReload() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        val accepted = vm.uiState.value.draft!!.copy(name = "Accepted before terminal")
+        store.putGate = CompletableDeferred(); store.failNextPut = true
+        vm.onIntent(RoutineEditorContract.Intent.Edit(accepted)); testScheduler.runCurrent()
+        repository.readGate = CompletableDeferred()
+        vm.onIntent(RoutineEditorContract.Intent.Reload); testScheduler.runCurrent()
+        store.putGate!!.complete(Unit); testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving, "Older autosave failure must not release terminal ownership")
+        vm.onIntent(RoutineEditorContract.Intent.Edit(accepted.copy(name = "Must not be accepted")))
+        assertEquals(accepted, vm.uiState.value.draft)
+        repository.readGate!!.complete(Unit); testScheduler.runCurrent()
+        assertEquals(repository.item.name, vm.uiState.value.draft!!.name); assertFalse(vm.uiState.value.isSaving)
+    }
+    @Test fun secondRetainedEditorCannotStealDraftAndRetriesAfterOwnerCloses() = runTest(dispatcher) {
+        val first = editor(); testScheduler.runCurrent()
+        val accepted = first.uiState.value.draft!!.copy(name = "First accepted", notes = "Unpublished")
+        first.onIntent(RoutineEditorContract.Intent.Edit(accepted))
+        val second = editor(); testScheduler.runCurrent()
+        assertNull(second.uiState.value.draft, "A second live editor must not acquire the same draft")
+        assertNotNull(second.uiState.value.error)
+        second.onIntent(RoutineEditorContract.Intent.Discard); testScheduler.runCurrent()
+        assertNotNull(store.payload, "Blocked entry cannot delete owner's draft")
+        first.onIntent(RoutineEditorContract.Intent.Edit(accepted.copy(notes = "Latest accepted")))
+        first.viewModelScope.cancel()
+        second.onIntent(RoutineEditorContract.Intent.Retry); testScheduler.runCurrent()
+        assertEquals("Latest accepted", second.uiState.value.draft!!.notes)
+        assertEquals(accepted.expectedRevision, second.uiState.value.draft!!.expectedRevision)
+        second.onIntent(RoutineEditorContract.Intent.Save); testScheduler.runCurrent()
+        assertEquals("Latest accepted", repository.saved.single().notes); assertNull(store.payload)
+    }
+    @Test fun secondRetainedEditorCanDiscardAfterOwnerCloses() = runTest(dispatcher) {
+        val first = editor(); testScheduler.runCurrent()
+        val second = editor(); testScheduler.runCurrent()
+        assertNull(second.uiState.value.draft)
+        first.viewModelScope.cancel()
+        second.onIntent(RoutineEditorContract.Intent.Retry); testScheduler.runCurrent()
+        val effects = mutableListOf<RoutineEditorContract.Effect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { second.effect.collect { effects.add(it) } }
+        second.onIntent(RoutineEditorContract.Intent.Discard); testScheduler.runCurrent()
+        assertNull(store.payload); assertIs<RoutineEditorContract.Effect.Back>(effects.single())
+    }
+    @Test fun blockedEntryCanRetryAfterOwnerPublishesWithoutWaitingForClear() = runTest(dispatcher) {
+        val first = editor(); testScheduler.runCurrent()
+        val second = editor(); testScheduler.runCurrent()
+        assertNull(second.uiState.value.draft)
+        first.onIntent(RoutineEditorContract.Intent.Save); testScheduler.runCurrent()
+        assertEquals(1, repository.saved.size)
+        second.onIntent(RoutineEditorContract.Intent.Retry); testScheduler.runCurrent()
+        assertNotNull(second.uiState.value.draft); assertNull(second.uiState.value.error)
+        second.onIntent(RoutineEditorContract.Intent.Discard); testScheduler.runCurrent()
+        assertNull(store.payload)
+    }
     @Test fun rapidFieldMutationsPreserveBothAcceptedChanges() = runTest(dispatcher) {
         val vm = editor(); testScheduler.runCurrent()
         vm.onIntent(RoutineEditorContract.Intent.Mutate { it.copy(name = "Fast name") })
@@ -112,17 +208,23 @@ class RoutinePresentationTest {
 }
 private class MemoryDrafts : DraftStore {
     var payload: String? = null; var failDelete = false
+    var putGate: CompletableDeferred<Unit>? = null; var deleteGate: CompletableDeferred<Unit>? = null; var failNextPut = false
     override suspend fun get(kind: String, id: String) = payload
-    override suspend fun put(kind: String, id: String, payload: String) { this.payload = payload }
-    override suspend fun delete(kind: String, id: String) { check(!failDelete); payload = null }
+    override suspend fun put(kind: String, id: String, payload: String) {
+        putGate?.await()
+        if (failNextPut) { failNextPut = false; error("Controlled older put failure") }
+        this.payload = payload
+    }
+    override suspend fun delete(kind: String, id: String) { deleteGate?.await(); check(!failDelete); payload = null }
 }
 private class Repository : RoutineRepository {
     var item = Routine("existing", "Original", revision = 1, exercises = listOf(RoutineExercise("entry", "exercise", 90, listOf(RoutineSet("set", 10.0, 8)))))
     var conflict = false; var failRead = false; var gate: CompletableDeferred<Unit>? = null
+    var readGate: CompletableDeferred<Unit>? = null
     val saved = mutableListOf<Routine>(); val expected = mutableListOf<Long?>()
     override fun observeAll(includeArchived: Boolean): Flow<List<Routine>> = flow { check(!failRead); emit(listOf(item)) }
     override fun observeById(id: String) = flowOf(item)
-    override suspend fun getById(id: String): Routine { check(!failRead); return item }
+    override suspend fun getById(id: String): Routine { readGate?.await(); check(!failRead); return item }
     override suspend fun save(routine: Routine, expectedRevision: Long?): Result<Routine,RoutineError> {
         if(conflict) return Result.Error(RoutineError.REVISION_CONFLICT)
         gate?.await(); saved.add(routine); expected.add(expectedRevision)
