@@ -2,6 +2,16 @@
 
 📅 29. 10. 2026. Specifikace: [společný audit](../../reviews/2026-10-29-atomic-architecture-audit.md) a [Astra audit](../../reviews/2026-10-29-astra-architecture-audit.md). Uživatel výslovně požádal pustit se do navržených úprav. Výchozí produkční commit: `fb6078d`.
 
+## ⚙️ Realizační postup — yhdi-dev
+
+Uživatel výslovně aktivoval `yhdi-dev` v 00:37 CET. Tento postup nahrazuje původní SDD orchestrace. Jde o jednu vlnu šesti navazujících balíků: **K po každém balíku → jedna závěrečná G → triáž a eskalační review → Astra kontrola architektury**. Specifikace oprav níže zůstává závazná. Shared rules a briefy: [pravidla vlny](../../plans/2026-10-29-hardening-wave-rules.md). Aktuální stav: [MERGE-STATE](../../../MERGE-STATE.md).
+
+- K = kompilace dotčených modulů a consumers včetně common metadata a testových source sets, výhradně přes `yhdi-dev/scripts/gw`.
+- L1 = pouze konkrétní `--tests` pro hlášené chyby nebo sdílený persistence/concurrency invariant, na kterém stojí další balík. Přesný filtr/invariant musí být v briefu/reportu.
+- Testy se průběžně píší a kompilují, ostatní běhy/statika/review patří do G. Níže uvedené ověření určuje požadované pokrytí, nikoli další plné gate po každém balíku.
+- Milník pro vyzkoušení: po balíku3 debug APK / desktop run příkaz označený „před finální G“. Pokračovat bez čekání na reakci.
+- Jeden integrátor, integrační větev a další implementační balíky ve vlastních připravených worktrees. Balík1 doběhl v existujícím checkoutu, kde začal před novým pokynem. Na jednom stroji jeden build; mesh příprava na Air a Windows souběžně, bez společných source writes.
+
 ## Global Constraints
 
 - Zachovat lokální Room jako SSOT, app-owned FIFO writer, atomický aggregate/outbox commit, nested savepoint rollback a cancellation kontrakt přijatých příkazů.
@@ -12,8 +22,8 @@
 - Material3 konstrukce a importy soustředit do designsystem/nucleus. Zachovat jediný Gradle designsystem modul; vrstvy řídit packages a automatickou kontrolou. Fitness UI zůstává ve workout.
 - Obecné UI prvky musí mít přizpůsobitelné, malé rozhraní (Modifier, potřebné sloty/parametry), správnou sémantiku a minimální cíle interakce. Běžný text kontrast alespoň4.5:1. Ověřit světlé/tmavé téma, šířku320dp a fontScale2.0 pro upravované formuláře/interakce.
 - Nezapojovat cloud/auth, nemigrovat uživatelskou DB, nepublikovat/nepushovat. Auditové reporty a jejich reprodukce jsou historický důkaz pro fb6078d; nové opravy nebudou přepisovat jejich původní výsledek.
-- Používat existující CodeGraph před lokalizací/čtením kódu, neindexovat automaticky. Jen jeden implementer mění zdroje v danou chvíli. Mesh může souběžně dělat izolovanou read-only přípravu.
-- Průběžně vést canonical claude-mem work_state a SDD ledger. Každý úkol má vlastní commit a nezávislý spec/quality review. Testy zaměřit na chování, regresní scénáře a skutečné hranice modulů, ne kopie implementace.
+- Používat existující CodeGraph před lokalizací/čtením kódu. Protože hlavní strom je již indexovaný, každá nová kopie podle yhdi-dev dostane vlastní ověřený index před workerem; po velkém přesunu/merge sync. Jen jeden implementer mění zdroje v danou chvíli. Mesh může souběžně dělat izolovanou read-only přípravu.
+- Průběžně vést canonical claude-mem work_state a integrační MERGE-STATE; předchozí ledger zůstává historií. Každý balík má vlastní commit a K důkazy. Nezávislé review pokrývá celou vlnu po G. Testy zaměřit na chování, regresní scénáře a skutečné hranice modulů, ne kopie implementace.
 
 ## Task 1: 🔐 Opravit čtyři runtime chyby a zúžit workout příkazy
 
@@ -26,7 +36,7 @@
 5. „Předchozí výkon“ pro nový workout znamená poslední dokončenou sérii z poslední dokončené session daného katalogového cviku. Řadit podle COALESCE(endTimeEpochMs,startTimeEpochMs) DESC, startTimeEpochMs DESC, stabilního session ID, exercise order DESC, setNumber DESC a set ID pro nerozhodné případy; nerekonstruovat čas ze set UUID. Vyloučit nedokončenou session. Nezavádět nové persisted set timestampy pouze kvůli této opravě. Testovat opačné lexikografické ID, staré/nové prefixy, aktivní session a opakované workout entry.
 6. Aktualizovat bezprostředně související API dokumentaci. Zbytek katalogového vlastnictví/duplicit patří Task2, Material UI Task3.
 
-**Ověření:** focused workout VM/Library VM/Room workflow tests během práce; na konci desktopTest + testDebugUnitTest a Android/iOS compile. Doložit přesné tasky a počty. Spec review i quality review před dalším úkolem.
+**Ověření:** L1 pouze přesné workout VM/Library VM/Room regresní metody pro A1–A4; K včetně metadata a consumers. Kompletní desktop/Android testy a iOS compile až v G. Doložit filtry, časy a počty.
 
 ## Task 2: ♻️ Centralizovat durable editory a vlastnictví katalogu
 
@@ -39,7 +49,7 @@
 5. Přesunout fitness validační chyby/mapování mimo obecnou foundation; formátování čísel pojmenovat doménově neutrálně nebo ponechat fitness helper ve workout. Pro mezidoménové chyby nahradit `toString()`/enum-name mapování explicitními exhaustive mappery.
 6. Žádné schema změny bez nutnosti; zachovat všechny existující draft payloady a verzi1. Aktualizovat relevantní dokumentaci rozhraní.
 
-**Ověření:** RED/GREEN pro nové chybějící invarianty veřejných katalogových writes; existing editor/draft/retention tests po extrakci, Room outbox rollback a accepted command cancellation. Celá desktop/Android sada + platform compile na konci.
+**Ověření:** RED/GREEN pro nové chybějící invarianty veřejných katalogových writes; existing editor/draft/retention tests po extrakci, Room outbox rollback a accepted command cancellation. K bez plné sady; konkrétní L1 persistence/concurrency invarianty uvést v briefu. Celá desktop/Android sada + platform compile v G.
 
 ## Task 3: 🎨 Dotáhnout atomic design, UI kontrakty a přístupnost
 
@@ -87,6 +97,6 @@
 1. Aktualizovat README/docs/architecture.md/docs/mvi.md podle skutečných souborů, module graphu a příkazů. Popsat atomic layers, veřejná UI API, command ownership, shared editor controller, katalog, nový build a CI. Smysluplná emoji, funkční lokální odkazy a diagramy.
 2. Přidat závěrečný acceptance report s mapováním A1–A13 na změny, regression tests, omezení a přesné verze. Neprezentovat nepřidaný cloud/auth/iOS host/runtime coverage jako hotové; backlog má konkrétní důvod.
 3. Spustit finální sjednocený gate na výsledném stromu, zachytit počty a zda byly testy skutečně provedeny nebo využily up-to-date výsledky. Native smoke jen v izolované instanci. Vyhodnotit schema diffs, veřejný consumer, arch negative probe, screenshoty, links a git diff check.
-4. Nezávislý whole-branch review modelem Astra: spec, veřejné invarianty, atomic encapsulation/duplication, lifecycle, maintainability, test evidence. Jedna spojená fix wave při nálezech a scoped re-review podle SDD.
+4. Nezávislý whole-branch review modelem Astra: spec, veřejné invarianty, atomic encapsulation/duplication, lifecycle, maintainability, test evidence. Po G levná triáž uloženého diffu, eskalace jiným výrobcem podle dostupnosti a požadovaný Astra review; nálezy opravit a cíleně ověřit. Další plná G pouze při zneplatnění jejího předpokladu podle yhdi-dev, s uvedeným důvodem.
 
 **Hotovo:** opravy jsou reviewované, všechny relevantní gates zelené, dokumentace odpovídá implementaci, výsledky jsou konkrétní a reviewovatelné. Lokální feature branch; žádný automatický push ani merge do sdílené větve.

@@ -17,3 +17,7 @@ local.properties
 .kotlin/
 .gradle/
 build/
+
+# Local build budgets and agent workspaces.
+.yhdista/
+.superpowers/
