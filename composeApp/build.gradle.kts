@@ -30,6 +30,8 @@ kotlin {
             implementation(project(":feature:workout:impl"))
             implementation(project(":feature:routines:api"))
             implementation(project(":feature:routines:impl"))
+            implementation(project(":feature:trainingplans:api"))
+            implementation(project(":feature:trainingplans:impl"))
             implementation(libs.jetbrains.navigation.compose)
             implementation(compose.runtime)
             implementation(compose.foundation)

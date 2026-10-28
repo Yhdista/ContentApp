@@ -28,3 +28,5 @@ include(":composeApp", ":foundation", ":designsystem")
 include(":core:storage", ":core:presentation", ":feature:exercises:api", ":feature:exercises:impl", ":feature:workout:api", ":feature:workout:impl")
 
 include(":feature:routines:api", ":feature:routines:impl")
+
+include(":feature:trainingplans:api", ":feature:trainingplans:impl")

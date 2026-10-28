@@ -1,5 +1,6 @@
 package app.database
 
+import features.trainingplans.data.*
 import core.storage.EditorDraftDao
 import core.storage.EditorDraftEntity
 import features.routines.data.RoutineDao
@@ -31,7 +32,11 @@ import features.workout.data.entity.WorkoutTemplateExerciseEntity
         RoutineEntity::class,
         RoutineExerciseEntity::class,
         RoutineSetEntity::class,
-        EditorDraftEntity::class
+        EditorDraftEntity::class,
+        TrainingPlanEntity::class,
+        PlanSlotEntity::class,
+        PlanProgressEntity::class,
+        PlanSelectionEntity::class
     ],
     version = 7,
     exportSchema = true
@@ -42,6 +47,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao
     abstract fun exerciseDao(): ExerciseDao
     abstract fun routineDao(): RoutineDao
+    abstract fun trainingPlanDao(): TrainingPlanDao
     abstract fun editorDraftDao(): EditorDraftDao
 }
 
