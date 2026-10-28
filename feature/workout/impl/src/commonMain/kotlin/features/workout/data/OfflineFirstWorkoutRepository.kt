@@ -6,9 +6,7 @@ import core.database.SyncMutationEntity
 import core.storage.CommandCoordinator
 import features.workout.data.datasource.WorkoutLocalDataSource
 import features.workout.data.model.CompleteSessionSyncPayload
-import features.workout.data.model.CreateTemplateSyncPayload
 import features.workout.data.model.ExerciseSyncPayload
-import features.workout.data.model.InsertSetSyncPayload
 import features.workout.data.model.StartSessionSyncPayload
 import features.workout.data.model.UpdateSetSyncPayload
 import features.exercises.api.Exercise
@@ -41,7 +39,8 @@ internal class OfflineFirstWorkoutRepository(
     private val localDataSource: WorkoutLocalDataSource,
     private val mutationDao: MutationDao,
     private val clock: AppClock,
-    private val writes: CommandCoordinator
+    private val writes: CommandCoordinator,
+    private val store: features.workout.domain.WorkoutStore
 ) : WorkoutRepository {
 
     private val json = Json { encodeDefaults = true }
@@ -140,6 +139,32 @@ internal class OfflineFirstWorkoutRepository(
         return@write session
     }
 
+    override fun getWorkoutExercises(sessionId: String) = localDataSource.observeWorkoutExercises(sessionId)
+
+    override suspend fun addExerciseEntry(sessionId: String, exerciseId: String): features.workout.domain.WorkoutExercise = writes.write {
+        val session = localDataSource.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
+        check(!session.isCompleted)
+        val exercise = localDataSource.getExerciseById(exerciseId)
+        require(exercise?.archived != true)
+        val entries = localDataSource.getWorkoutExercises(sessionId)
+        val entry = features.workout.domain.WorkoutExercise(Uuid.random().toString(), sessionId, exerciseId,
+            exercise?.name ?: "Neznámý cvik", exercise?.muscleGroup ?: MuscleGroup.CHEST,
+            exercise?.defaultRestSeconds ?: 90, (entries.maxOfOrNull { it.orderIndex } ?: -1) + 1)
+        localDataSource.saveWorkoutExercise(entry)
+        mutationDao.insertMutation(SyncMutationEntity(Uuid.random().toString(),"workout_exercise",entry.id,"INSERT",json.encodeToString(entry),clock.nowMillis()))
+        entry
+    }
+
+    override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?): WorkoutSet = writes.write {
+        check(localDataSource.getWorkoutExercises(sessionId).any { it.id == workoutExerciseId }) { "Workout entry not found" }
+        addSet(sessionId, workoutExerciseId, weightKg, reps, rpe)
+    }
+
+    override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = writes.write {
+        check(localDataSource.getWorkoutExercises(sessionId).any { it.id == workoutExerciseId }) { "Workout entry not found" }
+        removeExerciseFromWorkout(sessionId, workoutExerciseId)
+    }
+
     override suspend fun addSet(
         sessionId: String,
         exerciseId: String,
@@ -152,14 +177,18 @@ internal class OfflineFirstWorkoutRepository(
         val session = localDataSource.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
         check(!session.isCompleted) { "Cannot edit a completed workout" }
         val currentSets = localDataSource.getSetsForSessionSnapshot(sessionId)
-        val exerciseSets = currentSets.filter { it.exerciseId == exerciseId }
+        val entries = localDataSource.getWorkoutExercises(sessionId)
+        val entry = entries.firstOrNull { it.id == exerciseId }
+            ?: entries.firstOrNull { it.exerciseId == exerciseId }
+            ?: addExerciseEntry(sessionId, exerciseId)
+        val exerciseSets = currentSets.filter { it.workoutExerciseId == entry.id }
         val nextSetNumber = (exerciseSets.maxOfOrNull { it.setNumber } ?: 0) + 1
-        val lastPerformance = getLastPerformance(exerciseId)
+        val lastPerformance = getLastPerformance(entry.exerciseId)
         val isPR = evaluateIsPersonalRecord(
             sessionSets = exerciseSets,
             excludeSetId = null,
             sessionId = sessionId,
-            exerciseId = exerciseId,
+            exerciseId = entry.exerciseId,
             weightKg = weightKg,
             reps = reps,
             setType = WorkoutSetType.NORMAL
@@ -170,7 +199,7 @@ internal class OfflineFirstWorkoutRepository(
         val workoutSet = WorkoutSet(
             id = setId,
             sessionId = sessionId,
-            exerciseId = exerciseId,
+            exerciseId = entry.exerciseId,
             setNumber = nextSetNumber,
             weightKg = weightKg,
             reps = reps,
@@ -178,7 +207,8 @@ internal class OfflineFirstWorkoutRepository(
             isCompleted = false,
             previousPerformance = lastPerformance,
             isPersonalRecord = isPR,
-            setType = WorkoutSetType.NORMAL
+            setType = WorkoutSetType.NORMAL,
+            workoutExerciseId = entry.id
         )
         localDataSource.saveSet(workoutSet)
         enqueueInsertSetMutation(workoutSet, now)
@@ -189,7 +219,10 @@ internal class OfflineFirstWorkoutRepository(
         val current = localDataSource.getSetById(setId) ?: throw NoSuchElementException("Set not found")
         val session = localDataSource.getSessionById(current.sessionId) ?: throw NoSuchElementException("Session not found")
         check(!session.isCompleted) { "Cannot edit a completed workout" }
-        val set = update(current)
+        val proposed = update(current)
+        require(proposed.workoutExerciseId == current.workoutExerciseId && proposed.prescribedWeightKg == current.prescribedWeightKg &&
+            proposed.prescribedReps == current.prescribedReps && proposed.prescribedSetType == current.prescribedSetType)
+        val set = proposed
         require(set.id == current.id && set.sessionId == current.sessionId && set.exerciseId == current.exerciseId) {
             "An edit cannot change set identity"
         }
@@ -260,21 +293,13 @@ internal class OfflineFirstWorkoutRepository(
     }
 
     private suspend fun enqueueInsertSetMutation(workoutSet: WorkoutSet, createdAt: Long) {
-        val payload = InsertSetSyncPayload(
-            sessionId = workoutSet.sessionId,
-            exerciseId = workoutSet.exerciseId,
-            setNumber = workoutSet.setNumber,
-            weightKg = workoutSet.weightKg,
-            reps = workoutSet.reps,
-            setType = workoutSet.setType.name
-        )
         mutationDao.insertMutation(
             SyncMutationEntity(
                 id = "mut-${Uuid.random()}",
                 entityName = "workout_set",
                 recordId = workoutSet.id,
                 operation = "INSERT",
-                payloadJson = json.encodeToString(payload),
+                payloadJson = json.encodeToString(workoutSet),
                 createdAt = createdAt
             )
         )
@@ -297,7 +322,7 @@ internal class OfflineFirstWorkoutRepository(
             )
         )
         localDataSource.getSetsForSessionSnapshot(deleted.sessionId)
-            .filter { it.exerciseId == deleted.exerciseId }
+            .filter { it.workoutExerciseId == deleted.workoutExerciseId }
             .sortedBy { it.setNumber }
             .forEachIndexed { index, set ->
                 if (set.setNumber != index + 1) {
@@ -307,9 +332,13 @@ internal class OfflineFirstWorkoutRepository(
     }
 
     override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) = writes.write {
-        localDataSource.getSetsForSessionSnapshot(sessionId)
-            .filter { it.exerciseId == exerciseId }
-            .forEach { deleteSet(it.id) }
+        val session = localDataSource.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
+        check(!session.isCompleted) { "Cannot edit a completed workout" }
+        val entries = localDataSource.getWorkoutExercises(sessionId)
+        val entry = entries.firstOrNull { it.id == exerciseId } ?: entries.firstOrNull { it.exerciseId == exerciseId } ?: return@write
+        localDataSource.getSetsForSessionSnapshot(sessionId).filter { it.workoutExerciseId == entry.id }.forEach { deleteSet(it.id) }
+        localDataSource.deleteWorkoutExercise(entry.id)
+        mutationDao.insertMutation(SyncMutationEntity(Uuid.random().toString(),"workout_exercise",entry.id,"DELETE","{}",clock.nowMillis()))
     }
 
     override suspend fun completeWorkout(sessionId: String): WorkoutSession? = writes.write {
@@ -341,6 +370,8 @@ internal class OfflineFirstWorkoutRepository(
     }
 
     override suspend fun cancelWorkout(sessionId: String) = writes.write {
+        val session = localDataSource.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
+        check(!session.isCompleted) { "Cannot cancel a completed workout" }
         localDataSource.deleteSessionWithSets(sessionId)
         val now = clock.nowMillis()
         mutationDao.insertMutation(
@@ -372,6 +403,7 @@ internal class OfflineFirstWorkoutRepository(
         localDataSource.observeTemplates()
 
     override suspend fun ensureDefaultTemplates() = writes.write {
+        ensureDefaultExercises()
         if (localDataSource.getTemplatesCount() == 0) {
             val templates = WorkoutDefaults.templates
             localDataSource.saveTemplates(templates)
@@ -394,83 +426,19 @@ internal class OfflineFirstWorkoutRepository(
         )
         localDataSource.saveTemplate(template)
 
-        val payload = CreateTemplateSyncPayload(
-            name = trimmedName,
-            exercisesCount = exercises.size
-        )
-        mutationDao.insertMutation(
-            SyncMutationEntity(
-                id = "mut-${Uuid.random()}",
-                entityName = "workout_template",
-                recordId = templateId,
-                operation = "INSERT",
-                payloadJson = json.encodeToString(payload),
-                createdAt = now
-            )
-        )
         return@write template
     }
 
     override suspend fun startWorkoutFromTemplate(templateId: String): WorkoutSession = writes.write {
         localDataSource.getActiveSession()?.let { return@write it }
-        val template = requireNotNull(localDataSource.getTemplateById(templateId)) { "Template not found" }
-        val title = template.name
-        val session = startWorkout(title = title)
-        val now = clock.nowMillis()
-
-        for (ex in template.exercises) {
-            val lastPerf = getLastPerformance(ex.exerciseId)
-            val weight = if (ex.defaultWeightKg > 0.0) ex.defaultWeightKg else 20.0
-            val reps = if (ex.defaultReps > 0) ex.defaultReps else 10
-            for (i in 1..ex.targetSets) {
-                val setId = "set-${Uuid.random()}"
-                val set = WorkoutSet(
-                    id = setId,
-                    sessionId = session.id,
-                    exerciseId = ex.exerciseId,
-                    setNumber = i,
-                    weightKg = weight,
-                    reps = reps,
-                    rpe = null,
-                    isCompleted = false,
-                    previousPerformance = lastPerf,
-                    setType = WorkoutSetType.NORMAL
-                )
-                localDataSource.saveSet(set)
-                enqueueInsertSetMutation(set, now)
-            }
+        when (val result = store.createFromPrescription(localDataSource.routinePrescription(templateId))) {
+            is core.result.Result.Success -> getSessionById(result.data.sessionId)!!
+            is core.result.Result.Error -> error("Workout start failed: ${result.error}")
         }
-        return@write session
     }
 
     override suspend fun saveSessionAsTemplate(sessionId: String, templateName: String): WorkoutTemplate = writes.write {
-        val sessionSets = localDataSource.getSetsForSessionSnapshot(sessionId)
-        val exercisesMap = sessionSets.groupBy { it.exerciseId }
-        val templateExercises = mutableListOf<WorkoutTemplateExercise>()
-
-        var orderIndex = 0
-        for ((exerciseId, sets) in exercisesMap) {
-            val exercise = localDataSource.getExerciseById(exerciseId)
-            val exName = exercise?.name ?: "Cvik"
-            val avgWeight = sets.map { it.weightKg }.average().let { if (it.isNaN()) 20.0 else it }
-            val avgReps = sets.map { it.reps }.average().toInt().coerceAtLeast(1)
-            templateExercises.add(
-                WorkoutTemplateExercise(
-                    exerciseId = exerciseId,
-                    exerciseName = exName,
-                    targetSets = sets.size.coerceAtLeast(1),
-                    defaultWeightKg = avgWeight,
-                    defaultReps = avgReps,
-                    orderIndex = orderIndex++
-                )
-            )
-        }
-
-        return@write createTemplate(
-            name = templateName,
-            description = "Vytvořeno z tréninku",
-            exercises = templateExercises
-        )
+        localDataSource.saveWorkoutAsRoutine(sessionId, templateName)
     }
 
     override fun getExerciseStats(exerciseId: String): Flow<ExerciseStats?> {

@@ -31,6 +31,10 @@ internal interface WorkoutLocalDataSource {
     suspend fun completeSession(sessionId: String, endTimeEpochMs: Long, totalVolumeKg: Double)
     suspend fun deleteSessionWithSets(sessionId: String)
 
+    fun observeWorkoutExercises(sessionId: String): Flow<List<features.workout.domain.WorkoutExercise>>
+    suspend fun getWorkoutExercises(sessionId: String): List<features.workout.domain.WorkoutExercise>
+    suspend fun saveWorkoutExercise(entry: features.workout.domain.WorkoutExercise)
+    suspend fun deleteWorkoutExercise(id: String)
     // Sets
     fun observeSetsForSession(sessionId: String): Flow<List<WorkoutSet>>
     suspend fun getSetById(setId: String): WorkoutSet?
@@ -41,7 +45,11 @@ internal interface WorkoutLocalDataSource {
     suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSet>
     fun observeCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSet>>
     suspend fun getAllCompletedSets(): List<WorkoutSet>
+    suspend fun getAllSets(): List<WorkoutSet>
+    suspend fun getAllWorkoutExercises(): List<features.workout.domain.WorkoutExercise>
 
+    suspend fun routinePrescription(id: String): features.workout.domain.WorkoutStartPrescription
+    suspend fun saveWorkoutAsRoutine(sessionId: String, name: String): WorkoutTemplate
     // Templates
     fun observeTemplates(): Flow<List<WorkoutTemplate>>
     suspend fun getTemplatesSnapshot(): List<WorkoutTemplate>

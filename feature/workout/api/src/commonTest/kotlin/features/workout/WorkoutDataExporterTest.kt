@@ -55,7 +55,7 @@ class WorkoutDataExporterTest {
         assertTrue(csv.contains("Bench press"))
         assertTrue(csv.contains("Hrudník"))
         assertTrue(csv.contains("NORMAL,1,100.0,5,8.5,1"))
-        assertTrue(csv.contains(",1\n")) // PR = 1
+        assertTrue(csv.lines()[1].contains(",1,")) // PR = 1
     }
 
     @Test

@@ -8,5 +8,6 @@ data class ExerciseEntity(
     @PrimaryKey val id: String,
     val name: String,
     val muscleGroup: String,
-    val defaultRestSeconds: Int
+    val defaultRestSeconds: Int,
+    val archived: Boolean = false
 )

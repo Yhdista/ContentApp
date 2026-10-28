@@ -159,6 +159,9 @@ internal fun ActiveWorkoutScreen(
                 state.error?.let { error ->
                     item { ErrorNotice(error.asString(), onRetry = { onIntent(ActiveWorkoutContract.Intent.LoadWorkout) }) }
                 }
+                if (state.workoutExercises.any { it.orderReconstructed }) {
+                    item { Text("Pořadí cviků bylo obnoveno ze staršího záznamu.", style = MaterialTheme.typography.bodySmall) }
+                }
                 if (state.workoutExercises.isEmpty()) {
                     item {
                         Box(
@@ -194,9 +197,9 @@ internal fun ActiveWorkoutScreen(
                     }
                 } else {
                     items(state.workoutExercises, key = { it.id }) { exercise ->
-                        val exerciseSets = state.sets.filter { it.exerciseId == exercise.id }
+                        val exerciseSets = state.sets.filter { (it.workoutExerciseId ?: it.exerciseId) == exercise.id }
                         ExerciseCard(
-                            exercise = exercise,
+                            exercise = features.exercises.api.Exercise(exercise.exerciseId,exercise.name,exercise.muscleGroup,exercise.restSeconds),
                             sets = exerciseSets,
                             onAddSet = { onIntent(ActiveWorkoutContract.Intent.AddSet(exercise.id)) },
                             onToggleSetComplete = { set ->
@@ -222,7 +225,7 @@ internal fun ActiveWorkoutScreen(
                                 isPlateCalculatorOpen = true
                             },
                             onShowStats = {
-                                onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(exercise))
+                                onIntent(ActiveWorkoutContract.Intent.OpenExerciseStats(features.exercises.api.Exercise(exercise.exerciseId,exercise.name,exercise.muscleGroup,exercise.restSeconds)))
                             },
                             onSetTypeChange = { set, newType ->
                                 onIntent(ActiveWorkoutContract.Intent.ChangeSetType(set, newType))

@@ -22,7 +22,8 @@ internal class WorkoutHistoryViewModel(
     private val workoutRepository: WorkoutRepository,
     private val dataExport: WorkoutDataExport,
     private val platformClipboard: PlatformClipboard = NoOpPlatformClipboard(),
-    private val appClock: AppClock = SystemAppClock()
+    private val appClock: AppClock = SystemAppClock(),
+    private val startRoutineWorkout: features.workout.domain.StartRoutineWorkout
 ) : BaseViewModel<WorkoutHistoryContract.State, WorkoutHistoryContract.Intent, WorkoutHistoryContract.Effect>(
     WorkoutHistoryContract.State()
 ) {
@@ -116,7 +117,7 @@ internal class WorkoutHistoryViewModel(
                 val sessionExerciseMap = allSets
                     .groupBy { it.sessionId }
                     .mapValues { (_, sets) ->
-                        sets.mapNotNull { exerciseMap[it.exerciseId]?.name }.distinct()
+                        sets.mapNotNull { it.exerciseNameSnapshot ?: exerciseMap[it.exerciseId]?.name }.distinct()
                     }
                 val weekly = WeeklyActivityCalculator.calculateWeeklyActivity(
                     nowEpochMs = appClock.nowMillis(),
@@ -168,7 +169,10 @@ internal class WorkoutHistoryViewModel(
     private fun startWorkoutFromTemplate(templateId: String) {
         launchOperation {
             if (uiState.value.activeSession == null) {
-                workoutRepository.startWorkoutFromTemplate(templateId)
+                when(startRoutineWorkout.start(templateId)) {
+                    is core.result.Result.Success -> Unit
+                    is core.result.Result.Error -> { onOperationFailure(DataError.Local.UNKNOWN); return@launchOperation }
+                }
                 updateState { copy(isTemplatePickerOpen = false) }
             }
             sendEffect(WorkoutHistoryContract.Effect.NavigateToActiveWorkout)

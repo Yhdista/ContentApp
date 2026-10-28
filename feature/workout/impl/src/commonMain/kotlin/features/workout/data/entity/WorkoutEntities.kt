@@ -10,7 +10,13 @@ data class WorkoutSessionEntity(
     val startTimeEpochMs: Long,
     val endTimeEpochMs: Long?,
     val isCompleted: Boolean,
-    val totalVolumeKg: Double
+    val totalVolumeKg: Double,
+    val sourceRoutineId: String? = null,
+    val sourceRoutineRevision: Long? = null,
+    val sourcePlanId: String? = null,
+    val sourcePlanRevision: Long? = null,
+    val sourceSlotId: String? = null,
+    val sourceProgressRevision: Long? = null
 )
 
 @Entity(tableName = "workout_sets")
@@ -25,26 +31,16 @@ data class WorkoutSetEntity(
     val isCompleted: Boolean,
     val previousPerformance: String?,
     val isPersonalRecord: Boolean = false,
-    val setType: String = "NORMAL"
+    val setType: String = "NORMAL",
+    val workoutExerciseId: String? = null,
+    val prescribedWeightKg: Double? = null,
+    val prescribedReps: Int? = null,
+    val prescribedSetType: String? = null
 )
 
-@Entity(tableName = "workout_templates")
-data class WorkoutTemplateEntity(
-    @PrimaryKey val id: String,
-    val name: String,
-    val description: String
-)
-
-@Entity(
-    tableName = "workout_template_exercises",
-    primaryKeys = ["templateId", "exerciseId", "orderIndex"]
-)
-data class WorkoutTemplateExerciseEntity(
-    val templateId: String,
-    val exerciseId: String,
-    val exerciseName: String,
-    val targetSets: Int,
-    val defaultWeightKg: Double,
-    val defaultReps: Int,
-    val orderIndex: Int
+@Entity(tableName = "workout_exercises")
+data class WorkoutExerciseEntity(
+    @PrimaryKey val id: String, val sessionId: String, val exerciseId: String,
+    val name: String, val muscleGroup: String, val restSeconds: Int,
+    val orderIndex: Int, val orderReconstructed: Boolean = false
 )

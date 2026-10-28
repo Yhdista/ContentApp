@@ -9,5 +9,8 @@ data class WorkoutSession(
     val startTimeEpochMs: Long,
     val endTimeEpochMs: Long? = null,
     val isCompleted: Boolean = false,
-    val totalVolumeKg: Double = 0.0
+    val totalVolumeKg: Double = 0.0,
+    val sourceRoutineId: String? = null,
+    val sourceRoutineRevision: Long? = null,
+    val sourcePlan: PlanWorkoutSource? = null
 )

@@ -68,9 +68,13 @@ internal class WorkoutDetailViewModel(
                 "—"
             }
 
-            val grouped = sets.groupBy { it.exerciseId }
+            val grouped = sets.groupBy { it.workoutExerciseId ?: it.exerciseId }
             val exercisesWithSets = grouped.mapNotNull { (exerciseId, exerciseSets) ->
-                val exercise = allExercises.find { it.id == exerciseId } ?: return@mapNotNull null
+                val first=exerciseSets.first()
+                val catalogue=allExercises.find { it.id == first.exerciseId }
+                val exercise=features.exercises.api.Exercise(first.exerciseId,first.exerciseNameSnapshot ?: catalogue?.name ?: "Neznámý cvik",
+                    first.muscleGroupSnapshot ?: catalogue?.muscleGroup ?: features.exercises.api.MuscleGroup.CHEST,
+                    first.restSecondsSnapshot ?: catalogue?.defaultRestSeconds ?: 90)
                 val volume = exerciseSets.filter { it.isCompleted }.sumOf { it.weightKg * it.reps }
                 WorkoutDetailContract.ExerciseWithSets(
                     exercise = exercise,

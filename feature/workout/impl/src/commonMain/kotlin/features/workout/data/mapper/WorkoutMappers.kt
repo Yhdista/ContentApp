@@ -2,13 +2,9 @@ package features.workout.data.mapper
 
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
-import features.workout.data.entity.WorkoutTemplateEntity
-import features.workout.data.entity.WorkoutTemplateExerciseEntity
 import features.workout.domain.WorkoutSession
 import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
-import features.workout.domain.WorkoutTemplate
-import features.workout.domain.WorkoutTemplateExercise
 
 // WorkoutSession Mappers
 internal fun WorkoutSessionEntity.toDomain(): WorkoutSession = WorkoutSession(
@@ -17,7 +13,9 @@ internal fun WorkoutSessionEntity.toDomain(): WorkoutSession = WorkoutSession(
     startTimeEpochMs = startTimeEpochMs,
     endTimeEpochMs = endTimeEpochMs,
     isCompleted = isCompleted,
-    totalVolumeKg = totalVolumeKg
+    totalVolumeKg = totalVolumeKg,
+    sourceRoutineId = sourceRoutineId, sourceRoutineRevision = sourceRoutineRevision,
+    sourcePlan = sourcePlanId?.let { features.workout.domain.PlanWorkoutSource(it, sourcePlanRevision!!, sourceSlotId!!, sourceProgressRevision!!) }
 )
 
 internal fun WorkoutSession.toEntity(): WorkoutSessionEntity = WorkoutSessionEntity(
@@ -26,7 +24,10 @@ internal fun WorkoutSession.toEntity(): WorkoutSessionEntity = WorkoutSessionEnt
     startTimeEpochMs = startTimeEpochMs,
     endTimeEpochMs = endTimeEpochMs,
     isCompleted = isCompleted,
-    totalVolumeKg = totalVolumeKg
+    totalVolumeKg = totalVolumeKg,
+    sourceRoutineId = sourceRoutineId, sourceRoutineRevision = sourceRoutineRevision,
+    sourcePlanId = sourcePlan?.planId, sourcePlanRevision = sourcePlan?.planRevision,
+    sourceSlotId = sourcePlan?.slotId, sourceProgressRevision = sourcePlan?.progressRevision
 )
 
 // WorkoutSet Mappers
@@ -41,7 +42,9 @@ internal fun WorkoutSetEntity.toDomain(): WorkoutSet = WorkoutSet(
     isCompleted = isCompleted,
     previousPerformance = previousPerformance,
     isPersonalRecord = isPersonalRecord,
-    setType = runCatching { WorkoutSetType.valueOf(setType) }.getOrDefault(WorkoutSetType.NORMAL)
+    setType = runCatching { WorkoutSetType.valueOf(setType) }.getOrDefault(WorkoutSetType.NORMAL),
+    workoutExerciseId = workoutExerciseId, prescribedWeightKg = prescribedWeightKg,
+    prescribedReps = prescribedReps, prescribedSetType = prescribedSetType?.let { WorkoutSetType.valueOf(it) }
 )
 
 internal fun WorkoutSet.toEntity(): WorkoutSetEntity = WorkoutSetEntity(
@@ -55,38 +58,12 @@ internal fun WorkoutSet.toEntity(): WorkoutSetEntity = WorkoutSetEntity(
     isCompleted = isCompleted,
     previousPerformance = previousPerformance,
     isPersonalRecord = isPersonalRecord,
-    setType = setType.name
+    setType = setType.name,
+    workoutExerciseId = workoutExerciseId, prescribedWeightKg = prescribedWeightKg,
+    prescribedReps = prescribedReps, prescribedSetType = prescribedSetType?.name
 )
 
-// WorkoutTemplate Mappers
-internal fun WorkoutTemplateEntity.toDomain(exercises: List<WorkoutTemplateExercise> = emptyList()): WorkoutTemplate = WorkoutTemplate(
-    id = id,
-    name = name,
-    description = description,
-    exercises = exercises
-)
-
-internal fun WorkoutTemplate.toEntity(): WorkoutTemplateEntity = WorkoutTemplateEntity(
-    id = id,
-    name = name,
-    description = description
-)
-
-internal fun WorkoutTemplateExerciseEntity.toDomain(): WorkoutTemplateExercise = WorkoutTemplateExercise(
-    exerciseId = exerciseId,
-    exerciseName = exerciseName,
-    targetSets = targetSets,
-    defaultWeightKg = defaultWeightKg,
-    defaultReps = defaultReps,
-    orderIndex = orderIndex
-)
-
-internal fun WorkoutTemplateExercise.toEntity(templateId: String): WorkoutTemplateExerciseEntity = WorkoutTemplateExerciseEntity(
-    templateId = templateId,
-    exerciseId = exerciseId,
-    exerciseName = exerciseName,
-    targetSets = targetSets,
-    defaultWeightKg = defaultWeightKg,
-    defaultReps = defaultReps,
-    orderIndex = orderIndex
-)
+internal fun features.workout.data.entity.WorkoutExerciseEntity.toDomain() = features.workout.domain.WorkoutExercise(
+    id, sessionId, exerciseId, name, runCatching { features.exercises.api.MuscleGroup.valueOf(muscleGroup) }.getOrDefault(features.exercises.api.MuscleGroup.CHEST), restSeconds, orderIndex, orderReconstructed)
+internal fun features.workout.domain.WorkoutExercise.toEntity() = features.workout.data.entity.WorkoutExerciseEntity(
+    id, sessionId, exerciseId, name, muscleGroup.name, restSeconds, orderIndex, orderReconstructed)

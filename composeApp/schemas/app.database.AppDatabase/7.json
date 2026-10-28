@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "cf0bbd49ab35fe3cd1c71b62f1a39842",
+    "identityHash": "a3fb3ddf31b486bfaf46c07042c822da",
     "entities": [
       {
         "tableName": "sync_mutations",
@@ -65,7 +65,7 @@
       },
       {
         "tableName": "exercises",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `muscleGroup` TEXT NOT NULL, `defaultRestSeconds` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `muscleGroup` TEXT NOT NULL, `defaultRestSeconds` INTEGER NOT NULL, `archived` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -90,6 +90,12 @@
             "columnName": "defaultRestSeconds",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "archived",
+            "columnName": "archived",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -101,7 +107,7 @@
       },
       {
         "tableName": "workout_sessions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `startTimeEpochMs` INTEGER NOT NULL, `endTimeEpochMs` INTEGER, `isCompleted` INTEGER NOT NULL, `totalVolumeKg` REAL NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `startTimeEpochMs` INTEGER NOT NULL, `endTimeEpochMs` INTEGER, `isCompleted` INTEGER NOT NULL, `totalVolumeKg` REAL NOT NULL, `sourceRoutineId` TEXT, `sourceRoutineRevision` INTEGER, `sourcePlanId` TEXT, `sourcePlanRevision` INTEGER, `sourceSlotId` TEXT, `sourceProgressRevision` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -137,6 +143,36 @@
             "columnName": "totalVolumeKg",
             "affinity": "REAL",
             "notNull": true
+          },
+          {
+            "fieldPath": "sourceRoutineId",
+            "columnName": "sourceRoutineId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceRoutineRevision",
+            "columnName": "sourceRoutineRevision",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sourcePlanId",
+            "columnName": "sourcePlanId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourcePlanRevision",
+            "columnName": "sourcePlanRevision",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sourceSlotId",
+            "columnName": "sourceSlotId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceProgressRevision",
+            "columnName": "sourceProgressRevision",
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -148,7 +184,7 @@
       },
       {
         "tableName": "workout_sets",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `setNumber` INTEGER NOT NULL, `weightKg` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL, `isCompleted` INTEGER NOT NULL, `previousPerformance` TEXT, `isPersonalRecord` INTEGER NOT NULL, `setType` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `setNumber` INTEGER NOT NULL, `weightKg` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL, `isCompleted` INTEGER NOT NULL, `previousPerformance` TEXT, `isPersonalRecord` INTEGER NOT NULL, `setType` TEXT NOT NULL, `workoutExerciseId` TEXT, `prescribedWeightKg` REAL, `prescribedReps` INTEGER, `prescribedSetType` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -213,6 +249,26 @@
             "columnName": "setType",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "workoutExerciseId",
+            "columnName": "workoutExerciseId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "prescribedWeightKg",
+            "columnName": "prescribedWeightKg",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "prescribedReps",
+            "columnName": "prescribedReps",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "prescribedSetType",
+            "columnName": "prescribedSetType",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -223,8 +279,8 @@
         }
       },
       {
-        "tableName": "workout_templates",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "tableName": "workout_exercises",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `name` TEXT NOT NULL, `muscleGroup` TEXT NOT NULL, `restSeconds` INTEGER NOT NULL, `orderIndex` INTEGER NOT NULL, `orderReconstructed` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -233,32 +289,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "name",
-            "columnName": "name",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "description",
-            "columnName": "description",
-            "affinity": "TEXT",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "id"
-          ]
-        }
-      },
-      {
-        "tableName": "workout_template_exercises",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`templateId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `exerciseName` TEXT NOT NULL, `targetSets` INTEGER NOT NULL, `defaultWeightKg` REAL NOT NULL, `defaultReps` INTEGER NOT NULL, `orderIndex` INTEGER NOT NULL, PRIMARY KEY(`templateId`, `exerciseId`, `orderIndex`))",
-        "fields": [
-          {
-            "fieldPath": "templateId",
-            "columnName": "templateId",
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -269,26 +301,20 @@
             "notNull": true
           },
           {
-            "fieldPath": "exerciseName",
-            "columnName": "exerciseName",
+            "fieldPath": "name",
+            "columnName": "name",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "targetSets",
-            "columnName": "targetSets",
-            "affinity": "INTEGER",
+            "fieldPath": "muscleGroup",
+            "columnName": "muscleGroup",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "defaultWeightKg",
-            "columnName": "defaultWeightKg",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "defaultReps",
-            "columnName": "defaultReps",
+            "fieldPath": "restSeconds",
+            "columnName": "restSeconds",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -297,14 +323,18 @@
             "columnName": "orderIndex",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "orderReconstructed",
+            "columnName": "orderReconstructed",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "templateId",
-            "exerciseId",
-            "orderIndex"
+            "id"
           ]
         }
       },
@@ -352,7 +382,7 @@
       },
       {
         "tableName": "routine_exercises",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `routineId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `restSeconds` INTEGER NOT NULL, `orderIndex` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`routineId`) REFERENCES `routines`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `routineId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `restSeconds` INTEGER NOT NULL, `orderIndex` INTEGER NOT NULL, `legacyExerciseName` TEXT, `legacyTargetSets` INTEGER, `legacyDefaultWeightKg` REAL, `legacyDefaultReps` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`routineId`) REFERENCES `routines`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -383,6 +413,26 @@
             "columnName": "orderIndex",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "legacyExerciseName",
+            "columnName": "legacyExerciseName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "legacyTargetSets",
+            "columnName": "legacyTargetSets",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "legacyDefaultWeightKg",
+            "columnName": "legacyDefaultWeightKg",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "legacyDefaultReps",
+            "columnName": "legacyDefaultReps",
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -701,7 +751,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'cf0bbd49ab35fe3cd1c71b62f1a39842')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a3fb3ddf31b486bfaf46c07042c822da')"
     ]
   }
 }

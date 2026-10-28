@@ -270,6 +270,13 @@ internal fun SetRowItem(
                     color = colorScheme.onSurfaceVariant
                 )
 
+                Text(
+                    text = if(set.prescribedWeightKg != null && set.prescribedReps != null)
+                        "Předpis: ${set.prescribedWeightKg} kg × ${set.prescribedReps} · ${set.prescribedSetType?.displayName ?: "—"}"
+                        else "Předpis nebyl zaznamenán",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorScheme.onSurfaceVariant
+                )
                 // Rychlá tlačítka pro úpravu váhy a opakování + Kalkulátor kotoučů
                 Row(
                     modifier = Modifier.fillMaxWidth(),

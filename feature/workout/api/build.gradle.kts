@@ -17,6 +17,7 @@ kotlin {
             api(project(":foundation"))
             api(project(":feature:exercises:api"))
             api(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

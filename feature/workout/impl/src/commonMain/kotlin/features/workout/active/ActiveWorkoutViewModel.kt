@@ -15,15 +15,15 @@ import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 internal class ActiveWorkoutViewModel(
     private val workoutRepository: WorkoutRepository,
     private val clock: AppClock,
-    private val platformFeedback: PlatformFeedback = NoOpPlatformFeedback()
+    private val platformFeedback: PlatformFeedback = NoOpPlatformFeedback(),
+    private val completeWorkout: features.workout.domain.CompleteWorkout
 ) : BaseViewModel<ActiveWorkoutContract.State, ActiveWorkoutContract.Intent, ActiveWorkoutContract.Effect>(
     ActiveWorkoutContract.State()
 ) {
@@ -79,7 +79,7 @@ internal class ActiveWorkoutViewModel(
             // Načtení katalogu cviků
             launch {
                 workoutRepository.getExercises().collect { exercises ->
-                    updateState { copy(availableExercises = exercises) }
+                    updateState { copy(availableExercises = exercises.filterNot { it.archived }) }
                 }
             }
 
@@ -91,21 +91,9 @@ internal class ActiveWorkoutViewModel(
                     startWorkoutTimer(active.startTimeEpochMs)
                     setsCollectorJob?.cancel()
                     setsCollectorJob = launch {
-                        workoutRepository.getSetsForSession(active.id).collect { sessionSets ->
-                            updateState {
-                                val allEx = availableExercises
-                                val existingExIds = workoutExercises.map { it.id }.toSet()
-                                val setExIds = sessionSets.map { it.exerciseId }.distinct()
-                                val newExercisesFromSets = setExIds
-                                    .filterNot { it in existingExIds }
-                                    .mapNotNull { id -> allEx.find { it.id == id } }
-
-                                copy(
-                                    sets = sessionSets,
-                                    workoutExercises = workoutExercises + newExercisesFromSets
-                                )
-                            }
-                        }
+                        combine(workoutRepository.getSetsForSession(active.id), workoutRepository.getWorkoutExercises(active.id)) { sets, entries ->
+                            sets to entries
+                        }.collect { (sets,entries) -> updateState { copy(sets=sets,workoutExercises=entries) } }
                     }
                 } else {
                     setsCollectorJob?.cancel()
@@ -128,15 +116,12 @@ internal class ActiveWorkoutViewModel(
     }
 
     private fun addExercise(exercise: Exercise) {
-        updateState {
-            val current = workoutExercises
-            val updated = if (current.none { it.id == exercise.id }) current + exercise else current
-            copy(
-                workoutExercises = updated,
-                isPickerVisible = false
-            )
+        val sessionId=uiState.value.session?.id ?: return
+        launchOperation {
+            val entry=workoutRepository.addExerciseEntry(sessionId,exercise.id)
+            workoutRepository.addSetToEntry(sessionId,entry.id,60.0,10)
+            updateState { copy(isPickerVisible=false) }
         }
-        addSet(exercise.id)
     }
 
     private fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) {
@@ -167,7 +152,7 @@ internal class ActiveWorkoutViewModel(
     private fun removeExercise(exerciseId: String) {
         val sessionId = uiState.value.session?.id ?: return
         launchOperation {
-            workoutRepository.removeExerciseFromWorkout(sessionId, exerciseId)
+            workoutRepository.removeWorkoutExercise(sessionId, exerciseId)
             updateState { copy(workoutExercises = workoutExercises.filterNot { it.id == exerciseId }) }
         }
     }
@@ -175,14 +160,14 @@ internal class ActiveWorkoutViewModel(
     private fun addSet(exerciseId: String) {
         val sessionId = uiState.value.session?.id ?: return
         launchOperation {
-            val existingSets = uiState.value.sets.filter { it.exerciseId == exerciseId }
+            val existingSets = uiState.value.sets.filter { (it.workoutExerciseId ?: it.exerciseId) == exerciseId }
             val lastSet = existingSets.lastOrNull()
             val weight = lastSet?.weightKg ?: 60.0
             val reps = lastSet?.reps ?: 10
 
-            workoutRepository.addSet(
+            workoutRepository.addSetToEntry(
                 sessionId = sessionId,
-                exerciseId = exerciseId,
+                workoutExerciseId = exerciseId,
                 weightKg = weight,
                 reps = reps
             )
@@ -194,9 +179,9 @@ internal class ActiveWorkoutViewModel(
             val updated = workoutRepository.updateSet(set.id) { it.copy(isCompleted = !it.isCompleted) }
             // Start feedback only after the transaction succeeds.
             if (updated.isCompleted) {
-                val exercise = uiState.value.workoutExercises.find { it.id == set.exerciseId }
-                    ?: uiState.value.availableExercises.find { it.id == set.exerciseId }
-                val restSeconds = exercise?.defaultRestSeconds ?: 90
+                val restSeconds = set.restSecondsSnapshot
+                    ?: uiState.value.workoutExercises.find { it.id == (set.workoutExerciseId ?: set.exerciseId) }?.restSeconds
+                    ?: uiState.value.availableExercises.find { it.id == set.exerciseId }?.defaultRestSeconds ?: 90
 
                 startRestTimer(restSeconds)
             }
@@ -301,7 +286,10 @@ internal class ActiveWorkoutViewModel(
         if (uiState.value.isSaving) return
         updateState { copy(isSaving = true, error = null) }
         launchOperation {
-            workoutRepository.completeWorkout(session.id)
+            when(val result=completeWorkout.complete(session.id)) {
+                is core.result.Result.Success -> Unit
+                is core.result.Result.Error -> { onOperationFailure(DataError.Local.UNKNOWN); return@launchOperation }
+            }
             cancelTimers()
             updateState { copy(isSaving = false) }
             sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)

@@ -20,6 +20,12 @@ interface WorkoutRepository {
     suspend fun getSessionById(sessionId: String): WorkoutSession?
     fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>>
     suspend fun startWorkout(title: String = "Trénink"): WorkoutSession
+    fun getWorkoutExercises(sessionId: String): Flow<List<WorkoutExercise>>
+    suspend fun addExerciseEntry(sessionId: String, exerciseId: String): WorkoutExercise
+    /** Entry-specific commands reject stale IDs instead of treating them as catalogue IDs. */
+    suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double? = null): WorkoutSet
+    suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String)
+    /** Legacy catalogue command. Prefer addSetToEntry for existing entries. */
     suspend fun addSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int, rpe: Double? = null): WorkoutSet
     /** Applies an edit to the latest persisted value in the command transaction. */
     suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet

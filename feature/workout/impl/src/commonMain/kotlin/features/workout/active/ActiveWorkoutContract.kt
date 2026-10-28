@@ -16,7 +16,7 @@ internal class ActiveWorkoutContract {
     data class State(
         val session: WorkoutSession? = null,
         val availableExercises: List<Exercise> = emptyList(),
-        val workoutExercises: List<Exercise> = emptyList(),
+        val workoutExercises: List<features.workout.domain.WorkoutExercise> = emptyList(),
         val sets: List<WorkoutSet> = emptyList(),
         val isPickerVisible: Boolean = false,
         val isRestTimerActive: Boolean = false,

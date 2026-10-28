@@ -29,7 +29,11 @@ data class RoutineExerciseEntity(
     val routineId: String,
     val exerciseId: String,
     val restSeconds: Int,
-    val orderIndex: Int
+    val orderIndex: Int,
+    val legacyExerciseName: String? = null,
+    val legacyTargetSets: Int? = null,
+    val legacyDefaultWeightKg: Double? = null,
+    val legacyDefaultReps: Int? = null
 )
 
 @Entity(tableName = "routine_sets", foreignKeys = [ForeignKey(
@@ -64,6 +68,7 @@ internal fun RoutineSnapshot.toDomain() = Routine(
         RoutineExercise(entry.id, entry.exerciseId, entry.restSeconds,
             snapshot.sets.sortedBy { it.orderIndex }.map {
                 RoutineSet(it.id, it.weightKg, it.reps, WorkoutSetType.valueOf(it.setType))
-            })
+            }, entry.legacyExerciseName?.let { features.routines.api.LegacyRoutineValues(it,
+                entry.legacyTargetSets!!,entry.legacyDefaultWeightKg!!,entry.legacyDefaultReps!!) })
     }
 )

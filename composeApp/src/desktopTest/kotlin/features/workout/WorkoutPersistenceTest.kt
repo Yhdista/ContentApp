@@ -15,7 +15,6 @@ import core.common.ApplicationScope
 import core.database.MutationDao
 import core.database.SyncMutationEntity
 import features.workout.data.dao.WorkoutDao
-import features.workout.data.entity.WorkoutTemplateExerciseEntity
 import features.exercises.api.Exercise
 import features.exercises.api.ExerciseCatalog
 import features.exercises.api.MuscleGroup
@@ -60,9 +59,10 @@ class WorkoutPersistenceTest {
                 single { dao }
                 single { outbox }
                 single { db.exerciseDao() }
+                single { db.routineDao() }
                 single<CommandCoordinator> { writes }
                 single<AppClock> { object : AppClock { override fun nowMillis() = 1000L } }
-            }, exerciseFeatureModule(), workoutFeatureModule())
+            }, exerciseFeatureModule(), features.routines.data.routineFeatureModule(), workoutFeatureModule())
         }
         return application.koin.get<WorkoutRepository>().also { application.close() }
     }
@@ -110,6 +110,8 @@ class WorkoutPersistenceTest {
             val application = koinApplication {
                 modules(module {
                     single { db.exerciseDao() }
+                    single { db.mutationDao() }
+                    single<AppClock> { object : AppClock { override fun nowMillis() = 1000L } }
                     single<CommandCoordinator> { writes }
                 }, exerciseFeatureModule())
             }
@@ -229,31 +231,14 @@ class WorkoutPersistenceTest {
         } finally { db.close() }
     }
 
-    @Test
-    fun templateChildInsertFailureRollsBackParentAndOutbox() = runTest {
-        val db = database()
-        try {
-            val dao = object : WorkoutDao by db.workoutDao() {
-                override suspend fun insertTemplateExercises(exercises: List<WorkoutTemplateExerciseEntity>) {
-                    error("Child insert failed")
-                }
-            }
-            val repository = repository(db, writes(db), dao = dao)
-            assertFailsWith<IllegalStateException> {
-                repository.createTemplate("Rollback", "", listOf(
-                    WorkoutTemplateExercise("bench", "Bench", 3, 60.0, 10, 0)
-                ))
-            }
-            assertEquals(0, db.workoutDao().getTemplatesCount())
-            assertEquals(0, db.mutationDao().getUnsentMutationsCount().first())
-        } finally { db.close() }
-    }
-
+    // RoutinePersistenceTest covers child failure after the legacy SQL tables were retired.
     @Test
     fun repeatedTemplateStartDoesNotDuplicateSets() = runTest {
         val db = database()
         try {
             val repository = repository(db, writes(db))
+            repository.createCustomExercise("Bench", MuscleGroup.CHEST)
+            db.exerciseDao().insertExercise(features.exercises.data.ExerciseEntity("bench", "Bench", "CHEST", 90))
             val template = repository.createTemplate("Push", "", listOf(
                 WorkoutTemplateExercise("bench", "Bench", 3, 60.0, 10, 0)
             ))
@@ -325,10 +310,11 @@ class WorkoutPersistenceTest {
             val session = repository.startWorkout("Remove exercise")
             repository.addSet(session.id, "bench", 60.0, 10)
             repository.addSet(session.id, "bench", 65.0, 10)
+            val outboxBefore = db.mutationDao().getUnsentMutationsCount().first()
             rejectDeletes = true
             assertFailsWith<IllegalStateException> { repository.removeExerciseFromWorkout(session.id, "bench") }
             assertEquals(2, db.workoutDao().getSetsForSessionSnapshot(session.id).size)
-            assertEquals(3, db.mutationDao().getUnsentMutationsCount().first())
+            assertEquals(outboxBefore, db.mutationDao().getUnsentMutationsCount().first())
         } finally { db.close() }
     }
 

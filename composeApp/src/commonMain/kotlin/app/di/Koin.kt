@@ -27,7 +27,7 @@ val coreModule = module {
 }
 
 val commonModule = module {
-    includes(coreModule, draftStorageModule(), exerciseFeatureModule(), workoutFeatureModule(), routineFeatureModule(), trainingPlanFeatureModule())
+    includes(app.workflow.trainingWorkflowModule(), coreModule, draftStorageModule(), exerciseFeatureModule(), workoutFeatureModule(), routineFeatureModule(), trainingPlanFeatureModule())
 }
 
 expect val platformModule: Module

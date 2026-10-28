@@ -3,7 +3,7 @@ package features.exercises.api
 import kotlinx.coroutines.flow.Flow
 
 /** Catalogue records retain their stable IDs. Writes join the application's command transaction.
- * The command caller owns any associated outbox record. Archived persistence arrives with schema 7.
+ * Save callers own any associated outbox record; archive emits its own update atomically.
  */
 interface ExerciseCatalog {
     fun observeExercises(): Flow<List<Exercise>>
@@ -11,5 +11,9 @@ interface ExerciseCatalog {
     suspend fun getExerciseById(id: String): Exercise?
     suspend fun getExercisesCount(): Int
     suspend fun saveExercise(exercise: Exercise)
+    suspend fun archive(id: String) {
+        val exercise = getExerciseById(id) ?: throw NoSuchElementException("Exercise not found")
+        saveExercise(exercise.copy(archived = true))
+    }
     suspend fun saveExercises(exercises: List<Exercise>)
 }

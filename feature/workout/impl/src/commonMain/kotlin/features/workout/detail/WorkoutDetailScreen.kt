@@ -142,6 +142,9 @@ internal fun WorkoutDetailScreen(
                 state.error?.let { error ->
                     item { ErrorNotice(error.asString(), onRetry = { onIntent(WorkoutDetailContract.Intent.LoadDetail(state.requestedSessionId ?: return@ErrorNotice)) }) }
                 }
+                if (state.exercisesWithSets.any { group -> group.sets.any { it.orderReconstructed } }) {
+                    item { Text("Pořadí cviků bylo obnoveno ze staršího záznamu.", style = MaterialTheme.typography.bodySmall) }
+                }
                 // 1. Karta souhrnu (Objem, Čas)
                 item {
                     Row(
@@ -270,7 +273,7 @@ internal fun WorkoutDetailScreen(
                         }
                     }
                 } else {
-                    items(state.exercisesWithSets, key = { it.exercise.id }) { group ->
+                    items(state.exercisesWithSets, key = { it.entryId }) { group ->
                         DetailExerciseCard(group = group)
                     }
                 }
@@ -396,6 +399,13 @@ private fun DetailExerciseCard(
         // Seznam sérií
         Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
             group.sets.forEach { set ->
+                Text(
+                    text = if (set.prescribedWeightKg != null && set.prescribedReps != null)
+                        "Předpis: ${set.prescribedWeightKg} kg × ${set.prescribedReps} · ${set.prescribedSetType?.displayName ?: "—"}"
+                        else "Předpis nebyl zaznamenán",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colorScheme.onSurfaceVariant
+                )
                 val weightStr = set.weightKg.formatCleanWeight()
                 val rpeStr = set.rpe?.let { " @$it" } ?: ""
 

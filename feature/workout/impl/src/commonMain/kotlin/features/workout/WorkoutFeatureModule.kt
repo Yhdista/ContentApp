@@ -14,9 +14,10 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
 fun workoutFeatureModule(): Module = module {
-    single<WorkoutLocalDataSource> { RoomWorkoutLocalDataSource(get(), get()) }
+    single<WorkoutLocalDataSource> { RoomWorkoutLocalDataSource(get(), get(), get()) }
     single<WorkoutDataExport> { LocalWorkoutDataExport(get(), get()) }
-    single<WorkoutRepository> { OfflineFirstWorkoutRepository(get(), get(), get(), get()) }
+    single<WorkoutRepository> { OfflineFirstWorkoutRepository(get(), get(), get(), get(), get()) }
+    single<features.workout.domain.WorkoutStore> { features.workout.data.RoomWorkoutStore(get(), get(), get(), get()) }
     factoryOf(::ActiveWorkoutViewModel)
     factoryOf(::WorkoutHistoryViewModel)
     factoryOf(::WorkoutDetailViewModel)

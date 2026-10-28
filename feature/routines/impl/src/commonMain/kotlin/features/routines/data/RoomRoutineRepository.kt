@@ -63,7 +63,8 @@ internal class RoomRoutineRepository(
             dao.deleteExercises(saved.id)
         }
         dao.insertExercises(saved.exercises.mapIndexed { index, entry ->
-            RoutineExerciseEntity(entry.id, saved.id, entry.exerciseId, entry.restSeconds, index)
+            RoutineExerciseEntity(entry.id, saved.id, entry.exerciseId, entry.restSeconds, index,
+                entry.legacyValues?.exerciseName,entry.legacyValues?.targetSets,entry.legacyValues?.defaultWeightKg,entry.legacyValues?.defaultReps)
         })
         dao.insertSets(saved.exercises.flatMap { entry -> entry.sets.mapIndexed { index, set ->
             RoutineSetEntity(set.id, entry.id, set.weightKg, set.reps, set.setType.name, index)
@@ -99,7 +100,7 @@ internal class RoomRoutineRepository(
         enqueue("routine", saved.id, if (previous == null) "INSERT" else "UPDATE", Json.encodeToString(saved.payload()))
         saved.exercises.forEachIndexed { entryIndex, entry ->
             enqueue("routine_exercise", entry.id, if (entry.id in oldEntries) "UPDATE" else "INSERT",
-                Json.encodeToString(RoutineExerciseSyncPayload(entry.id, saved.id, entry.exerciseId, entry.restSeconds, entryIndex)))
+                Json.encodeToString(RoutineExerciseSyncPayload(entry.id, saved.id, entry.exerciseId, entry.restSeconds, entryIndex, entry.legacyValues)))
             entry.sets.forEachIndexed { setIndex, set ->
                 enqueue("routine_set", set.id, if (set.id in oldSets) "UPDATE" else "INSERT",
                     Json.encodeToString(RoutineSetSyncPayload(set.id, entry.id, set.weightKg, set.reps, set.setType, setIndex)))

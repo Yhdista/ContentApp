@@ -18,6 +18,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":feature:workout:api"))
             implementation(project(":feature:exercises:api"))
+            implementation(project(":feature:routines:api"))
             implementation(project(":core:storage"))
             implementation(project(":core:presentation"))
             implementation(project(":designsystem"))

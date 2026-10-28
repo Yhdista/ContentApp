@@ -99,6 +99,17 @@ class WorkoutDetailViewModelTest {
         assertEquals(1200.0, benchGroup.exerciseVolumeKg)
     }
 
+    @Test fun repeatedExerciseHistoryUsesIndependentKeysAndSnapshotNames() = runTest(testDispatcher) {
+        fakeRepository.setSession(WorkoutSession("snapshot","History",1,isCompleted=true))
+        fakeRepository.addSets(List(2) { index -> WorkoutSet("s$index","snapshot","ex_bench",1,20.0,8,
+            workoutExerciseId="entry$index",exerciseNameSnapshot="Original $index",exerciseOrder=index) })
+        viewModel.load("snapshot"); testScheduler.runCurrent()
+        val entries=viewModel.uiState.value.exercisesWithSets
+        assertEquals(listOf("entry0","entry1"),entries.map { it.entryId })
+        assertEquals(listOf("Original 0","Original 1"),entries.map { it.exercise.name })
+        assertTrue(entries.all { it.sets.size==1 })
+    }
+
     @Test
     fun testBackClickedSendsNavigateBackEffect() = runTest(testDispatcher) {
         var effectReceived: WorkoutDetailContract.Effect? = null
@@ -183,6 +194,11 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
         sets.map { list -> list.filter { it.sessionId == sessionId } }
 
     override suspend fun startWorkout(title: String): WorkoutSession = error("Not needed")
+    override fun getWorkoutExercises(sessionId: String) = fakeWorkoutEntries(this,sessionId)
+    override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?) = addSet(sessionId,workoutExerciseId,weightKg,reps,rpe)
+    override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = removeExerciseFromWorkout(sessionId,workoutExerciseId)
+    override suspend fun addExerciseEntry(sessionId: String, exerciseId: String) = features.workout.domain.WorkoutExercise(
+        exerciseId,sessionId,exerciseId,exerciseId,features.exercises.api.MuscleGroup.CHEST,90,0)
     override suspend fun addSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int, rpe: Double?): WorkoutSet = error("Not needed")
     override suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet = error("Not used")
     override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) {}

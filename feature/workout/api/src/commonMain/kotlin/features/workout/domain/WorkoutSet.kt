@@ -26,5 +26,14 @@ data class WorkoutSet(
     val isCompleted: Boolean = false,
     val previousPerformance: String? = null,
     val isPersonalRecord: Boolean = false,
-    val setType: WorkoutSetType = WorkoutSetType.NORMAL
+    val setType: WorkoutSetType = WorkoutSetType.NORMAL,
+    val workoutExerciseId: String? = null,
+    val prescribedWeightKg: Double? = null,
+    val prescribedReps: Int? = null,
+    val prescribedSetType: WorkoutSetType? = null,
+    val exerciseNameSnapshot: String? = null,
+    val muscleGroupSnapshot: features.exercises.api.MuscleGroup? = null,
+    val exerciseOrder: Int? = null,
+    val restSecondsSnapshot: Int? = null,
+    val orderReconstructed: Boolean = false
 )

@@ -18,7 +18,8 @@ data class RoutineExercise(
     val id: String,
     val exerciseId: String,
     val restSeconds: Int,
-    val sets: List<RoutineSet>
+    val sets: List<RoutineSet>,
+    val legacyValues: LegacyRoutineValues? = null
 )
 
 @Serializable
@@ -28,3 +29,7 @@ data class RoutineSet(
     val reps: Int,
     val setType: WorkoutSetType = WorkoutSetType.NORMAL
 )
+
+/** Original v6 scalars retained through editor round trips; explicitly clear after repair. */
+@Serializable
+data class LegacyRoutineValues(val exerciseName: String, val targetSets: Int, val defaultWeightKg: Double, val defaultReps: Int)

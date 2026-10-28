@@ -7,4 +7,4 @@ import kotlinx.coroutines.IO
 
 /** All hosts use the same driver and transaction API. Missing migrations fail without deleting data. */
 fun RoomDatabase.Builder<AppDatabase>.configureAppDatabase(): RoomDatabase.Builder<AppDatabase> =
-    setDriver(BundledSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO)
+    addMigrations(MIGRATION_6_7).setDriver(BundledSQLiteDriver()).setQueryCoroutineContext(Dispatchers.IO)

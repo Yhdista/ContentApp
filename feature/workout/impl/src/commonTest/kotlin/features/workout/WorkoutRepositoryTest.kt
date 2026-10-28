@@ -11,8 +11,6 @@ import features.exercises.api.Exercise
 import features.exercises.api.ExerciseCatalog
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
-import features.workout.data.entity.WorkoutTemplateEntity
-import features.workout.data.entity.WorkoutTemplateExerciseEntity
 import features.workout.domain.WorkoutRepository
 import features.workout.domain.WorkoutSetType
 import kotlinx.coroutines.flow.Flow
@@ -42,12 +40,11 @@ class WorkoutRepositoryTest {
         fakeMutationDao = FakeMutationDao()
         fakeClock = RepoFakeClock(time = 1000000L)
         repository = OfflineFirstWorkoutRepository(
-            localDataSource = RoomWorkoutLocalDataSource(fakeDao, fakeCatalog),
+            localDataSource = RoomWorkoutLocalDataSource(fakeDao, fakeCatalog, FakeRoutines()),
             mutationDao = fakeMutationDao,
             clock = fakeClock,
-            writes = object : CommandCoordinator {
-                override suspend fun <T> write(block: suspend () -> T): T = block()
-            }
+            writes = directWrites,
+            store = features.workout.data.RoomWorkoutStore(fakeDao, directWrites, fakeMutationDao, fakeClock)
         )
     }
 
@@ -128,7 +125,7 @@ class WorkoutRepositoryTest {
 
     @Test
     fun testEnsureDefaultTemplatesSeedsWhenEmpty() = runTest {
-        assertEquals(0, fakeDao.getTemplatesCount())
+        assertEquals(0, repository.getTemplates().first().size)
         repository.ensureDefaultTemplates()
         val templates = repository.getTemplates().first()
         assertTrue(templates.isNotEmpty())
@@ -260,8 +257,14 @@ private class RepoFakeClock(var time: Long) : AppClock {
 private class FakeWorkoutDao : WorkoutDao {
     private val sessions = MutableStateFlow<List<WorkoutSessionEntity>>(emptyList())
     private val sets = MutableStateFlow<List<WorkoutSetEntity>>(emptyList())
-    private val templates = MutableStateFlow<List<WorkoutTemplateEntity>>(emptyList())
-    private val templateExercises = MutableStateFlow<List<WorkoutTemplateExerciseEntity>>(emptyList())
+    private val entries = MutableStateFlow<List<features.workout.data.entity.WorkoutExerciseEntity>>(emptyList())
+    override suspend fun getAllSetsSnapshot() = sets.value
+    override suspend fun getAllExercisesSnapshot() = entries.value
+    override suspend fun getExercisesSnapshot(sessionId: String) = entries.value.filter { it.sessionId == sessionId }
+    override fun observeExercises(sessionId: String) = entries.map { list -> list.filter { it.sessionId == sessionId } }
+    override suspend fun insertExercise(entry: features.workout.data.entity.WorkoutExerciseEntity) { entries.value += entry }
+    override suspend fun deleteExercises(sessionId: String) { entries.value = entries.value.filterNot { it.sessionId == sessionId } }
+    override suspend fun deleteExercise(id: String) { entries.value = entries.value.filterNot { it.id == id } }
 
     override fun getActiveSession(): Flow<WorkoutSessionEntity?> =
         sessions.map { list -> list.firstOrNull { !it.isCompleted } }
@@ -310,37 +313,8 @@ private class FakeWorkoutDao : WorkoutDao {
     override suspend fun getHistoricalCompletedSets(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity> =
         sets.value.filter { it.exerciseId == exerciseId && it.isCompleted && it.sessionId != currentSessionId }
 
-    override fun getAllTemplates(): Flow<List<WorkoutTemplateEntity>> = templates.asStateFlow()
-
-    override fun getAllTemplateExercises(): Flow<List<WorkoutTemplateExerciseEntity>> = templateExercises.asStateFlow()
-
-    override suspend fun getTemplateById(templateId: String): WorkoutTemplateEntity? =
-        templates.value.firstOrNull { it.id == templateId }
-
-    override suspend fun getTemplateExercises(templateId: String): List<WorkoutTemplateExerciseEntity> =
-        templateExercises.value.filter { it.templateId == templateId }.sortedBy { it.orderIndex }
-
-    override suspend fun getTemplatesCount(): Int = templates.value.size
-
-    override suspend fun insertTemplate(template: WorkoutTemplateEntity) {
-        templates.value = templates.value.filter { it.id != template.id } + template
-    }
-
-    override suspend fun insertTemplateExercises(exercises: List<WorkoutTemplateExerciseEntity>) {
-        templateExercises.value = templateExercises.value + exercises
-    }
-
-    override suspend fun deleteTemplateExercises(templateId: String) {
-        templateExercises.value = templateExercises.value.filter { it.templateId != templateId }
-    }
-
-    override suspend fun deleteTemplate(templateId: String) {
-        templates.value = templates.value.filter { it.id != templateId }
-    }
-
     override suspend fun getSetById(setId: String): WorkoutSetEntity? = sets.value.firstOrNull { it.id == setId }
     override suspend fun getSetsForSessionSnapshot(sessionId: String): List<WorkoutSetEntity> = sets.value.filter { it.sessionId == sessionId }
-    override suspend fun getTemplatesSnapshot(): List<WorkoutTemplateEntity> = templates.value
 
     override suspend fun getAllSessionsList(): List<WorkoutSessionEntity> = sessions.value
     override fun getAllCompletedSetsForExercise(exerciseId: String): Flow<List<WorkoutSetEntity>> =
@@ -379,4 +353,17 @@ private class FakeExerciseCatalog : ExerciseCatalog {
     override suspend fun getExercisesCount(): Int = exercises.value.size
     override suspend fun saveExercise(exercise: Exercise) { exercises.value = exercises.value.filter { it.id != exercise.id } + exercise }
     override suspend fun saveExercises(exercises: List<Exercise>) { exercises.forEach { saveExercise(it) } }
+}
+
+private val directWrites = object : CommandCoordinator { override suspend fun <T> write(block: suspend () -> T): T = block() }
+private class FakeRoutines : features.routines.api.RoutineRepository {
+    private val rows=MutableStateFlow<List<features.routines.api.Routine>>(emptyList())
+    override fun observeAll(includeArchived: Boolean)=rows.asStateFlow()
+    override fun observeById(id: String)=rows.map { list -> list.firstOrNull { it.id==id } }
+    override suspend fun getById(id: String)=rows.value.firstOrNull { it.id==id }
+    override suspend fun save(routine: features.routines.api.Routine,expectedRevision: Long?): core.result.Result<features.routines.api.Routine,features.routines.api.RoutineError> {
+        val saved=routine.copy(revision=1); rows.value=rows.value.filterNot { it.id==routine.id }+saved; return core.result.Result.Success(saved)
+    }
+    override suspend fun duplicate(id: String): core.result.Result<features.routines.api.Routine,features.routines.api.RoutineError> = error("unused")
+    override suspend fun archive(id: String,expectedRevision: Long): core.result.Result<Unit,features.routines.api.RoutineError> = error("unused")
 }

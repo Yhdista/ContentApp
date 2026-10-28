@@ -14,7 +14,9 @@ internal class WorkoutDetailContract {
         val exercise: Exercise,
         val sets: List<WorkoutSet>,
         val exerciseVolumeKg: Double
-    )
+    ) {
+        val entryId: String get() = sets.firstOrNull()?.workoutExerciseId ?: exercise.id
+    }
 
     @Stable
     data class State(
