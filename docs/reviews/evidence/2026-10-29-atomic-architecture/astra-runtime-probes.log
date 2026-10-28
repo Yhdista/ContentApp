@@ -1,0 +1,9 @@
+PROVEN completion bypass: completed=true, workflow retry firstCompletion=false, nextSlot=A instead of B, revision unchanged
+PROVEN split add command: second outbox fails, persisted entries=1 sets=0; first transaction cannot roll back
+PROVEN terminal lock leak: pending finish unlocked by catalogue Flow error; second Finish accepted, completion calls=2
+PROVEN latest-performance chronology: old session end=200 chosen over newer end=400 because zz-old sorts after aa-new
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::loadLibrary has been called by androidx.sqlite.driver.bundled.NativeLibraryLoader in an unnamed module (file:/Users/yhdista/.gradle/caches/modules-2/files-2.1/androidx.sqlite/sqlite-bundled-jvm/2.5.0-alpha11/4b48da68801a8c205d31f3bbb45ddc2eca1cc586/sqlite-bundled-jvm-2.5.0-alpha11.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+

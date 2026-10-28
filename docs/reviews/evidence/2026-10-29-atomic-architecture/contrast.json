@@ -1,0 +1,32 @@
+[
+  {
+    "foreground": "LightStatusPending",
+    "background": "LightOnStatusPending",
+    "ratio": 2.861
+  },
+  {
+    "foreground": "LightStatusSynced",
+    "background": "LightOnStatusSynced",
+    "ratio": 3.001
+  },
+  {
+    "foreground": "LightStatusError",
+    "background": "LightOnStatusError",
+    "ratio": 3.953
+  },
+  {
+    "foreground": "LightPrimary",
+    "background": "LightOnPrimary",
+    "ratio": 4.095
+  },
+  {
+    "foreground": "LightOnSurfaceVariant",
+    "background": "LightSurfaceVariant",
+    "ratio": 4.344
+  },
+  {
+    "foreground": "DarkOnSurfaceVariant",
+    "background": "DarkSurfaceVariant",
+    "ratio": 5.705
+  }
+]
