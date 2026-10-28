@@ -2,6 +2,8 @@ package app.di
 
 import app.database.AppDatabase
 import core.common.ApplicationScope
+import core.storage.draftStorageModule
+import features.routines.data.routineFeatureModule
 import core.storage.CommandCoordinator
 import core.storage.RoomCommandCoordinator
 import core.sync.SyncManager
@@ -18,10 +20,12 @@ val coreModule = module {
     single { ApplicationScope() } onClose { it?.cancel() }
     single<CommandCoordinator> { RoomCommandCoordinator(get<AppDatabase>(), get()) }
     single { SyncManager(get(), get()) }
+    single { get<AppDatabase>().routineDao() }
+    single { get<AppDatabase>().editorDraftDao() }
 }
 
 val commonModule = module {
-    includes(coreModule, exerciseFeatureModule(), workoutFeatureModule())
+    includes(coreModule, draftStorageModule(), exerciseFeatureModule(), workoutFeatureModule(), routineFeatureModule())
 }
 
 expect val platformModule: Module

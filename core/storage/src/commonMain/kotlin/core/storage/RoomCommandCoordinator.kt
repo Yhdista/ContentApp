@@ -31,7 +31,13 @@ class RoomCommandCoordinator(
     }.also { job -> job.invokeOnCompletion { commands.close(it) } }
 
     override suspend fun <T> write(block: suspend () -> T): T {
-        if (currentCoroutineContext()[TransactionContext]?.owner === this) return block()
+        if (currentCoroutineContext()[TransactionContext]?.owner === this) {
+            // Reuse the ambient writer, with a savepoint so a handled feature failure cannot
+            // leave its partial aggregate inside an otherwise successful outer command.
+            return database.useWriterConnection<T> { connection ->
+                connection.immediateTransaction<T> { block() }
+            }
+        }
         val result = CompletableDeferred<T>()
         val completion = worker.invokeOnCompletion { cause ->
             result.completeExceptionally(cause ?: CancellationException("Write coordinator stopped"))

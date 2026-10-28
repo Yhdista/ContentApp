@@ -1,5 +1,11 @@
 package app.database
 
+import core.storage.EditorDraftDao
+import core.storage.EditorDraftEntity
+import features.routines.data.RoutineDao
+import features.routines.data.RoutineEntity
+import features.routines.data.RoutineExerciseEntity
+import features.routines.data.RoutineSetEntity
 import core.database.MutationDao
 import core.database.SyncMutationEntity
 import androidx.room.ConstructedBy
@@ -21,9 +27,13 @@ import features.workout.data.entity.WorkoutTemplateExerciseEntity
         WorkoutSessionEntity::class,
         WorkoutSetEntity::class,
         WorkoutTemplateEntity::class,
-        WorkoutTemplateExerciseEntity::class
+        WorkoutTemplateExerciseEntity::class,
+        RoutineEntity::class,
+        RoutineExerciseEntity::class,
+        RoutineSetEntity::class,
+        EditorDraftEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 @ConstructedBy(AppDatabaseConstructor::class)
@@ -31,6 +41,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun mutationDao(): MutationDao
     abstract fun workoutDao(): WorkoutDao
     abstract fun exerciseDao(): ExerciseDao
+    abstract fun routineDao(): RoutineDao
+    abstract fun editorDraftDao(): EditorDraftDao
 }
 
 @Suppress("KotlinNoActualForExpect")
