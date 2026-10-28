@@ -1,6 +1,6 @@
 # 📋🗓️ Rutiny, tréninkové plány a samostatné workouty
 
-> 📝 **Návrh další etapy, nikoli popis hotové implementace.** Dohodnutý směr: samostatné rutiny i vícedenní plány, ze kterých vznikají workouty. Rozvrh podle kalendáře versus cyklu uživatel zatím nevybral; cyklus a ostatní níže označené výchozí politiky jsou návrhem asistenta.
+> ✅ **Návrh schválen k realizaci.** Uživatel dne 28. 10. 2026 v 12:03 potvrdil pokračování po předložení tohoto dokumentu, včetně výchozího cyklu A → B → C a zde uvedených pravidel. Dokument popisuje cílový stav této etapy, nikoli již dokončenou implementaci.
 
 ## 🎯 Účel a rozsah
 
