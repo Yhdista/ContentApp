@@ -253,6 +253,7 @@ private class HistoryFakeWorkoutRepository : WorkoutRepository, WorkoutDataExpor
         return session
     }
 
+    override fun getPrescriptionForSession(sessionId: String) = kotlinx.coroutines.flow.flowOf(emptyList<features.workout.domain.WorkoutPrescriptionSet>())
     override fun getWorkoutExercises(sessionId: String) = fakeWorkoutEntries(this,sessionId)
     override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?) = addSet(sessionId,workoutExerciseId,weightKg,reps,rpe)
     override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = removeExerciseFromWorkout(sessionId,workoutExerciseId)

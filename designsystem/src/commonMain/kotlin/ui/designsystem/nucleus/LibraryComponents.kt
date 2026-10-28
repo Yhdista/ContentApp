@@ -44,10 +44,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
             contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
     }
 }
-@Composable fun AppTabs(selected: Int, onSelect: (Int) -> Unit) {
+data class AppTabItem(val label: String, val icon: String)
+@Composable fun AppTabs(items: List<AppTabItem>, selected: Int, onSelect: (Int) -> Unit) {
     NavigationBar {
-        listOf("Tréninky", "Rutiny", "Plány").forEachIndexed { index, label ->
-            NavigationBarItem(selected == index, onClick = { onSelect(index) }, icon = { Text(listOf("◉", "≡", "↻")[index]) }, label = { Text(label) })
+        items.forEachIndexed { index, item ->
+            NavigationBarItem(selected == index, onClick = { onSelect(index) }, icon = { Text(item.icon) }, label = { Text(item.label) })
         }
     }
 }

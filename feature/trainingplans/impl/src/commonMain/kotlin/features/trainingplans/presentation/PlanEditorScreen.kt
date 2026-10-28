@@ -28,6 +28,7 @@ import features.workout.domain.WorkoutSetType
     AppPage("🗓️ Návrh plánu", { onIntent(PlanEditorContract.Intent.Back) }) {
         if(state.isLoading) item { AppLoading() }
         item { AppText("💾 Rozepsáno · automaticky ukládáno v tomto zařízení. Dokončete návrh tlačítkem Uložit.") }
+        state.choicesError?.let { item { EditorNotice(it) { onIntent(PlanEditorContract.Intent.RetryChoices) } } }
         state.error?.let { item { EditorNotice(it) { onIntent(PlanEditorContract.Intent.Retry) } } }
         if(state.draft == null && state.canDiscard && state.error != null) item { AppAction("Zahodit nečitelný návrh", enabled) { onIntent(PlanEditorContract.Intent.Discard) } }
         if(state.conflict) item { AppCard {

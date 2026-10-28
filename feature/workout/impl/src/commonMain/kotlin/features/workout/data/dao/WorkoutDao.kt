@@ -7,6 +7,7 @@ import androidx.room.Query
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
 import features.workout.data.entity.WorkoutExerciseEntity
+import features.workout.data.entity.WorkoutPrescriptionSetEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -82,4 +83,13 @@ interface WorkoutDao {
     suspend fun deleteExercises(sessionId: String)
     @Query("DELETE FROM workout_exercises WHERE id = :id")
     suspend fun deleteExercise(id: String)
+    // Immutable targets can only be inserted, or removed with a cancelled whole session.
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertPrescription(target: WorkoutPrescriptionSetEntity)
+    @Query("SELECT * FROM workout_prescriptions WHERE sessionId = :sessionId ORDER BY exerciseOrder, setNumber, id")
+    fun observePrescription(sessionId: String): Flow<List<WorkoutPrescriptionSetEntity>>
+    @Query("SELECT * FROM workout_prescriptions ORDER BY sessionId, exerciseOrder, setNumber, id")
+    suspend fun getAllPrescriptions(): List<WorkoutPrescriptionSetEntity>
+    @Query("DELETE FROM workout_prescriptions WHERE sessionId = :sessionId")
+    suspend fun deletePrescriptionForSession(sessionId: String)
 }

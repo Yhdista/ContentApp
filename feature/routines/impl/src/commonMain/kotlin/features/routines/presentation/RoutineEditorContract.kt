@@ -6,7 +6,7 @@ import features.exercises.api.*
 
 internal object RoutineEditorContract {
     @Stable data class State(val draft: RoutineDraft? = null, val choices: List<Exercise> = emptyList(),
-        val isLoading: Boolean = true, val isSaving: Boolean = false, val error: String? = null,
+        val isLoading: Boolean = true, val isSaving: Boolean = false, val error: String? = null, val choicesError: String? = null,
         val canDiscard: Boolean = false, val conflict: Boolean = false, val confirmExit: Boolean = false, val dependentPlans: Int = 0) : UiState
     sealed interface Intent : UiIntent {
         data class Mutate(val transform: (RoutineDraft) -> RoutineDraft) : Intent
@@ -14,6 +14,7 @@ internal object RoutineEditorContract {
         data object Save : Intent
         data object SaveCopy : Intent
         data object Reload : Intent
+        data object RetryChoices : Intent
         data object Retry : Intent
         data object Back : Intent
         data object Continue : Intent

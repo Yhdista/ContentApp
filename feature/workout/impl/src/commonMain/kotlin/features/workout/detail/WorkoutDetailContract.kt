@@ -13,9 +13,10 @@ internal class WorkoutDetailContract {
     data class ExerciseWithSets(
         val exercise: Exercise,
         val sets: List<WorkoutSet>,
-        val exerciseVolumeKg: Double
+        val exerciseVolumeKg: Double,
+        val prescriptions: List<features.workout.domain.WorkoutPrescriptionSet> = emptyList()
     ) {
-        val entryId: String get() = sets.firstOrNull()?.workoutExerciseId ?: exercise.id
+        val entryId: String get() = prescriptions.firstOrNull()?.workoutExerciseId ?: sets.firstOrNull()?.workoutExerciseId ?: exercise.id
     }
 
     @Stable

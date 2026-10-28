@@ -255,7 +255,11 @@ override fun onOperationFailure(error: DataError.Local) {
 
 ## 💾 Raw draft → publikace → návrat
 
-📝 [RoutineEditorContract](../feature/routines/impl/src/commonMain/kotlin/features/routines/presentation/RoutineEditorContract.kt) a ekvivalent plánu rozlišují loading, draft, isSaving, error, conflict a confirmExit. `RoutineDraft` drží váhu/opakování/pauzu jako text; `-` je platný obsah návrhu, ale ne publikovatelné číslo. Uložený agregát a outbox se neúplným editorem nemění.
+📝 [RoutineEditorContract](../feature/routines/impl/src/commonMain/kotlin/features/routines/presentation/RoutineEditorContract.kt) a ekvivalent plánu rozlišují loading, draft, isSaving, error, choicesError, conflict a confirmExit. `RoutineDraft` drží váhu/opakování/pauzu jako text; `-` je platný obsah návrhu, ale ne publikovatelné číslo. Uložený agregát a outbox se neúplným editorem nemění.
+
+🔄 Otevření draftu a jeho lease je jednorázové. `choices` má samostatný dlouhodobý Flow: `ExerciseCatalog.observeExercises()` nebo `RoutineRepository.observeAll(true)`. Nový cvik/rutina, přejmenování a archivace se promítnou i do uchovaného editoru. Žádná emise nenahrazuje raw draft ani expectedRevision/child ID. Archivované současné reference zůstávají čitelné; nové picker nenabízí.
+
+🛡️ Selhání nabídky ponechá poslední volby a nastaví vlastní `choicesError`. `RetryChoices` znovu přihlásí pouze neaktivní odběr; otevření draftu, lease ani autosave neopakuje. Může proběhnout během `isSaving`, ale nesmí tento zámek uvolnit. Úspěšná emise smaže jen chybu nabídky. Vydané operace/publikace dále vlastní aplikační fronty a stav svých chyb.
 
 👆 `Mutate` aplikuje změnu konkrétního pole nad aktuálním draftem ViewModelu. Dvě rychlé změny z téže kompozice se nepřepíší. `Edit` přijímá úplný snapshot (například v testu); ViewModel zařadí JSON do `OrderedDrafts.Session.put` synchronně před spuštěním čekající korutiny. Zánik obrazovky tak neodhodí již přijatý text.
 
@@ -281,7 +285,7 @@ sequenceDiagram
 
 ↩️ Toolbar a Android systémové Zpět posílají stejný Back intent. Autosave neznamená publikaci: nabídka zůstává „pokračovat“ nebo „zahodit“. Discard čeká za autosavy a naviguje až po úspěšném delete; chyba nechá editor otevřený. Přepnutí tabs zachovává draft i bez dialogu; route draftId jej umí obnovit po rekreaci.
 
-🛡️ Nikdy nečekej na draft FIFO uvnitř DB writeru, jinak se mohou dvě fronty vzájemně zablokovat. Doménový `Result.Error` uvnitř publikace musí vyvolat vnější abort. `isSaving` blokuje další vstupy, zatímco transakce kontroluje invarianty i pro jiné volající. Uvolňuje jej pouze čekání vlastní terminal operace; chyba staršího autosave ani pomocného usage odběru nesmí odemknout rozpracovaný save/discard/reload.
+🛡️ Nikdy nečekej na draft FIFO uvnitř DB writeru, jinak se mohou dvě fronty vzájemně zablokovat. Doménový `Result.Error` uvnitř publikace musí vyvolat vnější abort. `isSaving` blokuje další vstupy, zatímco transakce kontroluje invarianty i pro jiné volající. Uvolňuje jej pouze čekání vlastní terminal operace; chyba staršího autosave ani pomocného usage či choices odběru nesmí odemknout rozpracovaný save/discard/reload.
 
 🔑 `OrderedDrafts.open(kind, id, ownerJob)` váže jeden živý editor na jeden zdroj. Druhá uchovaná nav entry dostane vysvětlení a Zpět/Retry, nikoli novou generaci původního draftu. Po zániku prvního ViewModelu (ne pouhé kompozice) se release zařadí za přijaté zápisy; Retry pak načte poslední durable obsah. Publish/discard uvolní lease při úspěchu. Zrušení během queued/read acquire nezanechá osiřelou lease. Převod workoutu při existující lease vrací stávající draftId a nesmí přepisovat obsah.
 
@@ -301,8 +305,8 @@ sequenceDiagram
 - 🧪 [ActiveWorkoutViewModelTest](../feature/workout/impl/src/commonTest/kotlin/features/workout/ActiveWorkoutViewModelTest.kt): `editsFromSameUiSnapshotPreserveBothFields`, `failedFinishKeepsSessionAndExposesRecoverableError`, `mutatingIntentsAreIgnoredWhileFinishIsPending`.
 - 🧪 [WorkoutPersistenceTest](../composeApp/src/desktopTest/kotlin/features/workout/WorkoutPersistenceTest.kt): `failedOutboxInsertRollsBackSession`, `acceptedCommandCommitsAfterCallerIsCancelled`, `failedExerciseRemovalRollsBackAllDeletedSets`.
 - 🧪 [TypedNavigationTest](../composeApp/src/desktopTest/kotlin/app/navigation/TypedNavigationTest.kt): skutečný NavHost, entry ownership, obnova argumentů a návrat ke zdroji.
-- 🧪 [RoutinePresentationTest](../feature/routines/impl/src/commonTest/kotlin/features/routines/presentation/RoutinePresentationTest.kt) a [PlanPresentationTest](../feature/trainingplans/impl/src/commonTest/kotlin/features/trainingplans/presentation/PlanPresentationTest.kt): raw návrhy, rychlé změny, konflikt/kopie, efekty po commitu a chyby.
-- 🧪 [LibrarySmokeTest](../composeApp/src/desktopTest/kotlin/app/navigation/LibrarySmokeTest.kt): reálné obrazovky, DB a navigace přes Desktop Skia, včetně obrázků.
+- 🧪 [RoutinePresentationTest](../feature/routines/impl/src/commonTest/kotlin/features/routines/presentation/RoutinePresentationTest.kt) a [PlanPresentationTest](../feature/trainingplans/impl/src/commonTest/kotlin/features/trainingplans/presentation/PlanPresentationTest.kt): raw návrhy, rychlé změny, konflikt/kopie, efekty po commitu, živé volby, počáteční selhání a opakování odběru i během terminal příkazu.
+- 🧪 [LibrarySmokeTest](../composeApp/src/desktopTest/kotlin/app/navigation/LibrarySmokeTest.kt): reálné obrazovky, DB a navigace přes Desktop Skia, včetně uchovaného plánu → vytvoření rutiny v jiné záložce → výběru nové rutiny a historie se všemi skutečnými cviky odebranými.
 
 🧪 ViewModel testy řídí Main dispatcher a virtuální čas. Časovače se musí uklidit, aby test po dokončení stále neplánoval další tiky. Úspěšný fake repository test nedokazuje vlastnosti Room transakce; proto existují samostatné desktop integrační testy.
 

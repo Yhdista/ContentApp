@@ -19,7 +19,9 @@
 - 🗓️ **Plány:** cyklus pojmenovaných slotů odkazujících na rutiny. Dokončení plánového workoutu posune jeho původní plán právě jednou. Ostatní sloty lze spustit samostatně bez posunu plánu.
 - 🧭 **Kontrola postupu:** po změně zdrojového plánu nebo ručním posunu během tréninku vyberte výslovně další slot. Do potvrzení je plánový start i přeskočení blokované.
 - 💾 **Rozepsané návrhy:** tlačítko „Nový nebo rozepsaný…“ obnoví nový draft; „Upravit / pokračovat v návrhu“ obnoví draft konkrétní položky. Přepnutí záložky jej zachová. Zpět nabídne pokračovat nebo zahodit. Autosave nevytváří publikovanou rutinu/plán. Jeden návrh má vždy jeden živý editor; druhé otevření nabídne Zpět a opakování po zavření původního editoru, bez přepsání jeho obsahu.
+- 🔄 **Aktuální nabídky:** vytvořte rutinu v jiné záložce a vraťte se do rozepsaného plánu. Nabídka se obnovuje živě; názvy, archivace i nové cviky se promítnou bez přepsání draftu. Selhání nabídky má vlastní opakování.
 - 🔒 **Konflikt revize:** načíst aktuální uloženou verzi, nebo uložit vlastní nepublikovaný obsah jako novou kopii s novými ID.
+- 📋 **Původní předpis:** odebrání skutečné série či celého cviku uchová původní cíle v historii a exportu jako vynechané. Předpis se nezapočítává do objemu, statistik ani převodu výkonu na rutinu.
 - 📤 **Workout → rutina:** detail historie otevře návrh ze skutečných sérií, typů a pauz. Žádné průměrování; nová rutina vznikne až tlačítkem Uložit.
 
 ## 🗂️ Moduly
@@ -46,7 +48,7 @@
 
 🔄 **Skutečný backend sync není implementovaný.** Bez uploaderu se outbox neodesílá ani nemaže. Kalendář, notifikace a automatická progrese nejsou součástí této etapy.
 
-📤 **CSV/JSON export je export workoutů a jejich snímků, nikoli úplná záloha aplikace.** Neexportuje definice rutin/plánů, jejich postup ani drafty. Staré template projekce/API byly odstraněny; UI exportu slouží výkonům. Obnova z exportu zatím není implementovaná.
+📤 **CSV/JSON export je export workoutů a jejich snímků, nikoli úplná záloha aplikace.** Neexportuje definice rutin/plánů, jejich postup ani drafty. JSON odděluje skutečné `sets` od úplných `prescriptions`; CSV označí odebrané cíle jako `OMITTED` s prázdnými sloupci skutečného výkonu. Staré template projekce/API byly odstraněny. Obnova z exportu zatím není implementovaná.
 
 🧭 Navigation Compose `2.8.0-alpha10` používá [malý adaptační krok](composeApp/src/commonMain/kotlin/app/navigation/RestorableGraph.kt) pro obnovu prázdných argumentů mimo Android. Test obnovuje skutečný NavHost; podrobnosti a odstranění workaroundu při upgradu jsou v architektuře.
 
@@ -64,4 +66,4 @@
 ./gradlew :composeApp:desktopTest --tests '*LibrarySmokeTest' --tests '*TypedNavigationTest'
 ```
 
-🧪 Testy zahrnují raw draft/reopen, konflikt a kopii, rollback při selhání smazání draftu, odmítnutí pozdního autosave, skutečnou v6 fixture, workout snapshoty a idempotentní postup plánu. Skia smoke vytváří obrázky v `composeApp/build/task5-visual`; pokrývá editor, Zpět, záložky, uložení, plánový start/dokončení a světlé/tmavé téma. Android APK a iOS compile samy nedokazují běh na zařízení.
+🧪 Finální sada: **198 desktopových a 124 Android unit testů**, bez selhání; APK a iOS SimulatorArm64 compile prošly. Testy zahrnují živé volby po návratu do editoru, zachování celého předpisu po smazání skutečnosti, raw draft/reopen, konflikt a kopii, rollback při selhání smazání draftu, odmítnutí pozdního autosave, skutečnou v6 fixture, workout snapshoty a idempotentní postup plánu. Skia smoke vytváří obrázky v `composeApp/build/task5-visual`; pokrývá editor, Zpět, záložky, uložení, plánový start/dokončení a světlé/tmavé téma. Android APK a iOS compile samy nedokazují běh na zařízení.

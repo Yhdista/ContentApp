@@ -44,3 +44,22 @@ data class WorkoutExerciseEntity(
     val name: String, val muscleGroup: String, val restSeconds: Int,
     val orderIndex: Int, val orderReconstructed: Boolean = false
 )
+
+/** Insert-only original target. Deliberately has no FK to removable actual rows or editable sources. */
+@Entity(tableName = "workout_prescriptions", indices = [androidx.room.Index("sessionId")])
+data class WorkoutPrescriptionSetEntity(
+    @PrimaryKey val id: String,
+    val sessionId: String,
+    val workoutExerciseId: String,
+    val exerciseId: String,
+    val name: String,
+    val muscleGroup: String,
+    val restSeconds: Int,
+    val exerciseOrder: Int,
+    val setNumber: Int,
+    val weightKg: Double,
+    val reps: Int,
+    val setType: String,
+    val sourceRoutineExerciseId: String,
+    val sourceRoutineSetId: String?
+)

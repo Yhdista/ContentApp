@@ -18,8 +18,11 @@ interface WorkoutRepository {
     fun getCompletedSessions(): Flow<List<WorkoutSession>>
     fun getPendingSyncMutationsCount(): Flow<Int>
     suspend fun getSessionById(sessionId: String): WorkoutSession?
+    /** Actual rows only; omitted targets never contribute to performance or conversion. */
     fun getSetsForSession(sessionId: String): Flow<List<WorkoutSet>>
     suspend fun startWorkout(title: String = "Trénink"): WorkoutSession
+    /** Complete immutable original targets, independent of editable actual rows. */
+    fun getPrescriptionForSession(sessionId: String): Flow<List<WorkoutPrescriptionSet>>
     fun getWorkoutExercises(sessionId: String): Flow<List<WorkoutExercise>>
     suspend fun addExerciseEntry(sessionId: String, exerciseId: String): WorkoutExercise
     /** Entry-specific commands reject stale IDs instead of treating them as catalogue IDs. */

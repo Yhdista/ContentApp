@@ -30,6 +30,50 @@ class RoutinePresentationTest {
     private fun editor() = RoutineEditorViewModel("edit:existing", repository, queue, store, writes, catalogue, usage).also { models.add(it) }
     private fun library() = RoutineLibraryViewModel("existing", repository, catalogue, RoutineUsage { flowOf(2) }, StartRoutineWorkout { Result.Success(StartOutcome.ResumedExisting("active")) }).also { models.add(it) }
 
+    @Test fun initialChoiceFailureDoesNotPreventDraftOpeningAndHasIndependentRetry() = runTest(dispatcher) {
+        catalogue.updates.value = null
+        val vm = editor(); testScheduler.runCurrent()
+        val original = vm.uiState.value.draft!!
+        assertFalse(vm.uiState.value.isLoading); assertNotNull(vm.uiState.value.choicesError)
+        catalogue.updates.value = listOf(Exercise("recovered", "Recovered", MuscleGroup.CHEST))
+        vm.onIntent(RoutineEditorContract.Intent.RetryChoices); testScheduler.runCurrent()
+        assertEquals(catalogue.updates.value, vm.uiState.value.choices)
+        assertNull(vm.uiState.value.choicesError); assertEquals(original, vm.uiState.value.draft)
+    }
+    @Test fun liveChoicesAndRetryPreserveRawDraftAndLease() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        val original = vm.uiState.value.draft!!
+        val archivedReference = vm.uiState.value.choices.single().copy(name = "Renamed original", archived = true)
+        val raw = original.copy(name = "Retained", exercises = original.exercises.map { it.copy(rest = "-", sets = it.sets.map { set -> set.copy(weight = "1.") }) })
+        vm.onIntent(RoutineEditorContract.Intent.Edit(raw)); testScheduler.runCurrent()
+        val added = Exercise("new", "New lift", MuscleGroup.ARMS)
+        catalogue.updates.value = listOf(archivedReference, added); testScheduler.runCurrent()
+        assertEquals(listOf(archivedReference, added), vm.uiState.value.choices)
+        assertEquals(raw, vm.uiState.value.draft)
+        catalogue.updates.value = null; testScheduler.runCurrent()
+        assertNotNull(vm.uiState.value.choicesError)
+        assertEquals(raw, vm.uiState.value.draft)
+        catalogue.updates.value = listOf(archivedReference, added.copy(name = "Renamed", archived = true))
+        vm.onIntent(RoutineEditorContract.Intent.Retry); testScheduler.runCurrent()
+        assertEquals(catalogue.updates.value, vm.uiState.value.choices)
+        assertEquals(raw, vm.uiState.value.draft)
+        assertNull(vm.uiState.value.choicesError)
+        val other = editor(); testScheduler.runCurrent()
+        assertNull(other.uiState.value.draft, "Choice refresh must retain exclusive lease")
+    }
+    @Test fun choiceFailureCannotReleaseTerminalSave() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        repository.gate = CompletableDeferred()
+        vm.onIntent(RoutineEditorContract.Intent.Save); testScheduler.runCurrent()
+        catalogue.updates.value = null; testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving)
+        assertNotNull(vm.uiState.value.choicesError)
+        catalogue.updates.value = emptyList()
+        vm.onIntent(RoutineEditorContract.Intent.RetryChoices); testScheduler.runCurrent()
+        assertNull(vm.uiState.value.choicesError); assertTrue(vm.uiState.value.isSaving)
+        repository.gate!!.complete(Unit); testScheduler.runCurrent()
+        assertEquals(1, repository.saved.size); assertNull(store.payload)
+    }
     @Test fun usageFailureCannotUnlockAcceptedPublish() = runTest(dispatcher) {
         val usageGate = CompletableDeferred<Unit>()
         usage = RoutineUsage { flow { emit(2); usageGate.await(); error("Controlled usage failure") } }
@@ -237,7 +281,8 @@ private class Repository : RoutineRepository {
 
 private class Catalogue : ExerciseCatalog {
     val items = listOf(Exercise("exercise", "Bench", MuscleGroup.CHEST))
-    override fun observeExercises() = flowOf(items)
+    val updates = MutableStateFlow<List<Exercise>?>(items)
+    override fun observeExercises() = updates.map { checkNotNull(it) { "Controlled choices failure" } }
     override suspend fun getAllExercises() = items
     override suspend fun getExerciseById(id: String) = items.find { it.id == id }
     override suspend fun getExercisesCount() = items.size

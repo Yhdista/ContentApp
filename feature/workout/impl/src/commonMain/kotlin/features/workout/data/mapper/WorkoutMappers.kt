@@ -67,3 +67,10 @@ internal fun features.workout.data.entity.WorkoutExerciseEntity.toDomain() = fea
     id, sessionId, exerciseId, name, runCatching { features.exercises.api.MuscleGroup.valueOf(muscleGroup) }.getOrDefault(features.exercises.api.MuscleGroup.CHEST), restSeconds, orderIndex, orderReconstructed)
 internal fun features.workout.domain.WorkoutExercise.toEntity() = features.workout.data.entity.WorkoutExerciseEntity(
     id, sessionId, exerciseId, name, muscleGroup.name, restSeconds, orderIndex, orderReconstructed)
+
+internal fun features.workout.data.entity.WorkoutPrescriptionSetEntity.toDomain() = features.workout.domain.WorkoutPrescriptionSet(
+    id, sessionId, workoutExerciseId, exerciseId, name, features.exercises.api.MuscleGroup.valueOf(muscleGroup),
+    restSeconds, exerciseOrder, setNumber, weightKg, reps, WorkoutSetType.valueOf(setType), sourceRoutineExerciseId, sourceRoutineSetId)
+internal fun features.workout.domain.WorkoutPrescriptionSet.toEntity() = features.workout.data.entity.WorkoutPrescriptionSetEntity(
+    id, sessionId, workoutExerciseId, exerciseId, name, muscleGroup.name, restSeconds, exerciseOrder,
+    setNumber, weightKg, reps, setType.name, sourceRoutineExerciseId, sourceRoutineSetId)

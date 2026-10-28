@@ -16,6 +16,7 @@ import app.di.commonModule
 import app.di.platformModule
 import core.common.ApplicationScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import org.junit.Test
 import org.junit.Before
 import org.junit.After
@@ -108,6 +109,89 @@ class LibrarySmokeTest {
             onNodeWithText("🌙").performClick()
             onNodeWithText("Plány", useUnmergedTree = true).performClick()
             screenshot("plan-detail-dark")
+        } finally {
+            runOnIdle { owner.viewModelStore.clear() }
+            app.koin.get<ApplicationScope>().cancel()
+            stopKoin()
+        }
+    }
+    @Test fun retainedPlanReceivesRoutineCreatedThroughAnotherTab() = runDesktopComposeUiTest(width = 460, height = 760) {
+        val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
+        val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
+        val owner = object : ViewModelStoreOwner, LifecycleOwner {
+            override val viewModelStore = ViewModelStore()
+            override val lifecycle = LifecycleRegistry.createUnsafe(this).apply { currentState = Lifecycle.State.RESUMED }
+        }
+        try {
+            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+                LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
+                Box(Modifier.requiredSize(460.dp,760.dp)) { AppNavHost() }
+            } }
+            onNodeWithText("Plány", useUnmergedTree = true).performClick()
+            onNodeWithText("Nový nebo rozepsaný plán").performClick()
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText("Název").performTextInput("Retained plan")
+            onNodeWithText("Přidat slot s rutinou").assertIsNotEnabled()
+            onNodeWithText("Rutiny", useUnmergedTree = true).performClick()
+            onNodeWithText("Nový nebo rozepsaný návrh rutiny").performClick()
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText("Název").performTextInput("Created while plan open")
+            onNodeWithText("Přidat cvik").performClick()
+            onNodeWithText("Bench press").performClick()
+            onNode(hasScrollAction()).performScrollToNode(hasText("Uložit"))
+            onNodeWithText("Uložit").performClick()
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Spustit rutinu")).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText("Plány", useUnmergedTree = true).performClick()
+            onNodeWithText("Název").assertTextContains("Retained plan")
+            onNodeWithText("Přidat slot s rutinou").assertIsEnabled().performClick()
+            onNodeWithText("Created while plan open").performClick()
+            screenshot("retained-plan-live-choice")
+            onNode(hasScrollAction()).performScrollToNode(hasText("Uložit"))
+            onNodeWithText("Uložit").performClick()
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Spustit příští den")).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText("Retained plan").assertIsDisplayed()
+        } finally {
+            runOnIdle { owner.viewModelStore.clear() }
+            app.koin.get<ApplicationScope>().cancel()
+            stopKoin()
+        }
+    }
+    @Test fun historyRendersOriginalTargetsWhenAllActualOccurrencesWereRemoved() = runDesktopComposeUiTest(width = 460, height = 760) {
+        val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
+        val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
+        val owner = object : ViewModelStoreOwner, LifecycleOwner {
+            override val viewModelStore = ViewModelStore()
+            override val lifecycle = LifecycleRegistry.createUnsafe(this).apply { currentState = Lifecycle.State.RESUMED }
+        }
+        try {
+            val id = kotlinx.coroutines.runBlocking {
+                val store = app.koin.get<features.workout.domain.WorkoutStore>()
+                val repo = app.koin.get<features.workout.domain.WorkoutRepository>()
+                val result = store.createFromPrescription(features.workout.domain.WorkoutStartPrescription("Omitted history",
+                    List(2) { e -> features.workout.domain.WorkoutExercisePrescription("source$e", "same-exercise", "Original exercise",
+                        features.exercises.api.MuscleGroup.CHEST, 60 + e,
+                        List(2) { n -> features.workout.domain.WorkoutSetPrescription(20.0 + e * 2 + n, 8 + n, features.workout.domain.WorkoutSetType.DROPSET) }) }))
+                val sessionId = (result as core.result.Result.Success).data.sessionId
+                repo.getWorkoutExercises(sessionId).first().forEach { repo.removeWorkoutExercise(sessionId, it.id) }
+                store.completeOnce(sessionId)
+                sessionId
+            }
+            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner) {
+                ui.designsystem.nucleus.AppTheme {
+                    features.workout.detail.WorkoutDetailRoot(id, {}, {}, Modifier.requiredSize(460.dp, 760.dp))
+                }
+            } }
+            waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Původní předpis", substring = true)).fetchSemanticsNodes().isNotEmpty() }
+            for (weight in 20..23) {
+                val originalNumber = if (weight % 2 == 0) 1 else 2
+                val reps = if (weight % 2 == 0) 8 else 9
+                val label = "$originalNumber. $weight kg × $reps · Dropset · Vynecháno — bez skutečného výkonu"
+                onNode(hasScrollAction()).performScrollToNode(hasText(label))
+                onNodeWithText(label).assertIsDisplayed()
+            }
+            screenshot("history-all-targets-omitted")
+            onAllNodes(hasText("Skutečnost", substring = false)).assertCountEquals(0)
+            onAllNodes(hasText("✓ Hotovo")).assertCountEquals(0)
         } finally {
             runOnIdle { owner.viewModelStore.clear() }
             app.koin.get<ApplicationScope>().cancel()

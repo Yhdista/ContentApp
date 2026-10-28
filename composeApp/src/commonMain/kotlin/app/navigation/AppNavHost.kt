@@ -64,7 +64,7 @@ internal data object AppGraphRoute
         Column(modifier.fillMaxSize()) {
             NavHost(nav, graph = graph, modifier = Modifier.weight(1f))
             // Editors keep the same durable draft when switching tabs. System/toolbar Back offers discard.
-            AppTabs(selected) { index ->
+            AppTabs(listOf(AppTabItem("Tréninky", "◉"), AppTabItem("Rutiny", "≡"), AppTabItem("Plány", "↻")), selected) { index ->
                 val route: Any = when(index) { 1 -> RoutineListRoute; 2 -> PlanListRoute; else -> WorkoutHistoryRoute }
                 if(index != selected || editor) nav.navigate(route) {
                     popUpTo(nav.graph.startDestinationId) { saveState = true }

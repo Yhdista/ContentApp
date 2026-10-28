@@ -9,7 +9,10 @@ import core.viewmodel.BaseViewModel
 import features.routines.api.*
 import features.exercises.api.*
 
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import core.result.safeLocalCall
+import core.result.onFailure
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -19,7 +22,8 @@ internal class RoutineEditorViewModel(
     private val catalogue: ExerciseCatalog, private val usage: RoutineUsage,
 ) : BaseViewModel<RoutineEditorContract.State, RoutineEditorContract.Intent, RoutineEditorContract.Effect>(RoutineEditorContract.State()) {
     private var session: OrderedDrafts.Session? = null
-    init { load() }
+    private var choicesJob: Job? = null
+    init { load(); observeChoices() }
     override fun onOperationFailure(error: DataError.Local) {
         updateState { copy(isLoading = false, error = "Úložiště není dostupné. Zkuste akci znovu; návrh zůstává zachován.") }
     }
@@ -32,6 +36,7 @@ internal class RoutineEditorViewModel(
         }
     }
     override fun handleIntent(intent: RoutineEditorContract.Intent) {
+        if (intent == RoutineEditorContract.Intent.RetryChoices) { observeChoices(); return }
         if (uiState.value.isSaving) return
         when (intent) {
             is RoutineEditorContract.Intent.Mutate -> uiState.value.draft?.let { handleIntent(RoutineEditorContract.Intent.Edit(intent.transform(it))) }
@@ -45,7 +50,9 @@ internal class RoutineEditorViewModel(
             RoutineEditorContract.Intent.Save -> publish(false)
             RoutineEditorContract.Intent.SaveCopy -> publish(true)
             RoutineEditorContract.Intent.Reload -> reload()
+            RoutineEditorContract.Intent.RetryChoices -> Unit
             RoutineEditorContract.Intent.Retry -> if (uiState.value.draft == null) load() else {
+                observeChoices()
                 val ack = session?.put(Json.encodeToString(uiState.value.draft!!)) ?: return
                 launchOperation { ack.await(); updateState { copy(error = null) } }
             }
@@ -81,9 +88,21 @@ internal class RoutineEditorViewModel(
             else -> error("Missing draft")
         }
         opened.put(Json.encodeToString(draft)).await()
-        val choices = catalogue.getAllExercises()
-        updateState { copy(draft = draft, choices = choices, isLoading = false) }
+        updateState { copy(draft = draft, isLoading = false) }
         launchOperation { usage.observeDependentPlanCount(draft.id).collect { n -> updateState { copy(dependentPlans = n) } } }
+    }
+    // Choice failures own only choice state; the durable draft and terminal command keep their owners.
+    private fun observeChoices() {
+        if (choicesJob?.isActive == true) return
+        choicesJob = viewModelScope.launch {
+            safeLocalCall {
+                catalogue.observeExercises().collect { available ->
+                    updateState { copy(choices = available, choicesError = null) }
+                }
+            }.onFailure {
+                updateState { copy(choicesError = "Nabídku nelze obnovit. Zkuste znovu; rozepsaný návrh zůstává zachován.") }
+            }
+        }
     }
     private fun reload() {
         val current = uiState.value.draft ?: return

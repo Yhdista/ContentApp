@@ -29,6 +29,50 @@ class PlanPresentationTest {
     private fun editor() = PlanEditorViewModel("edit:existing", repository, queue, store, writes, routines).also { models.add(it) }
     private fun library() = PlanLibraryViewModel("existing", repository, routines, StartPlanWorkout { Result.Success(StartOutcome.ResumedExisting("active")) }, StartRoutineWorkout { Result.Success(StartOutcome.Created("solo")) }).also { models.add(it) }
 
+    @Test fun initialChoiceFailureDoesNotPreventDraftOpeningAndHasIndependentRetry() = runTest(dispatcher) {
+        routines.updates.value = null
+        val vm = editor(); testScheduler.runCurrent()
+        val original = vm.uiState.value.draft!!
+        assertFalse(vm.uiState.value.isLoading); assertNotNull(vm.uiState.value.choicesError)
+        routines.updates.value = listOf(Routine("recovered", "Recovered", exercises = emptyList()))
+        vm.onIntent(PlanEditorContract.Intent.RetryChoices); testScheduler.runCurrent()
+        assertEquals(routines.updates.value, vm.uiState.value.choices)
+        assertNull(vm.uiState.value.choicesError); assertEquals(original, vm.uiState.value.draft)
+    }
+    @Test fun liveChoicesAndRetryPreserveRawDraftAndLease() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        val original = vm.uiState.value.draft!!
+        val archivedReference = vm.uiState.value.choices.single().copy(name = "Renamed original", archived = true)
+        val raw = original.copy(name = "Retained", slots = original.slots.map { it.copy(label = "") })
+        vm.onIntent(PlanEditorContract.Intent.Edit(raw)); testScheduler.runCurrent()
+        val added = Routine("new", "New routine", exercises = emptyList())
+        routines.updates.value = listOf(archivedReference, added); testScheduler.runCurrent()
+        assertEquals(listOf(archivedReference, added), vm.uiState.value.choices)
+        assertEquals(raw, vm.uiState.value.draft)
+        routines.updates.value = null; testScheduler.runCurrent()
+        assertNotNull(vm.uiState.value.choicesError)
+        assertEquals(raw, vm.uiState.value.draft)
+        routines.updates.value = listOf(archivedReference, added.copy(name = "Renamed", archived = true))
+        vm.onIntent(PlanEditorContract.Intent.Retry); testScheduler.runCurrent()
+        assertEquals(routines.updates.value, vm.uiState.value.choices)
+        assertEquals(raw, vm.uiState.value.draft)
+        assertNull(vm.uiState.value.choicesError)
+        val other = editor(); testScheduler.runCurrent()
+        assertNull(other.uiState.value.draft, "Choice refresh must retain exclusive lease")
+    }
+    @Test fun choiceFailureCannotReleaseTerminalSave() = runTest(dispatcher) {
+        val vm = editor(); testScheduler.runCurrent()
+        repository.gate = CompletableDeferred()
+        vm.onIntent(PlanEditorContract.Intent.Save); testScheduler.runCurrent()
+        routines.updates.value = null; testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.isSaving)
+        assertNotNull(vm.uiState.value.choicesError)
+        routines.updates.value = emptyList()
+        vm.onIntent(PlanEditorContract.Intent.RetryChoices); testScheduler.runCurrent()
+        assertNull(vm.uiState.value.choicesError); assertTrue(vm.uiState.value.isSaving)
+        repository.gate!!.complete(Unit); testScheduler.runCurrent()
+        assertEquals(1, repository.saved.size); assertNull(store.payload)
+    }
     @Test fun olderAutosaveFailureCannotUnlockSave() = runTest(dispatcher) {
         val vm = editor(); testScheduler.runCurrent()
         val accepted = vm.uiState.value.draft!!.copy(name = "Accepted before terminal")
@@ -251,7 +295,8 @@ private class Repository : TrainingPlanRepository {
 
 private class Routines : RoutineRepository {
     private val routine = Routine("routine", "Bench day", exercises = emptyList())
-    override fun observeAll(includeArchived: Boolean) = flowOf(listOf(routine))
+    val updates = MutableStateFlow<List<Routine>?>(listOf(routine))
+    override fun observeAll(includeArchived: Boolean) = updates.map { checkNotNull(it) { "Controlled choices failure" } }
     override fun observeById(id: String) = flowOf(routine)
     override suspend fun getById(id: String) = routine
     override suspend fun save(routine: Routine, expectedRevision: Long?): Result<Routine,RoutineError> = error("unused")

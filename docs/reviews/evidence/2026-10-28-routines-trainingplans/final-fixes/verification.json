@@ -1,0 +1,25 @@
+{
+  "base": "017866e",
+  "command": "./gradlew desktopTest testDebugUnitTest :composeApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64",
+  "build": "SUCCESSFUL in 15s; 413 actionable tasks, 15 executed, 398 up-to-date",
+  "featureGraphs": 8,
+  "schema6Sha256": "14ee6ac92239c2c115c1e06bdcc84d8a1aa4688af4a32ba41354957c28ccc565",
+  "scope": "Final I1/I2/M1 combined fix; actual UI via Desktop Skia; iOS compilation only; no new native Android smoke.",
+  "desktopTest": {
+    "suites": 27,
+    "tests": 198,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testDebugUnitTest": {
+    "suites": 18,
+    "tests": 124,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "docLocalLinks": 75,
+  "schema7IdentityHash": "58b46e62416e70a6dd6c6f3bfd0ec449",
+  "schema7OnlyEntityChange": "Add workout_prescriptions; all existing entity definitions unchanged"
+}

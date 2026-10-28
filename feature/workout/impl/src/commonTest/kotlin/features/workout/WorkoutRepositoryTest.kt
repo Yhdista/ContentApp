@@ -203,6 +203,14 @@ private class RepoFakeClock(var time: Long) : AppClock {
 }
 
 private class FakeWorkoutDao : WorkoutDao {
+    private val targets = MutableStateFlow<List<features.workout.data.entity.WorkoutPrescriptionSetEntity>>(emptyList())
+    override suspend fun insertPrescription(target: features.workout.data.entity.WorkoutPrescriptionSetEntity) {
+        check(targets.value.none { it.id == target.id }); targets.value += target
+    }
+    override fun observePrescription(sessionId: String) = targets.map { rows -> rows.filter { it.sessionId == sessionId } }
+    override suspend fun getAllPrescriptions() = targets.value
+    override suspend fun deletePrescriptionForSession(sessionId: String) { targets.value = targets.value.filterNot { it.sessionId == sessionId } }
+
     private val sessions = MutableStateFlow<List<WorkoutSessionEntity>>(emptyList())
     private val sets = MutableStateFlow<List<WorkoutSetEntity>>(emptyList())
     private val entries = MutableStateFlow<List<features.workout.data.entity.WorkoutExerciseEntity>>(emptyList())

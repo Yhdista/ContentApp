@@ -20,7 +20,7 @@ data class WorkoutExercisePrescription(
     val id: String, val exerciseId: String, val name: String, val muscleGroup: MuscleGroup,
     val restSeconds: Int, val sets: List<WorkoutSetPrescription>
 )
-data class WorkoutSetPrescription(val weightKg: Double, val reps: Int, val setType: WorkoutSetType)
+data class WorkoutSetPrescription(val weightKg: Double, val reps: Int, val setType: WorkoutSetType, val sourceSetId: String? = null)
 enum class WorkoutError : RootError { VALIDATION, NOT_FOUND, ARCHIVED, REVISION_CONFLICT, REVIEW_REQUIRED, STORAGE }
 sealed interface StartOutcome {
     val sessionId: String

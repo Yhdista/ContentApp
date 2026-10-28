@@ -38,6 +38,7 @@ class WorkoutMigrationTest {
             val session=db.workoutDao().getSessionById("session")!!
             assertEquals(123.5,session.totalVolumeKg); assertEquals(1234,session.startTimeEpochMs); assertEquals(5678,session.endTimeEpochMs)
             assertNull(session.sourceRoutineId); assertNull(session.sourcePlanId)
+            assertTrue(db.workoutDao().getAllPrescriptions().isEmpty(), "Legacy unknown prescription must remain unknown")
             val sets=db.workoutDao().getSetsForSessionSnapshot("session")
             assertEquals(setOf("set-a","set-b"),sets.map { it.id }.toSet())
             val a=sets.single { it.id=="set-a" }; assertEquals(12.5,a.weightKg); assertEquals(7,a.reps); assertEquals(8.0,a.rpe)

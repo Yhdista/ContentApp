@@ -28,6 +28,7 @@ data class WorkoutSet(
     val isPersonalRecord: Boolean = false,
     val setType: WorkoutSetType = WorkoutSetType.NORMAL,
     val workoutExerciseId: String? = null,
+    /** Convenience values on surviving actual rows; the complete original lives in WorkoutPrescriptionSet. */
     val prescribedWeightKg: Double? = null,
     val prescribedReps: Int? = null,
     val prescribedSetType: WorkoutSetType? = null,

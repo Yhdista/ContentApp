@@ -245,7 +245,7 @@ internal fun WorkoutDetailScreen(
                 // 2. Seznam cviků a sérií
                 item {
                     Text(
-                        text = "ROZPIS ODCVIČENÝCH CVIKŮ",
+                        text = "PŘEDPIS A SKUTEČNOST",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurfaceVariant
@@ -332,7 +332,7 @@ private fun DetailExerciseCard(
 
             val completedSetsCount = group.sets.count { it.isCompleted }
             Text(
-                text = "$completedSetsCount / ${group.sets.size} sérií",
+                text = "Skutečnost: $completedSetsCount / ${group.sets.size} sérií",
                 style = MaterialTheme.typography.labelMedium,
                 color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
@@ -341,10 +341,20 @@ private fun DetailExerciseCard(
 
         Spacer(modifier = Modifier.height(AppSpacing.xs))
 
-        // Seznam sérií
+        if (group.prescriptions.isNotEmpty()) {
+            Text("Původní předpis · pauza ${group.prescriptions.first().restSeconds} s", style = MaterialTheme.typography.titleSmall)
+            group.prescriptions.forEach { target ->
+                val actual = group.sets.firstOrNull { it.id == target.id }
+                Text("${target.setNumber}. ${target.weightKg.formatCleanWeight()} kg × ${target.reps} · ${target.setType.displayName} · " +
+                    if (actual == null) "Vynecháno — bez skutečného výkonu" else "Skutečná série ${actual.setNumber}",
+                    style = MaterialTheme.typography.bodySmall, color = colorScheme.onSurfaceVariant)
+            }
+            if (group.sets.isNotEmpty()) Text("Skutečnost", style = MaterialTheme.typography.titleSmall)
+        }
+        // Seznam skutečných sérií; původní cíle nevstupují do počtů, objemu ani PR.
         Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
             group.sets.forEach { set ->
-                Text(
+                if (group.prescriptions.isEmpty()) Text(
                     text = if (set.prescribedWeightKg != null && set.prescribedReps != null)
                         "Předpis: ${set.prescribedWeightKg} kg × ${set.prescribedReps} · ${set.prescribedSetType?.displayName ?: "—"}"
                         else "Předpis nebyl zaznamenán",

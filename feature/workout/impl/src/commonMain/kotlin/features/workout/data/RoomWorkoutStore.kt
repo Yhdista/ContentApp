@@ -42,6 +42,10 @@ internal class RoomWorkoutStore(
             e.sets.forEachIndexed { setIndex, p ->
                 val set=WorkoutSet(newId(),session.id,e.exerciseId,setIndex+1,p.weightKg,p.reps,setType=p.setType,
                     previousPerformance=previous[e.exerciseId],workoutExerciseId=entry.id,prescribedWeightKg=p.weightKg,prescribedReps=p.reps,prescribedSetType=p.setType)
+                val target = WorkoutPrescriptionSet(set.id, session.id, entry.id, e.exerciseId, e.name, e.muscleGroup,
+                    e.restSeconds, index, setIndex + 1, p.weightKg, p.reps, p.setType, e.id, p.sourceSetId)
+                dao.insertPrescription(target.toEntity())
+                enqueue("workout_prescription", target.id, "INSERT", Json.encodeToString(target))
                 dao.insertOrUpdateSet(set.toEntity()); enqueue("workout_set",set.id,"INSERT",Json.encodeToString(set))
             }
         }

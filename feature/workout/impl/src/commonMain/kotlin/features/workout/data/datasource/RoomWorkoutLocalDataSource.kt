@@ -48,6 +48,7 @@ internal class RoomWorkoutLocalDataSource(
     override suspend fun deleteSessionWithSets(sessionId: String) {
         workoutDao.deleteSetsForSession(sessionId)
         workoutDao.deleteExercises(sessionId)
+        workoutDao.deletePrescriptionForSession(sessionId)
         workoutDao.deleteSession(sessionId)
     }
 
@@ -83,6 +84,8 @@ internal class RoomWorkoutLocalDataSource(
     override suspend fun getAllSets() = decorate(workoutDao.getAllSetsSnapshot().map { it.toDomain() },getAllWorkoutExercises())
     override suspend fun getAllWorkoutExercises() = workoutDao.getAllExercisesSnapshot().map { it.toDomain() }
 
+    override fun observePrescription(sessionId: String) = workoutDao.observePrescription(sessionId).map { rows -> rows.map { it.toDomain() } }
+    override suspend fun getAllPrescriptions() = workoutDao.getAllPrescriptions().map { it.toDomain() }
     override fun observeWorkoutExercises(sessionId: String) = workoutDao.observeExercises(sessionId).map { list -> list.map { it.toDomain() } }
     override suspend fun getWorkoutExercises(sessionId: String) = workoutDao.getExercisesSnapshot(sessionId).map { it.toDomain() }
     override suspend fun saveWorkoutExercise(entry: features.workout.domain.WorkoutExercise) = workoutDao.insertExercise(entry.toEntity())

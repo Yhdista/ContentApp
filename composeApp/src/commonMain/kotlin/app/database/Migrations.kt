@@ -8,6 +8,9 @@ import androidx.sqlite.use
 /** ♻️ Room owns the migration transaction. No destructive fallback; v6 stays intact on failure. */
 val MIGRATION_6_7 = object : Migration(6, 7) {
     override fun migrate(connection: SQLiteConnection) {
+        // v6 has no original prescription: the new table remains empty for migrated sessions.
+        connection.execSQL("""CREATE TABLE IF NOT EXISTS `workout_prescriptions` (`id` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `workoutExerciseId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `name` TEXT NOT NULL, `muscleGroup` TEXT NOT NULL, `restSeconds` INTEGER NOT NULL, `exerciseOrder` INTEGER NOT NULL, `setNumber` INTEGER NOT NULL, `weightKg` REAL NOT NULL, `reps` INTEGER NOT NULL, `setType` TEXT NOT NULL, `sourceRoutineExerciseId` TEXT NOT NULL, `sourceRoutineSetId` TEXT, PRIMARY KEY(`id`))""")
+        connection.execSQL("CREATE INDEX IF NOT EXISTS `index_workout_prescriptions_sessionId` ON `workout_prescriptions` (`sessionId`)")
         connection.execSQL("""CREATE TABLE IF NOT EXISTS `workout_exercises` (`id` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `name` TEXT NOT NULL, `muscleGroup` TEXT NOT NULL, `restSeconds` INTEGER NOT NULL, `orderIndex` INTEGER NOT NULL, `orderReconstructed` INTEGER NOT NULL, PRIMARY KEY(`id`))""")
         connection.execSQL("""CREATE TABLE IF NOT EXISTS `routines` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `notes` TEXT NOT NULL, `revision` INTEGER NOT NULL, `archived` INTEGER NOT NULL, PRIMARY KEY(`id`))""")
         connection.execSQL("""CREATE TABLE IF NOT EXISTS `routine_exercises` (`id` TEXT NOT NULL, `routineId` TEXT NOT NULL, `exerciseId` TEXT NOT NULL, `restSeconds` INTEGER NOT NULL, `orderIndex` INTEGER NOT NULL, `legacyExerciseName` TEXT, `legacyTargetSets` INTEGER, `legacyDefaultWeightKg` REAL, `legacyDefaultReps` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`routineId`) REFERENCES `routines`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )""")

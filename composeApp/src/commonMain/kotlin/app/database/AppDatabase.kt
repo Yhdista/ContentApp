@@ -19,6 +19,7 @@ import features.exercises.data.ExerciseDao
 import features.workout.data.entity.WorkoutSessionEntity
 import features.workout.data.entity.WorkoutSetEntity
 import features.workout.data.entity.WorkoutExerciseEntity
+import features.workout.data.entity.WorkoutPrescriptionSetEntity
 
 @Database(
     entities = [
@@ -27,6 +28,7 @@ import features.workout.data.entity.WorkoutExerciseEntity
         WorkoutSessionEntity::class,
         WorkoutSetEntity::class,
         WorkoutExerciseEntity::class,
+        WorkoutPrescriptionSetEntity::class,
         RoutineEntity::class,
         RoutineExerciseEntity::class,
         RoutineSetEntity::class,

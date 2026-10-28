@@ -42,7 +42,7 @@ class TrainingWorkflow(
         return WorkoutStartPrescription(routine.name,routine.exercises.map { e ->
             val exercise=catalogueById.getValue(e.exerciseId)
             WorkoutExercisePrescription(e.id,e.exerciseId,exercise.name,exercise.muscleGroup,e.restSeconds,
-                e.sets.map { WorkoutSetPrescription(it.weightKg,it.reps,it.setType) })
+                e.sets.map { WorkoutSetPrescription(it.weightKg,it.reps,it.setType,it.id) })
         },routine.id,routine.revision,source)
     }
     private fun <T> Result<T,*>.value(): T = when(this) {

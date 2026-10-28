@@ -136,6 +136,8 @@ internal class OfflineFirstWorkoutRepository(
         return@write session
     }
 
+    override fun getPrescriptionForSession(sessionId: String) = localDataSource.observePrescription(sessionId)
+
     override fun getWorkoutExercises(sessionId: String) = localDataSource.observeWorkoutExercises(sessionId)
 
     override suspend fun addExerciseEntry(sessionId: String, exerciseId: String): features.workout.domain.WorkoutExercise = writes.write {

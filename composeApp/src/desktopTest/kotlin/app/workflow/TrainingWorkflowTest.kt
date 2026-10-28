@@ -27,7 +27,7 @@ import kotlin.test.*
 
 class TrainingWorkflowTest {
     private class Fixture(val db: AppDatabase, val workflow: TrainingWorkflow, val routines: RoutineRepository,
-        val plans: TrainingPlanRepository, val catalogue: ExerciseCatalog, val workouts: WorkoutRepository, val drafts: RoutineDraftFactory, val draftQueue: core.storage.OrderedDrafts)
+        val plans: TrainingPlanRepository, val catalogue: ExerciseCatalog, val workouts: WorkoutRepository, val drafts: RoutineDraftFactory, val draftQueue: core.storage.OrderedDrafts, val export: WorkoutDataExport)
     private fun TestScope.fixture(path: String? = null, outbox: ((MutationDao) -> MutationDao)? = null): Fixture {
         val db = (if(path == null) Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }
             else Room.databaseBuilder<AppDatabase>(name=path) { AppDatabaseConstructor.initialize() }).configureAppDatabase().build()
@@ -38,7 +38,7 @@ class TrainingWorkflowTest {
             single<AppClock> { object: AppClock { override fun nowMillis() = 1000L } }
         }, draftStorageModule(), features.routines.presentation.routinePresentationModule(), exerciseFeatureModule(), routineFeatureModule(), trainingPlanFeatureModule(), workoutFeatureModule()) }
         val k = app.koin
-        return Fixture(db, TrainingWorkflow(k.get(), k.get(), k.get(), k.get(), k.get()), k.get(), k.get(), k.get(), k.get(), k.get(), k.get()).also { app.close() }
+        return Fixture(db, TrainingWorkflow(k.get(), k.get(), k.get(), k.get(), k.get()), k.get(), k.get(), k.get(), k.get(), k.get(), k.get(), k.get()).also { app.close() }
     }
     private fun <T> ok(result: Result<T, *>): T = assertIs<Result.Success<T>>(result).data
     private suspend fun Fixture.seed() {
@@ -46,6 +46,121 @@ class TrainingWorkflowTest {
         ok(routines.save(Routine("routine", "Morning", exercises=List(2) { e ->
             RoutineExercise("entry$e", "bench", 60 + e, List(2) { s -> RoutineSet("set$e$s", 20.0+s, 8+s, WorkoutSetType.DROPSET) }) }), null))
         ok(plans.save(TrainingPlan("plan", "Cycle", slots=listOf(PlanSlot("A", "A", "routine"), PlanSlot("B", "B", "routine"))), null))
+    }
+    @Test fun omittedAllActualRowsExportAndConvertAsNoPerformance() = runTest {
+        val f = fixture()
+        try {
+            f.seed(); val id = ok(f.workflow.startRoutine("routine")).sessionId
+            val targets = f.workouts.getPrescriptionForSession(id).first()
+            f.workouts.getWorkoutExercises(id).first().forEach { f.workouts.removeWorkoutExercise(id, it.id) }
+            assertTrue(f.workouts.getSetsForSession(id).first().isEmpty())
+            assertTrue(f.workouts.getWorkoutExercises(id).first().isEmpty())
+            assertEquals(targets, f.workouts.getPrescriptionForSession(id).first())
+            assertEquals(0.0, ok(f.workflow.complete(id)).session.totalVolumeKg)
+            assertTrue(f.workouts.getAllCompletedSets().isEmpty())
+            assertEquals(0, f.workouts.getExerciseStats("bench").first()!!.totalCompletedSets)
+            val json = Json.parseToJsonElement(f.export.exportWorkoutDataJson()).jsonObject
+            assertTrue(json.getValue("sets").jsonArray.isEmpty()); assertEquals(4, json.getValue("prescriptions").jsonArray.size)
+            assertEquals(4, f.export.exportWorkoutDataCsv().lineSequence().count { it.contains("OMITTED") })
+            val draftId = f.drafts.fromWorkout(id)
+            val draft = Json.parseToJsonElement(f.db.editorDraftDao().get("routines", draftId)!!).jsonObject
+            assertTrue(draft["exercises"]?.jsonArray.orEmpty().isEmpty())
+        } finally { f.db.close() }
+    }
+    @Test fun snapshotOutboxFailureAndWholeSessionCancellationAreAtomic() = runTest {
+        var failTarget = true
+        var failCancel = false
+        val f = fixture(outbox = { original -> object : MutationDao by original {
+            override suspend fun insertMutation(mutation: SyncMutationEntity) {
+                if (failTarget && mutation.entityName == "workout_prescription") error("Snapshot outbox failure")
+                if (failCancel && mutation.entityName == "workout_session" && mutation.operation == "DELETE") error("Cancel outbox failure")
+                original.insertMutation(mutation)
+            }
+        } })
+        try {
+            f.seed(); val before = f.db.mutationDao().getUnsentMutationsCount().first()
+            assertEquals(WorkoutError.STORAGE, assertIs<Result.Error<WorkoutError>>(f.workflow.startRoutine("routine")).error)
+            assertTrue(f.db.workoutDao().getAllPrescriptions().isEmpty()); assertTrue(f.db.workoutDao().getAllSessionsList().isEmpty())
+            assertTrue(f.db.workoutDao().getAllExercisesSnapshot().isEmpty()); assertTrue(f.db.workoutDao().getAllSetsSnapshot().isEmpty())
+            assertEquals(before, f.db.mutationDao().getUnsentMutationsCount().first())
+            failTarget = false
+            val id = ok(f.workflow.startRoutine("routine")).sessionId
+            val targets = f.workouts.getPrescriptionForSession(id).first()
+            val mutations = f.db.mutationDao().getPendingMutations().first()
+            val targetPayloads = mutations.filter { it.entityName == "workout_prescription" }.map { Json.decodeFromString<WorkoutPrescriptionSet>(it.payloadJson) }
+            assertEquals(targets.toSet(), targetPayloads.toSet())
+            failCancel = true
+            assertFails { f.workouts.cancelWorkout(id) }
+            assertEquals(targets, f.workouts.getPrescriptionForSession(id).first())
+            assertNotNull(f.workouts.getSessionById(id)); assertEquals(4, f.workouts.getSetsForSession(id).first().size)
+            assertEquals(mutations, f.db.mutationDao().getPendingMutations().first())
+            failCancel = false
+            f.workouts.cancelWorkout(id)
+            assertTrue(f.db.workoutDao().getAllPrescriptions().isEmpty()); assertNull(f.workouts.getSessionById(id))
+            assertTrue(f.db.workoutDao().getAllExercisesSnapshot().isEmpty()); assertTrue(f.db.workoutDao().getAllSetsSnapshot().isEmpty())
+            assertEquals(1, f.db.mutationDao().getPendingMutations().first().count { it.entityName == "workout_session" && it.operation == "DELETE" })
+        } finally { f.db.close() }
+    }
+    @Test fun deletedActualWorkKeepsCompleteOriginalPrescriptionAcrossReopenAndSourceChanges() = runTest {
+        val file = Files.createTempFile("prescription", ".db")
+        var f = fixture(file.toString())
+        try {
+            f.seed()
+            val id = ok(f.workflow.startPlan("plan")).sessionId
+            val original = f.workouts.getSetsForSession(id).first()
+            val targets = f.workouts.getPrescriptionForSession(id).first()
+            val snapshotRows = f.db.workoutDao().getAllPrescriptions()
+            assertFails { f.db.workoutDao().insertPrescription(snapshotRows.first().copy(weightKg = 999.0)) }
+            assertEquals(targets, f.workouts.getPrescriptionForSession(id).first())
+            val entries = f.workouts.getWorkoutExercises(id).first()
+            f.workouts.deleteSet(original[0].id)
+            f.workouts.removeWorkoutExercise(id, entries[1].id)
+            val manual = f.workouts.addSetToEntry(id, entries[0].id, 99.0, 2)
+            f.workouts.deleteSet(manual.id)
+            f.db.close(); f = fixture(file.toString())
+            val routine = f.routines.getById("routine")!!
+            val changed = ok(f.routines.save(routine.copy(exercises = routine.exercises.reversed().map {
+                it.copy(restSeconds = 300, sets = it.sets.map { set -> set.copy(weightKg = 999.0, reps = 1) })
+            }), routine.revision))
+            ok(f.routines.archive(changed.id, changed.revision))
+            f.catalogue.saveExercise(Exercise("bench", "Later name", MuscleGroup.ARMS, 30, true))
+            val remaining = f.workouts.getSetsForSession(id).first().single()
+            assertEquals(original[1].id, remaining.id); assertEquals(1, remaining.setNumber)
+            f.workouts.updateSet(remaining.id) { it.copy(weightKg = 30.0, reps = 10, isCompleted = true) }
+            assertEquals(300.0, ok(f.workflow.complete(id)).session.totalVolumeKg)
+            assertEquals(targets, f.workouts.getPrescriptionForSession(id).first())
+            assertEquals(listOf("entry0","entry0","entry1","entry1"), targets.map { it.sourceRoutineExerciseId })
+            assertEquals(listOf("set00","set01","set10","set11"), targets.map { it.sourceRoutineSetId })
+            assertEquals(listOf(60,60,61,61), targets.map { it.restSeconds })
+            assertTrue(targets.all { it.setType == WorkoutSetType.DROPSET && it.muscleGroup == MuscleGroup.CHEST })
+            val stats = f.workouts.getExerciseStats("bench").first()!!
+            assertEquals(300.0, stats.totalVolumeKg); assertEquals(1, stats.totalCompletedSets)
+            assertEquals(listOf(remaining.id), f.workouts.getAllCompletedSets().map { it.id })
+            val exported = Json.parseToJsonElement(f.export.exportWorkoutDataJson()).jsonObject
+            val prescriptions = exported["prescriptions"]?.jsonArray.orEmpty()
+            assertEquals(4, prescriptions.size, "Deleted actual work must retain all original targets")
+            assertEquals(original.map { it.id }, prescriptions.map { it.jsonObject.getValue("id").jsonPrimitive.content })
+            assertEquals(listOf("20.0","21.0","20.0","21.0"), prescriptions.map { it.jsonObject.getValue("weightKg").jsonPrimitive.content })
+            assertEquals(listOf("1","2","1","2"), prescriptions.map { it.jsonObject.getValue("setNumber").jsonPrimitive.content })
+            assertEquals(listOf("0","0","1","1"), prescriptions.map { it.jsonObject.getValue("exerciseOrder").jsonPrimitive.content })
+            assertTrue(prescriptions.all { it.jsonObject.getValue("name").jsonPrimitive.content == "Original bench" })
+            assertEquals(1, exported.getValue("sets").jsonArray.size)
+            val csv = f.export.exportWorkoutDataCsv()
+            original.forEach { assertTrue(csv.contains(it.id)) }
+            assertEquals(3, csv.lineSequence().count { it.contains("OMITTED") })
+            // The quoted date owns the only embedded comma in this fixture. Inspect actual numeric columns.
+            csv.lineSequence().filter { it.contains("OMITTED") }.forEach { row ->
+                val columns = row.substring(row.indexOf('"', 1) + 2).split(',')
+                assertEquals(List(8) { "" }, columns.subList(3, 11), "Omitted rows have no actual type/order/weight/reps/RPE/completion/1RM/PR")
+            }
+            val draftId = f.drafts.fromWorkout(id)
+            val draft = Json.parseToJsonElement(f.db.editorDraftDao().get("routines", draftId)!!).jsonObject
+            val draftEntries = draft.getValue("exercises").jsonArray
+            assertEquals(1, draftEntries.size)
+            val actualSets = draftEntries.single().jsonObject.getValue("sets").jsonArray
+            assertEquals(1, actualSets.size)
+            assertEquals("30.0", actualSets.single().jsonObject.getValue("weight").jsonPrimitive.content)
+        } finally { f.db.close(); Files.deleteIfExists(file) }
     }
     @Test fun workoutConversionResumesWithoutStealingLiveEditorLease() = runTest {
         val f = fixture(); val owner = kotlinx.coroutines.Job()
@@ -158,7 +273,7 @@ class TrainingWorkflowTest {
             sql(file.toString(),"CREATE TRIGGER fail_set BEFORE INSERT ON workout_sets WHEN (SELECT count(*) FROM workout_sets) = 2 BEGIN SELECT RAISE(ABORT, 'third'); END")
             assertEquals(WorkoutError.STORAGE,assertIs<Result.Error<WorkoutError>>(f.workflow.startPlan("plan")).error)
             assertTrue(f.db.workoutDao().getAllSessionsList().isEmpty()); assertEquals(0,scalar(file.toString(),"SELECT count(*) FROM workout_exercises"))
-            assertEquals(0,scalar(file.toString(),"SELECT count(*) FROM workout_sets")); assertEquals(count,f.db.mutationDao().getUnsentMutationsCount().first())
+            assertEquals(0,scalar(file.toString(),"SELECT count(*) FROM workout_prescriptions")); assertEquals(0,scalar(file.toString(),"SELECT count(*) FROM workout_sets")); assertEquals(count,f.db.mutationDao().getUnsentMutationsCount().first())
         } finally { f.db.close(); Files.deleteIfExists(file) }
     }
     @Test fun progressFailureAndOutboxFailureAbortEarlierCompletionWrites() = runTest {

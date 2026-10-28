@@ -58,6 +58,7 @@ internal class WorkoutDetailViewModel(
             val session = workoutRepository.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
             val allExercises = workoutRepository.getExercises().first()
             val sets = workoutRepository.getSetsForSession(sessionId).first()
+            val targets = workoutRepository.getPrescriptionForSession(sessionId).first()
 
             val endTimeEpochMs = session.endTimeEpochMs
             val durationStr = if (endTimeEpochMs != null) {
@@ -70,18 +71,23 @@ internal class WorkoutDetailViewModel(
             }
 
             val grouped = sets.groupBy { it.workoutExerciseId ?: it.exerciseId }
-            val exercisesWithSets = grouped.mapNotNull { (exerciseId, exerciseSets) ->
-                val first=exerciseSets.first()
-                val catalogue=allExercises.find { it.id == first.exerciseId }
-                val exercise=features.exercises.api.Exercise(first.exerciseId,first.exerciseNameSnapshot ?: catalogue?.name ?: "Neznámý cvik",
-                    first.muscleGroupSnapshot ?: catalogue?.muscleGroup ?: features.exercises.api.MuscleGroup.CHEST,
-                    first.restSecondsSnapshot ?: catalogue?.defaultRestSeconds ?: 90)
-                val volume = exerciseSets.filter { it.isCompleted }.sumOf { it.weightKg * it.reps }
-                WorkoutDetailContract.ExerciseWithSets(
-                    exercise = exercise,
-                    sets = exerciseSets,
-                    exerciseVolumeKg = volume
-                )
+            val prescribed = targets.groupBy { it.workoutExerciseId }
+            val entryIds = (prescribed.keys + grouped.keys).sortedBy { id ->
+                prescribed[id]?.firstOrNull()?.exerciseOrder ?: grouped[id]?.firstOrNull()?.exerciseOrder ?: Int.MAX_VALUE
+            }
+            val exercisesWithSets = entryIds.map { id ->
+                val actual = grouped[id].orEmpty()
+                val original = prescribed[id].orEmpty()
+                val first = actual.firstOrNull()
+                val target = original.firstOrNull()
+                val catalogueId = target?.exerciseId ?: first!!.exerciseId
+                val catalogue = allExercises.find { it.id == catalogueId }
+                val exercise = features.exercises.api.Exercise(catalogueId,
+                    target?.name ?: first?.exerciseNameSnapshot ?: catalogue?.name ?: "Neznámý cvik",
+                    target?.muscleGroup ?: first?.muscleGroupSnapshot ?: catalogue?.muscleGroup ?: features.exercises.api.MuscleGroup.CHEST,
+                    target?.restSeconds ?: first?.restSecondsSnapshot ?: catalogue?.defaultRestSeconds ?: 90)
+                WorkoutDetailContract.ExerciseWithSets(exercise, actual,
+                    actual.filter { it.isCompleted }.sumOf { it.weightKg * it.reps }, original)
             }
 
             updateState {
