@@ -9,6 +9,7 @@
 | 💾 moduly, adresáře, odpovědnosti vrstev, DI a transakce | [Architektura projektu](docs/architecture.md) |
 | ⚡ přesné použití State, Intent, Effect, ViewModel, Root a Screen | [Praktický průvodce MVI](docs/mvi.md) |
 | 📱 průchod změnou váhy, lifecycle a návod na další obrazovku | [MVI příklady a postup](docs/mvi.md) |
+| 📋🗓️ návrh samostatných rutin a tréninkových plánů — zatím neimplementováno | [Návrh další etapy](docs/superpowers/specs/2026-10-28-routines-trainingplans-design.md) |
 
 ## 🗂️ Struktura
 
