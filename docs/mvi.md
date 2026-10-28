@@ -265,7 +265,7 @@ override fun onOperationFailure(error: DataError.Local) {
 
 🛡️ Selhání nabídky ponechá poslední volby a nastaví vlastní `choicesError`. `RetryChoices` znovu přihlásí pouze neaktivní odběr; otevření draftu, lease ani autosave neopakuje. Může proběhnout během `isSaving`, ale nesmí tento zámek uvolnit. Úspěšná emise smaže jen chybu nabídky. Vydané operace/publikace dále vlastní aplikační fronty a stav svých chyb.
 
-👆 `Mutate` aplikuje změnu konkrétního pole nad aktuálním draftem ViewModelu. Dvě rychlé změny z téže kompozice se nepřepíší. `Edit` přijímá úplný snapshot (například v testu); ViewModel zařadí JSON do `OrderedDrafts.Session.put` synchronně před spuštěním čekající korutiny. Zánik obrazovky tak neodhodí již přijatý text.
+👆 `Mutate` aplikuje změnu konkrétního pole nad aktuálním draftem ViewModelu. Dvě rychlé změny z téže kompozice se nepřepíší. `Edit` přijímá úplný snapshot (například v testu); ViewModel předá raw model do `DurableEditorController.edit`, který přes feature codec zařadí JSON synchronně před spuštěním čekající korutiny. Zánik obrazovky tak neodhodí již přijatý text.
 
 ```mermaid
 sequenceDiagram
@@ -289,7 +289,7 @@ sequenceDiagram
 
 ↩️ Toolbar a Android systémové Zpět posílají stejný Back intent. Autosave neznamená publikaci: nabídka zůstává „pokračovat“ nebo „zahodit“. Discard čeká za autosavy a naviguje až po úspěšném delete; chyba nechá editor otevřený. Přepnutí tabs zachovává draft i bez dialogu; route draftId jej umí obnovit po rekreaci.
 
-🛡️ Nikdy nečekej na draft FIFO uvnitř DB writeru, jinak se mohou dvě fronty vzájemně zablokovat. Doménový `Result.Error` uvnitř publikace musí vyvolat vnější abort. `isSaving` blokuje další vstupy, zatímco transakce kontroluje invarianty i pro jiné volající. Uvolňuje jej pouze čekání vlastní terminal operace; chyba staršího autosave ani pomocného usage či choices odběru nesmí odemknout rozpracovaný save/discard/reload.
+🛡️ Nikdy nečekej na draft FIFO uvnitř DB writeru, jinak se mohou dvě fronty vzájemně zablokovat. Doménový `Result.Error` uvnitř publikace musí vyvolat vnější abort. `isSaving` blokuje další vstupy, zatímco transakce kontroluje invarianty i pro jiné volající. Sdílený `DurableEditorController` jej uvolní pouze při dokončení vlastní terminal operace; chyba staršího autosave ani pomocného usage či choices odběru nesmí odemknout rozpracovaný save/discard/reload.
 
 🔑 `OrderedDrafts.open(kind, id, ownerJob)` váže jeden živý editor na jeden zdroj. Druhá uchovaná nav entry dostane vysvětlení a Zpět/Retry, nikoli novou generaci původního draftu. Po zániku prvního ViewModelu (ne pouhé kompozice) se release zařadí za přijaté zápisy; Retry pak načte poslední durable obsah. Publish/discard uvolní lease při úspěchu. Zrušení během queued/read acquire nezanechá osiřelou lease. Převod workoutu při existující lease vrací stávající draftId a nesmí přepisovat obsah.
 

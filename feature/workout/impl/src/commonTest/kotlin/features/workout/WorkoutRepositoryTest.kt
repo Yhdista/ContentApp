@@ -51,15 +51,6 @@ class WorkoutRepositoryTest {
         (features.workout.data.RoomWorkoutStore(fakeDao, directWrites, fakeMutationDao, fakeClock).completeOnce(sessionId)
             as core.result.Result.Success).data.session
 
-    @Test
-    fun testEnsureDefaultExercisesSeedsWhenEmpty() = runTest {
-        assertEquals(0, fakeCatalog.getExercisesCount())
-        repository.ensureDefaultExercises()
-        val exercises = repository.getExercises().first()
-        assertTrue(exercises.isNotEmpty())
-        assertTrue(exercises.any { it.name == "Bench press" })
-        assertTrue(exercises.any { it.name == "Dřep s činkou" })
-    }
 
     @Test
     fun testStartWorkoutCreatesActiveSession() = runTest {
@@ -81,23 +72,6 @@ class WorkoutRepositoryTest {
         assertEquals("Leg Day", fetched.title)
     }
 
-    @Test
-    fun testCreateCustomExerciseInsertsEntityAndLogsMutation() = runTest {
-        val created = repository.createCustomExercise(
-            name = "Incline Dumbbell Press",
-            muscleGroup = features.exercises.api.MuscleGroup.CHEST,
-            defaultRestSeconds = 90
-        )
-        assertNotNull(created.id)
-        assertEquals("Incline Dumbbell Press", created.name)
-        assertEquals(features.exercises.api.MuscleGroup.CHEST, created.muscleGroup)
-
-        val exercises = repository.getExercises().first()
-        assertTrue(exercises.any { it.id == created.id })
-
-        val mutations = fakeMutationDao.mutations
-        assertTrue(mutations.any { it.recordId == created.id && it.entityName == "exercise" })
-    }
 
     @Test
     fun testGetPendingSyncMutationsCountReflectsOutbox() = runTest {
@@ -188,18 +162,6 @@ class WorkoutRepositoryTest {
         assertTrue(setsSess2.first { it.id == workingSet2.id }.isPersonalRecord)
     }
 
-    @Test
-    fun testOutboxPayloadsAreValidJsonWithEscapedSpecialCharacters() = runTest {
-        val created = repository.createCustomExercise(
-            name = "Bench \"Heavy\" \\ Press",
-            muscleGroup = features.exercises.api.MuscleGroup.CHEST,
-            defaultRestSeconds = 120
-        )
-        val mutation = fakeMutationDao.mutations.first { it.recordId == created.id }
-        assertTrue(mutation.payloadJson.contains("\\\"Heavy\\\""))
-        val decoded = kotlinx.serialization.json.Json.decodeFromString<features.workout.data.model.ExerciseSyncPayload>(mutation.payloadJson)
-        assertEquals("Bench \"Heavy\" \\ Press", decoded.name)
-    }
 }
 
 private class RepoFakeClock(var time: Long) : AppClock {
@@ -311,8 +273,9 @@ private class FakeExerciseCatalog : ExerciseCatalog {
     override suspend fun getAllExercises(): List<Exercise> = exercises.value
     override suspend fun getExerciseById(id: String): Exercise? = exercises.value.firstOrNull { it.id == id }
     override suspend fun getExercisesCount(): Int = exercises.value.size
-    override suspend fun saveExercise(exercise: Exercise) { exercises.value = exercises.value.filter { it.id != exercise.id } + exercise }
-    override suspend fun saveExercises(exercises: List<Exercise>) { exercises.forEach { saveExercise(it) } }
+    override suspend fun create(name: String, muscleGroup: features.exercises.api.MuscleGroup, defaultRestSeconds: Int): Exercise = error("Unused")
+    override suspend fun update(exercise: Exercise): Exercise = error("Unused")
+    override suspend fun archive(id: String) = error("Unused")
 }
 
 private val directWrites = object : CommandCoordinator { override suspend fun <T> write(block: suspend () -> T): T = block() }

@@ -40,7 +40,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import core.common.formatCleanWeight
+import core.common.formatCompactDecimal
 import features.workout.domain.WorkoutSetType
 import features.workout.ui.components.toBadgeVisuals
 import ui.designsystem.nucleus.AppSpacing
@@ -156,7 +156,7 @@ internal fun WorkoutDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            val volumeFormatted = (session?.totalVolumeKg ?: 0.0).formatCleanWeight()
+                            val volumeFormatted = (session?.totalVolumeKg ?: 0.0).formatCompactDecimal()
                             Text(
                                 text = "$volumeFormatted kg",
                                 fontSize = 26.sp,
@@ -231,7 +231,7 @@ internal fun WorkoutDetailScreen(
                                 )
                             }
                             allPrSets.forEach { (exercise, set) ->
-                                val weightStr = set.weightKg.formatCleanWeight()
+                                val weightStr = set.weightKg.formatCompactDecimal()
                                 Text(
                                     text = "• ${exercise.name}: $weightStr kg × ${set.reps} opakování",
                                     style = MaterialTheme.typography.bodySmall,
@@ -345,7 +345,7 @@ private fun DetailExerciseCard(
             Text("Původní předpis · pauza ${group.prescriptions.first().restSeconds} s", style = MaterialTheme.typography.titleSmall)
             group.prescriptions.forEach { target ->
                 val actual = group.sets.firstOrNull { it.id == target.id }
-                Text("${target.setNumber}. ${target.weightKg.formatCleanWeight()} kg × ${target.reps} · ${target.setType.displayName} · " +
+                Text("${target.setNumber}. ${target.weightKg.formatCompactDecimal()} kg × ${target.reps} · ${target.setType.displayName} · " +
                     if (actual == null) "Vynecháno — bez skutečného výkonu" else "Skutečná série ${actual.setNumber}",
                     style = MaterialTheme.typography.bodySmall, color = colorScheme.onSurfaceVariant)
             }
@@ -361,7 +361,7 @@ private fun DetailExerciseCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = colorScheme.onSurfaceVariant
                 )
-                val weightStr = set.weightKg.formatCleanWeight()
+                val weightStr = set.weightKg.formatCompactDecimal()
                 val rpeStr = set.rpe?.let { " @$it" } ?: ""
 
                 val badgeVisuals = set.setType.toBadgeVisuals(

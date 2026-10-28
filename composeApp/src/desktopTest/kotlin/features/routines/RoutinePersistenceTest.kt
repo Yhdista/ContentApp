@@ -68,7 +68,7 @@ class RoutinePersistenceTest {
     }
 
     private suspend fun seed(s: Services) {
-        s.catalogue.saveExercise(Exercise("bench", "Bench", MuscleGroup.CHEST))
+        (s.catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(Exercise("bench", "Bench", MuscleGroup.CHEST)))
     }
     private fun routine() = Routine("routine", "  Morning  ", "Notes \"x\"\n", exercises = listOf(
         RoutineExercise("entry-b", "bench", 90, listOf(

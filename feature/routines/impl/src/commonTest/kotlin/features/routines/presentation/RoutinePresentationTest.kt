@@ -27,7 +27,7 @@ class RoutinePresentationTest {
     private val models = mutableListOf<androidx.lifecycle.ViewModel>()
     @BeforeTest fun before() { Dispatchers.setMain(dispatcher); scope = ApplicationScope(SupervisorJob() + dispatcher); store = MemoryDrafts(); queue = OrderedDrafts(store,scope); repository = Repository() }
     @AfterTest fun after() { models.forEach { it.viewModelScope.cancel() }; scope.cancel(); Dispatchers.resetMain() }
-    private fun editor() = RoutineEditorViewModel("edit:existing", repository, queue, store, writes, catalogue, usage).also { models.add(it) }
+    private fun editor() = RoutineEditorViewModel(routineEditorController("edit:existing", repository, queue, writes), repository, catalogue, usage).also { models.add(it) }
     private fun library() = RoutineLibraryViewModel("existing", repository, catalogue, RoutineUsage { flowOf(2) }, StartRoutineWorkout { Result.Success(StartOutcome.ResumedExisting("active")) }).also { models.add(it) }
 
     @Test fun initialChoiceFailureDoesNotPreventDraftOpeningAndHasIndependentRetry() = runTest(dispatcher) {
@@ -314,6 +314,7 @@ private class Catalogue : ExerciseCatalog {
     override suspend fun getAllExercises() = items
     override suspend fun getExerciseById(id: String) = items.find { it.id == id }
     override suspend fun getExercisesCount() = items.size
-    override suspend fun saveExercise(exercise: Exercise) = Unit
-    override suspend fun saveExercises(exercises: List<Exercise>) = Unit
+    override suspend fun create(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int): Exercise = error("Unused")
+    override suspend fun update(exercise: Exercise): Exercise = error("Unused")
+    override suspend fun archive(id: String) = Unit
 }

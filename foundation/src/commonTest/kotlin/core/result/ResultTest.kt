@@ -1,6 +1,5 @@
 package core.result
 
-import core.ui.toUiText
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -51,6 +50,5 @@ class ResultTest {
         }
         assertTrue(notFoundResult is Result.Error)
         assertEquals(DataError.Local.NOT_FOUND, (notFoundResult as Result.Error).error)
-        assertTrue(notFoundResult.error.toUiText().asString().isNotBlank())
     }
 }

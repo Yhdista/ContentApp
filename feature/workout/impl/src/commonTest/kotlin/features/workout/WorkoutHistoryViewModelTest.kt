@@ -233,8 +233,6 @@ private class HistoryFakeWorkoutRepository : WorkoutRepository, WorkoutDataExpor
     fun getActiveSessionSync(): WorkoutSession? = active.value
 
     override fun getExercises(): Flow<List<Exercise>> = MutableStateFlow(emptyList())
-    override suspend fun ensureDefaultExercises() {}
-    override suspend fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int): Exercise = error("Not needed")
     override fun getActiveSession(): Flow<WorkoutSession?> = active.asStateFlow()
     override fun getCompletedSessions(): Flow<List<WorkoutSession>> = completed.asStateFlow()
     override fun getPendingSyncMutationsCount(): Flow<Int> = pendingMutations.asStateFlow()

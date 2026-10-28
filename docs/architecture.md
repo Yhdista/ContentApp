@@ -30,14 +30,14 @@ flowchart TD
 
 🧱 Každá produktová feature má `api` a `impl`. API vlastní serializovatelné routes, modely a veřejné kontrakty. Implementace vlastní Room adaptér, validaci příkazů a interní ViewModely; veřejné Roots berou callbacky. Cizí DAO ani cizí `impl` do feature nepatří. App smí znát všechny entity, aby sestavila jednu databázi.
 
-🧱 `foundation` zůstává bez Compose, Room a Koin. Obsahuje obecné chyby, čas, aplikační scope, MVI markery a platformní adaptéry. `UiText` je zatím jednoduchý obal s českými texty; plná lokalizace resources zůstává omezením POC.
+🧱 `foundation` zůstává bez Compose, Room a Koin. Obsahuje obecné chyby, čas, aplikační scope, MVI markery a platformní adaptéry. `UiText` a mapování infrastrukturních chyb vlastní `core:presentation` (bez fitness validačních enumů ve foundation); plná lokalizace resources zůstává omezením POC.
 
 🎨 `designsystem` nezná fitness modely ani ViewModely. Nové obrazovky používají Material konstrukce přes `nucleus/LibraryComponents.kt`: vstupy, akce, volby, dialog, page a hlavní záložky. `molecules/EditorNotices.kt` skládá obecné chybové/prázdné stavy. Interaktivní prvky mají min. 48 dp, page zpracuje insets a IME; previews pokrývají obě témata. Starší workout UI stále používá i přímé Material prvky.
 
 ## 🗂️ Mapa kódu
 
 ```text
-foundation/src/commonMain/kotlin/core/       # common, result, ui, mvi, feedback, platform
+foundation/src/commonMain/kotlin/core/       # common, result, mvi, feedback, platform
 core/storage/src/commonMain/kotlin/core/    # storage, database, sync, network
 core/presentation/src/commonMain/kotlin/core/viewmodel/
 designsystem/src/commonMain/kotlin/ui/designsystem/
@@ -76,6 +76,12 @@ composeApp/src/desktopTest/                  # skutečný Room, migrace, Skia/Na
 
 🧠 BaseViewModel zůstává ve `core:presentation`. Intenty loguje pouze názvem typu, bez názvů, poznámek, hledání, exportů či JSON payloadů. Writer loguje pouze typ výjimky, nikoli její zprávu.
 
+## 🏋️ Vlastnictví katalogu
+
+`ExerciseCatalog.create/update/archive` vlastní validaci, generování nových ID a jeden granularní outbox záznam ve stejné transakci jako uživatelskou změnu. Opakovaná archivace je idempotentní. Workout repository tyto příkazy ani seed nevystavuje; vlastní cvik vytváří ActiveWorkout přes veřejné exercises rozhraní. Teprve další samostatný příkaz připojí jeho výskyt s první sérií do workoutu.
+
+`ExerciseCatalogImport` je oddělený integrační vstup pro bundled seed a přijaté vzdálené záznamy se stabilními ID. Tyto záznamy nejsou nové uživatelské mutace a nevracejí se do outboxu. `initKoin` spouští idempotentní inicializaci pouze prázdného katalogu v aplikačním scope; původních sedm výchozích ID i hodnot zůstává zachovaných. Selhání inicializace se zaznamená jako typová infrastrukturní chyba. Schéma se nemění.
+
 ## 💾 Příkazy a drafty
 
 🔄 Po vnějším úspěšném commitu RoomCommandCoordinator vyvolá `invalidationTracker.refreshAsync()`: připnutý `useWriterConnection` tuto notifikaci nedělá. Živé Flow odběry tak uvidí změnu bez opětovného otevření obrazovky; savepoint ani rollback neposílají necommitnutý mezistav. Regrese je ověřena skutečným dlouhodobým Room odběrem i návratem na přejmenovaný detail.
@@ -83,6 +89,8 @@ composeApp/src/desktopTest/                  # skutečný Room, migrace, Skia/Na
 💾 [CommandCoordinator](../core/storage/src/commonMain/kotlin/core/storage/CommandCoordinator.kt) řadí celé příkazy v aplikačním scope. Room adaptér otevře writer transaction, vnořené zápisy používají savepoint. Feature nesmí proměnit dílčí `Result.Error` na úspěch vnější transakce; workflow při chybě vyhodí interní abort a přeloží jej až mimo celou transakci.
 
 💾 [OrderedDrafts](../core/storage/src/commonMain/kotlin/core/storage/OrderedDrafts.kt) je druhá, doménově nezávislá aplikační FIFO pro lokální návrhy. `put` přijme snapshot synchronně a vrátí Deferred acknowledgement. Zrušení čekajícího ViewModelu neodstraní přijatý edit. Otevření čeká za staršími zápisy a vrátí aktuální raw payload. Editor získá výhradní lease pro `(kind,id)` vázanou na Job jeho ViewModelu. Druhá entry ani převod workoutu ji nesmí převzít: druhá entry ukáže vysvětlení a Zpět/Retry. Zánik vlastníka uvolní lease až za přijatými autosavy, draft nemaže. Kontrola zrušení před i po čtení brání úniku lease během acquire. Úspěšná publikace/discard lease také uvolní. Generace nadále odmítá pozdní callbacky.
+
+♻️ [DurableEditorController](../core/presentation/src/commonMain/kotlin/core/viewmodel/DurableEditorController.kt) sdílí protokol obou editorů kompozicí: open/lease, feature codec a kontrola verze, autosave ACK, barrier, terminální zámek a publish/discard. Feature factories dodávají namespace, stabilní draftId, typed raw codec a počáteční load; ViewModel dodává validaci/save a prezentační callbacky. ViewModel nezná DraftStore ani pořadí transakčních zápisů. `OrderedDrafts.Session.publish` jako jediný vlastník publikační operace spojí agregát a odstranění návrhu.
 
 💾 Publikace zmrazí vstupy (`isSaving`), zařadí terminal command za autosavy a teprve uvnitř něj otevře transakci: uložit agregát/CAS/outbox → smazat draft → commit → úspěšný efekt. Chyba smazání vrátí zpět agregát i outbox; draft zůstane. Zámek `isSaving` smí uvolnit jen konkrétní terminal operace; starší chyba autosave či usage odběru pouze zobrazí chybu. Fronta se nikdy nečeká zevnitř DB writeru. Discard používá stejné pořadí, chybu ukáže a zůstane v editoru.
 

@@ -5,7 +5,6 @@ import core.database.MutationDao
 import core.database.SyncMutationEntity
 import core.storage.CommandCoordinator
 import features.workout.data.datasource.WorkoutLocalDataSource
-import features.workout.data.model.ExerciseSyncPayload
 import features.workout.data.model.StartSessionSyncPayload
 import features.workout.data.model.UpdateSetSyncPayload
 import features.exercises.api.Exercise
@@ -43,48 +42,6 @@ internal class OfflineFirstWorkoutRepository(
 
     override fun getExercises(): Flow<List<Exercise>> =
         localDataSource.observeExercises()
-
-    override suspend fun ensureDefaultExercises() = writes.write {
-        if (localDataSource.getExercisesCount() == 0) {
-            val defaults = WorkoutDefaults.exercises
-            localDataSource.saveExercises(defaults)
-        }
-    }
-
-    override suspend fun createCustomExercise(
-        name: String,
-        muscleGroup: MuscleGroup,
-        defaultRestSeconds: Int
-    ): Exercise = writes.write {
-        val now = clock.nowMillis()
-        val trimmedName = name.trim()
-        require(trimmedName.isNotEmpty() && defaultRestSeconds > 0)
-        val exerciseId = "custom-ex-${Uuid.random()}"
-        val exercise = Exercise(
-            id = exerciseId,
-            name = trimmedName,
-            muscleGroup = muscleGroup,
-            defaultRestSeconds = defaultRestSeconds
-        )
-        localDataSource.saveExercise(exercise)
-
-        val payload = ExerciseSyncPayload(
-            name = trimmedName,
-            muscleGroup = muscleGroup.name,
-            defaultRestSeconds = defaultRestSeconds
-        )
-        mutationDao.insertMutation(
-            SyncMutationEntity(
-                id = "mut-${Uuid.random()}",
-                entityName = "exercise",
-                recordId = exerciseId,
-                operation = "INSERT",
-                payloadJson = json.encodeToString(payload),
-                createdAt = now
-            )
-        )
-        return@write exercise
-    }
 
     override fun getActiveSession(): Flow<WorkoutSession?> =
         localDataSource.observeActiveSession()

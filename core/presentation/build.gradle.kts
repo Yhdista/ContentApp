@@ -16,6 +16,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(project(":foundation"))
+            api(project(":core:storage"))
             api(libs.androidx.lifecycle.viewmodel)
             api(compose.runtime)
             api("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")

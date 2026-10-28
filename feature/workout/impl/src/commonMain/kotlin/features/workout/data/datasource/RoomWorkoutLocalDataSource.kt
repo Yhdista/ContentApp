@@ -21,8 +21,6 @@ internal class RoomWorkoutLocalDataSource(
     override suspend fun getAllExercises(): List<Exercise> = catalogue.getAllExercises()
     override suspend fun getExerciseById(id: String): Exercise? = catalogue.getExerciseById(id)
     override suspend fun getExercisesCount(): Int = catalogue.getExercisesCount()
-    override suspend fun saveExercise(exercise: Exercise) = catalogue.saveExercise(exercise)
-    override suspend fun saveExercises(exercises: List<Exercise>) = catalogue.saveExercises(exercises)
 
     override fun observeActiveSession(): Flow<WorkoutSession?> =
         workoutDao.getActiveSession().map { it?.toDomain() }

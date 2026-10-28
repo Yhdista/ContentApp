@@ -46,7 +46,7 @@ class DelayedEditorNavigationTest {
             val routines = app.koin.get<RoutineRepository>()
             val plans = app.koin.get<TrainingPlanRepository>()
             runBlocking {
-                app.koin.get<ExerciseCatalog>().saveExercise(Exercise("bench", "Bench", MuscleGroup.CHEST))
+                app.koin.get<features.exercises.api.ExerciseCatalogImport>().importExercises(listOf(Exercise("bench", "Bench", MuscleGroup.CHEST)))
                 assertIs<Result.Success<Routine>>(routines.save(Routine("routine", "Original routine", exercises = listOf(
                     RoutineExercise("entry", "bench", 90, listOf(RoutineSet("set", 10.0, 8))))), null))
                 assertIs<Result.Success<TrainingPlan>>(plans.save(TrainingPlan("plan", "Original plan", slots = listOf(

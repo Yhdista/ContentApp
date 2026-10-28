@@ -17,8 +17,6 @@ internal interface WorkoutLocalDataSource {
     suspend fun getAllExercises(): List<Exercise>
     suspend fun getExerciseById(id: String): Exercise?
     suspend fun getExercisesCount(): Int
-    suspend fun saveExercise(exercise: Exercise)
-    suspend fun saveExercises(exercises: List<Exercise>)
 
     // Sessions
     fun observeActiveSession(): Flow<WorkoutSession?>

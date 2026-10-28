@@ -11,6 +11,9 @@ import core.sync.SyncManager
 import features.exercises.data.exerciseFeatureModule
 import features.workout.workoutFeatureModule
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import core.result.safeLocalCall
+import core.result.onFailure
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
@@ -37,6 +40,10 @@ fun initKoin(appDeclaration: KoinAppDeclaration = {}) =
         appDeclaration()
         modules(commonModule, platformModule)
     }.also { application ->
+        application.koin.get<ApplicationScope>().launch {
+            safeLocalCall { application.koin.get<features.exercises.api.ExerciseCatalogImport>().ensureDefaults() }
+                .onFailure { io.github.aakira.napier.Napier.e("Catalogue initialization failed: $it") }
+        }
         application.koin.get<SyncManager>().startSyncLoop()
     }
 

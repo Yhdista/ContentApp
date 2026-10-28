@@ -42,7 +42,7 @@ class TrainingWorkflowTest {
     }
     private fun <T> ok(result: Result<T, *>): T = assertIs<Result.Success<T>>(result).data
     private suspend fun Fixture.seed() {
-        catalogue.saveExercise(Exercise("bench", "Original bench", MuscleGroup.CHEST, 90))
+        (catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(Exercise("bench", "Original bench", MuscleGroup.CHEST, 90)))
         ok(routines.save(Routine("routine", "Morning", exercises=List(2) { e ->
             RoutineExercise("entry$e", "bench", 60 + e, List(2) { s -> RoutineSet("set$e$s", 20.0+s, 8+s, WorkoutSetType.DROPSET) }) }), null))
         ok(plans.save(TrainingPlan("plan", "Cycle", slots=listOf(PlanSlot("A", "A", "routine"), PlanSlot("B", "B", "routine"))), null))
@@ -128,7 +128,7 @@ class TrainingWorkflowTest {
                 it.copy(restSeconds = 300, sets = it.sets.map { set -> set.copy(weightKg = 999.0, reps = 1) })
             }), routine.revision))
             ok(f.routines.archive(changed.id, changed.revision))
-            f.catalogue.saveExercise(Exercise("bench", "Later name", MuscleGroup.ARMS, 30, true))
+            (f.catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(Exercise("bench", "Later name", MuscleGroup.ARMS, 30, true)))
             val remaining = f.workouts.getSetsForSession(id).first().single()
             assertEquals(original[1].id, remaining.id); assertEquals(1, remaining.setNumber)
             f.workouts.updateSet(remaining.id) { it.copy(weightKg = 30.0, reps = 10, isCompleted = true) }
@@ -211,7 +211,7 @@ class TrainingWorkflowTest {
             val old=f.routines.getById("routine")!!
             val changed = ok(f.routines.save(old.copy(name="Changed", exercises=old.exercises.reversed()),old.revision))
             ok(f.routines.archive(changed.id, changed.revision))
-            f.catalogue.saveExercise(Exercise("bench","Renamed",MuscleGroup.ARMS,12,true))
+            (f.catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(Exercise("bench","Renamed",MuscleGroup.ARMS,12,true)))
             assertEquals(entries, f.db.workoutDao().getExercisesSnapshot(id)); assertEquals(session,f.workouts.getSessionById(id))
             assertEquals(sets,f.workouts.getSetsForSession(id).first())
             val first=sets.first(); f.workouts.updateSet(first.id) { it.copy(weightKg=77.0,reps=3,setType=WorkoutSetType.FAILURE,isCompleted=true) }
@@ -255,7 +255,7 @@ class TrainingWorkflowTest {
                 it.copy(restSeconds = 300, sets = it.sets.map { set -> set.copy(weightKg = 100.0, reps = 1) })
             }), original.revision))
             ok(f.routines.archive(edited.id, edited.revision))
-            f.catalogue.saveExercise(Exercise("bench", "Later name", MuscleGroup.ARMS, 30, true))
+            (f.catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(Exercise("bench", "Later name", MuscleGroup.ARMS, 30, true)))
             assertEquals(session, f.workouts.getSessionById(id))
             assertEquals(entries, f.db.workoutDao().getExercisesSnapshot(id))
             assertEquals(sets, f.workouts.getSetsForSession(id).first())
@@ -317,7 +317,7 @@ class TrainingWorkflowTest {
             assertEquals("61",draftEntries[1].jsonObject.getValue("rest").jsonPrimitive.content)
             assertEquals(1,f.routines.observeAll().first().size)
             assertEquals(before,f.db.mutationDao().getUnsentMutationsCount().first())
-            f.catalogue.saveExercise(Exercise("bench","Renamed",MuscleGroup.ARMS,12,true))
+            (f.catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(Exercise("bench","Renamed",MuscleGroup.ARMS,12,true)))
             val csv=WorkoutDataExporter.exportToCsv(listOf(f.workouts.getSessionById(id)!!),f.catalogue.getAllExercises(),sets)
             assertTrue(csv.contains("Original bench")); assertFalse(csv.contains("Renamed")); assertTrue(csv.contains(entries[1].id))
             val json= kotlinx.serialization.json.Json.parseToJsonElement(WorkoutDataExporter.exportToJson(
@@ -386,7 +386,7 @@ class TrainingWorkflowTest {
             f.catalogue.archive("bench"); f.catalogue.archive("bench")
             assertTrue(f.catalogue.getExerciseById("bench")!!.archived)
             assertEquals(before+1,f.db.mutationDao().getUnsentMutationsCount().first())
-            f.catalogue.saveExercise(Exercise("other","Other",MuscleGroup.BACK)); reject=true
+            (f.catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(Exercise("other","Other",MuscleGroup.BACK))); reject=true
             assertFailsWith<IllegalStateException> { f.catalogue.archive("other") }
             assertFalse(f.catalogue.getExerciseById("other")!!.archived)
             assertEquals(before+1,f.db.mutationDao().getUnsentMutationsCount().first())

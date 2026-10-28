@@ -167,13 +167,7 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
 
     override fun getExercises(): Flow<List<Exercise>> = exercises.asStateFlow()
 
-    override suspend fun ensureDefaultExercises() {}
 
-    override suspend fun createCustomExercise(
-        name: String,
-        muscleGroup: MuscleGroup,
-        defaultRestSeconds: Int
-    ): Exercise = error("Not needed")
 
     override fun getPendingSyncMutationsCount(): Flow<Int> = MutableStateFlow(0)
 

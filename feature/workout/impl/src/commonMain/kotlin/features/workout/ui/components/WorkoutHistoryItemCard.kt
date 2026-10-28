@@ -21,7 +21,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import core.common.formatCleanWeight
+import core.common.formatCompactDecimal
 import features.workout.domain.WorkoutSession
 import ui.designsystem.nucleus.AppSpacing
 import ui.designsystem.nucleus.statusSynced
@@ -35,7 +35,7 @@ internal fun WorkoutHistoryItemCard(
     modifier: Modifier = Modifier
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val volumeFormatted = session.totalVolumeKg.formatCleanWeight()
+    val volumeFormatted = session.totalVolumeKg.formatCompactDecimal()
 
     Column(
         modifier = modifier

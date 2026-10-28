@@ -3,13 +3,6 @@ package features.workout.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class ExerciseSyncPayload(
-    val name: String,
-    val muscleGroup: String,
-    val defaultRestSeconds: Int
-)
-
-@Serializable
 internal data class StartSessionSyncPayload(
     val title: String,
     val startTimeEpochMs: Long

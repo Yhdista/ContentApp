@@ -55,7 +55,7 @@ class RetainedEditorLeaseTest {
         val route: Any = if (plan) PlanEditorRoute("edit:plan") else RoutineEditorRoute("edit:routine")
         try {
             runBlocking {
-                app.koin.get<ExerciseCatalog>().saveExercise(Exercise("bench", "Bench", MuscleGroup.CHEST))
+                app.koin.get<features.exercises.api.ExerciseCatalogImport>().importExercises(listOf(Exercise("bench", "Bench", MuscleGroup.CHEST)))
                 assertIs<Result.Success<Routine>>(app.koin.get<RoutineRepository>().save(
                     Routine("routine", "Original", exercises = listOf(RoutineExercise("entry", "bench", 90, listOf(RoutineSet("set", 10.0, 8))))), null))
                 assertIs<Result.Success<TrainingPlan>>(app.koin.get<TrainingPlanRepository>().save(

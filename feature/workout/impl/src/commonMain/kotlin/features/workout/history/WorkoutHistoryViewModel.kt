@@ -84,7 +84,6 @@ internal class WorkoutHistoryViewModel(
         loadJob?.cancel()
         loadJob = launchOperation {
             updateState { copy(isLoading = true, error = null) }
-            workoutRepository.ensureDefaultExercises()
 
             // Samostatný lehký odběr počtu čekajících mutací v Outboxu,
             // aby změna stavu synchronizace nespouštěla přepočet celé historie a čtení všech sérií.

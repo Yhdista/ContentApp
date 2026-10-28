@@ -35,7 +35,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import core.common.formatCleanWeight
+import core.common.formatCompactDecimal
 import core.model.ItemSyncStatus
 import features.workout.ui.components.ExercisePickerSheet
 import features.workout.ui.components.ExerciseStatsSheet
@@ -229,7 +229,7 @@ internal fun WorkoutHistoryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            val volumeFormatted = state.totalVolumeAllTimeKg.formatCleanWeight()
+                            val volumeFormatted = state.totalVolumeAllTimeKg.formatCompactDecimal()
                             Text(
                                 text = "$volumeFormatted kg",
                                 fontSize = 24.sp,

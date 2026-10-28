@@ -32,7 +32,7 @@
 | `core:storage` | CommandCoordinator, Room writer, outbox/sync a lokální DraftStore/OrderedDrafts |
 | `core:presentation` | BaseViewModel, entry-scoped ViewModel holder a editor Back handler |
 | `designsystem` | téma, nucleus Material facades, obecné prvky a layouty |
-| `feature:exercises:{api,impl}` | společný katalog cviků |
+| `feature:exercises:{api,impl}` | společný katalog, atomické uživatelské create/update/archive + outbox; oddělený seed/import |
 | `feature:workout:{api,impl}` | session, snímek předpisu, skutečné série, historie, export |
 | `feature:routines:{api,impl}` | předpisy, validace, drafty a obrazovky rutin |
 | `feature:trainingplans:{api,impl}` | cyklus, kurzor/revize postupu, výběr aktuálního plánu a obrazovky |

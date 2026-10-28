@@ -37,7 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import core.common.formatCleanWeight
+import core.common.formatCompactDecimal
 import features.workout.domain.WorkoutSet
 import features.workout.domain.WorkoutSetType
 import ui.designsystem.nucleus.AppSpacing
@@ -59,7 +59,7 @@ internal fun SetRowItem(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     var weightText by remember(set.weightKg) {
-        mutableStateOf(set.weightKg.formatCleanWeight())
+        mutableStateOf(set.weightKg.formatCompactDecimal())
     }
     var repsText by remember(set.reps) {
         mutableStateOf(set.reps.toString())
@@ -265,7 +265,7 @@ internal fun SetRowItem(
                     color = colorScheme.onSurface
                 )
                 Text(
-                    text = "Aktuálně: ${set.weightKg.formatCleanWeight()} kg × ${set.reps} reps",
+                    text = "Aktuálně: ${set.weightKg.formatCompactDecimal()} kg × ${set.reps} reps",
                     style = MaterialTheme.typography.bodySmall,
                     color = colorScheme.onSurfaceVariant
                 )

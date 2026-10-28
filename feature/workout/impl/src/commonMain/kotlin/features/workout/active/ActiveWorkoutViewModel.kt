@@ -23,7 +23,8 @@ internal class ActiveWorkoutViewModel(
     private val workoutRepository: WorkoutRepository,
     private val clock: AppClock,
     private val platformFeedback: PlatformFeedback = NoOpPlatformFeedback(),
-    private val completeWorkout: features.workout.domain.CompleteWorkout
+    private val completeWorkout: features.workout.domain.CompleteWorkout,
+    private val catalogue: features.exercises.api.ExerciseCatalog
 ) : BaseViewModel<ActiveWorkoutContract.State, ActiveWorkoutContract.Intent, ActiveWorkoutContract.Effect>(
     ActiveWorkoutContract.State()
 ) {
@@ -74,7 +75,6 @@ internal class ActiveWorkoutViewModel(
         loadJob?.cancel()
         loadJob = launchOperation {
             updateState { copy(isLoading = true, error = null) }
-            workoutRepository.ensureDefaultExercises()
 
             // Načtení katalogu cviků
             launch {
@@ -125,7 +125,7 @@ internal class ActiveWorkoutViewModel(
 
     private fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) {
         launchOperation {
-            val exercise = workoutRepository.createCustomExercise(name, muscleGroup, defaultRestSeconds)
+            val exercise = catalogue.create(name, muscleGroup, defaultRestSeconds)
             addExercise(exercise)
         }
     }

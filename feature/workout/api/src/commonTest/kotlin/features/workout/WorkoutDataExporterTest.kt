@@ -1,6 +1,6 @@
 package features.workout
 
-import core.common.formatCleanWeight
+import core.common.formatCompactDecimal
 import features.exercises.api.Exercise
 import features.exercises.api.MuscleGroup
 import features.workout.domain.WorkoutDataExporter
@@ -16,9 +16,9 @@ class WorkoutDataExporterTest {
 
     @Test
     fun testFormatCleanWeightRemovesTrailingZeroOnly() {
-        assertEquals("80", 80.0.formatCleanWeight())
-        assertEquals("82.5", 82.5.formatCleanWeight())
-        assertEquals("0", 0.0.formatCleanWeight())
+        assertEquals("80", 80.0.formatCompactDecimal())
+        assertEquals("82.5", 82.5.formatCompactDecimal())
+        assertEquals("0", 0.0.formatCompactDecimal())
     }
 
     @Test

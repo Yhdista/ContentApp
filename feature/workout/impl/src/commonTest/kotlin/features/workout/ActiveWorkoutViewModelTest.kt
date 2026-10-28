@@ -74,7 +74,7 @@ class ActiveWorkoutViewModelTest {
         platformFeedback: PlatformFeedback = core.feedback.NoOpPlatformFeedback(),
         completion: features.workout.domain.CompleteWorkout = features.workout.domain.CompleteWorkout { id ->
             core.result.Result.Success(features.workout.domain.CompletionOutcome(fakeRepository.complete(id)!!, true))
-        }) = ActiveWorkoutViewModel(workoutRepository, clock, platformFeedback, completion)
+        }) = ActiveWorkoutViewModel(workoutRepository, clock, platformFeedback, completion, fakeRepository)
 
     @Test fun addingExerciseUsesOneAtomicCommand() = runTest(testDispatcher) {
         val session = fakeRepository.startWorkout("Atomic")
@@ -113,7 +113,7 @@ class ActiveWorkoutViewModelTest {
                 error("Controlled observation failure")
             }
         }
-        val vm = ActiveWorkoutViewModel(repository, fakeClock, completeWorkout = features.workout.domain.CompleteWorkout {
+        val vm = ActiveWorkoutViewModel(repository, fakeClock, catalogue = fakeRepository, completeWorkout = features.workout.domain.CompleteWorkout {
             finishCalls++
             finish.await()
             core.result.Result.Success(features.workout.domain.CompletionOutcome(session.copy(isCompleted = true), true))
@@ -454,7 +454,7 @@ private class WorkoutVmFakeClock(var time: Long) : AppClock {
     override fun nowMillis(): Long = time
 }
 
-private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutRepository {
+private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutRepository, features.exercises.api.ExerciseCatalog {
     val benchExercise = Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, defaultRestSeconds = 120)
     val squatExercise = Exercise("ex_squat", "Dřep", MuscleGroup.LEGS, defaultRestSeconds = 180)
 
@@ -467,11 +467,14 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
 
     override fun getExercises(): Flow<List<Exercise>> = exercises.asStateFlow()
 
-    override suspend fun ensureDefaultExercises() {
-        // default already initialized
-    }
+    override fun observeExercises(): Flow<List<Exercise>> = exercises
+    override suspend fun getAllExercises(): List<Exercise> = exercises.value
+    override suspend fun getExerciseById(id: String): Exercise? = exercises.value.find { it.id == id }
+    override suspend fun getExercisesCount(): Int = exercises.value.size
+    override suspend fun update(exercise: Exercise): Exercise = error("Unused")
+    override suspend fun archive(id: String) = error("Unused")
 
-    override suspend fun createCustomExercise(
+    override suspend fun create(
         name: String,
         muscleGroup: MuscleGroup,
         defaultRestSeconds: Int

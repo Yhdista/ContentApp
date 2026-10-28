@@ -62,6 +62,14 @@ class OrderedDrafts(private val store: DraftStore, scope: ApplicationScope) {
             checkCurrent()
             block().also { generations.remove(key); leases.remove(key) }
         }
+        /** Publication owns the aggregate commit and draft removal in the same transaction. */
+        fun <T> publish(writes: CommandCoordinator, save: suspend () -> T): Deferred<T> = finish {
+            writes.write {
+                val saved = save()
+                store.delete(key.first, key.second)
+                saved
+            }
+        }
         fun discard(): Deferred<Unit> = finish { store.delete(key.first, key.second) }
         fun barrier(): Deferred<Unit> = enqueue { checkCurrent() }
     }

@@ -16,9 +16,4 @@ sealed interface DataError : RootError {
         UNKNOWN
     }
 
-    enum class Validation : DataError {
-        EMPTY_NAME,
-        INVALID_WEIGHT,
-        INVALID_REPS
-    }
 }

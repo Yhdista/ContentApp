@@ -20,7 +20,4 @@ fun DataError.toUiText(): UiText = when (this) {
     DataError.Network.SERVER_ERROR -> UiText.DynamicString("Chyba na straně serveru. Zkuste to později.")
     DataError.Network.SERIALIZATION -> UiText.DynamicString("Chyba při čtení odpovědi ze serveru.")
     DataError.Network.UNKNOWN -> UiText.DynamicString("Došlo k neznámé síťové chybě.")
-    DataError.Validation.EMPTY_NAME -> UiText.DynamicString("Název nesmí být prázdný.")
-    DataError.Validation.INVALID_WEIGHT -> UiText.DynamicString("Zadaná váha není platná.")
-    DataError.Validation.INVALID_REPS -> UiText.DynamicString("Zadaný počet opakování není platný.")
 }

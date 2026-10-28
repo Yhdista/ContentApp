@@ -26,7 +26,7 @@ class PlanPresentationTest {
     private val models = mutableListOf<androidx.lifecycle.ViewModel>()
     @BeforeTest fun before() { Dispatchers.setMain(dispatcher); scope = ApplicationScope(SupervisorJob() + dispatcher); store = MemoryDrafts(); queue = OrderedDrafts(store,scope); repository = Repository() }
     @AfterTest fun after() { models.forEach { it.viewModelScope.cancel() }; scope.cancel(); Dispatchers.resetMain() }
-    private fun editor() = PlanEditorViewModel("edit:existing", repository, queue, store, writes, routines).also { models.add(it) }
+    private fun editor() = PlanEditorViewModel(planEditorController("edit:existing", repository, queue, writes), repository, routines).also { models.add(it) }
     private fun library() = PlanLibraryViewModel("existing", repository, routines, StartPlanWorkout { Result.Success(StartOutcome.ResumedExisting("active")) }, StartRoutineWorkout { Result.Success(StartOutcome.Created("solo")) }).also { models.add(it) }
 
     @Test fun initialChoiceFailureDoesNotPreventDraftOpeningAndHasIndependentRetry() = runTest(dispatcher) {

@@ -232,8 +232,8 @@ class WorkoutPersistenceTest {
             val bench = Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, 90)
             val squat = Exercise("ex_squat", "Squat", MuscleGroup.LEGS, 120)
             writes.write {
-                catalogue.saveExercise(squat)
-                catalogue.saveExercises(listOf(bench))
+                (catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(squat))
+                (catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(bench))
             }
             assertEquals(listOf(bench, squat), catalogue.getAllExercises())
             assertEquals(listOf(bench, squat), catalogue.observeExercises().first())
@@ -242,8 +242,8 @@ class WorkoutPersistenceTest {
             assertEquals(2, catalogue.getExercisesCount())
             assertFailsWith<IllegalStateException> {
                 writes.write {
-                    catalogue.saveExercise(bench.copy(name = "Changed"))
-                    catalogue.saveExercise(Exercise("third", "Third", MuscleGroup.BACK))
+                    (catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(bench.copy(name = "Changed")))
+                    (catalogue as features.exercises.api.ExerciseCatalogImport).importExercises(listOf(Exercise("third", "Third", MuscleGroup.BACK)))
                     error("Rollback catalogue changes")
                 }
             }

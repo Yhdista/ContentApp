@@ -22,12 +22,12 @@ class TrainingWorkflow(
     }
     suspend fun startPlan(id: String): Result<StartOutcome, WorkoutError> = command {
         workouts.activeSession()?.let { return@command StartOutcome.ResumedExisting(it.id) }
-        val context=plans.prepareStart(id).value()
+        val context=plans.prepareStart(id).value(::mapPlanError)
         workouts.createFromPrescription(prescription(context.slot.routineId,context.source)).value()
     }
     suspend fun complete(id: String): Result<CompletionOutcome, WorkoutError> = command {
         val outcome=workouts.completeOnce(id).value()
-        if(outcome.firstCompletion) outcome.session.sourcePlan?.let { plans.recordCompleted(it).value() }
+        if(outcome.firstCompletion) outcome.session.sourcePlan?.let { plans.recordCompleted(it).value(::mapPlanError) }
         outcome
     }
     private suspend fun prescription(id: String, source: PlanWorkoutSource?): WorkoutStartPrescription {
@@ -45,9 +45,18 @@ class TrainingWorkflow(
                 e.sets.map { WorkoutSetPrescription(it.weightKg,it.reps,it.setType,it.id) })
         },routine.id,routine.revision,source)
     }
-    private fun <T> Result<T,*>.value(): T = when(this) {
+    private fun <T> Result<T, WorkoutError>.value(): T = value { it }
+    private fun <T, E : core.result.RootError> Result<T, E>.value(mapError: (E) -> WorkoutError): T = when (this) {
         is Result.Success -> data
-        is Result.Error -> abort(WorkoutError.entries.firstOrNull { it.name == error.toString() } ?: WorkoutError.STORAGE)
+        is Result.Error -> abort(mapError(error))
+    }
+    private fun mapPlanError(error: features.trainingplans.api.PlanError): WorkoutError = when (error) {
+        features.trainingplans.api.PlanError.VALIDATION -> WorkoutError.VALIDATION
+        features.trainingplans.api.PlanError.NOT_FOUND -> WorkoutError.NOT_FOUND
+        features.trainingplans.api.PlanError.ARCHIVED -> WorkoutError.ARCHIVED
+        features.trainingplans.api.PlanError.REVISION_CONFLICT -> WorkoutError.REVISION_CONFLICT
+        features.trainingplans.api.PlanError.REVIEW_REQUIRED -> WorkoutError.REVIEW_REQUIRED
+        features.trainingplans.api.PlanError.STORAGE -> WorkoutError.STORAGE
     }
     private class Abort(val error: WorkoutError): RuntimeException()
     private fun abort(error: WorkoutError): Nothing = throw Abort(error)

@@ -1,6 +1,5 @@
 package features.workout.domain
 
-import features.exercises.api.MuscleGroup
 import features.exercises.api.Exercise
 import kotlinx.coroutines.flow.Flow
 
@@ -13,8 +12,6 @@ import kotlinx.coroutines.flow.Flow
  */
 interface WorkoutRepository {
     fun getExercises(): Flow<List<Exercise>>
-    suspend fun ensureDefaultExercises()
-    suspend fun createCustomExercise(name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int = 90): Exercise
     fun getActiveSession(): Flow<WorkoutSession?>
     fun getCompletedSessions(): Flow<List<WorkoutSession>>
     fun getPendingSyncMutationsCount(): Flow<Int>

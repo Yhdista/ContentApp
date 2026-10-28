@@ -1,10 +1,10 @@
-package features.workout.data
+package features.exercises.data
 
 import features.exercises.api.Exercise
 import features.exercises.api.MuscleGroup
 
 /** Example product content, deliberately kept out of the reusable foundation. */
-internal object WorkoutDefaults {
+internal object ExerciseDefaults {
     val exercises: List<Exercise> = listOf(
         Exercise("ex_bench", "Bench press", MuscleGroup.CHEST, defaultRestSeconds = 120),
         Exercise("ex_squat", "Dřep s činkou", MuscleGroup.LEGS, defaultRestSeconds = 180),
