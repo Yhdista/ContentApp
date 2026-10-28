@@ -47,6 +47,10 @@ class WorkoutRepositoryTest {
         )
     }
 
+    private suspend fun complete(sessionId: String) =
+        (features.workout.data.RoomWorkoutStore(fakeDao, directWrites, fakeMutationDao, fakeClock).completeOnce(sessionId)
+            as core.result.Result.Success).data.session
+
     @Test
     fun testEnsureDefaultExercisesSeedsWhenEmpty() = runTest {
         assertEquals(0, fakeCatalog.getExercisesCount())
@@ -112,7 +116,7 @@ class WorkoutRepositoryTest {
         repository.updateSet(set1.id) { it.copy(isCompleted = true) }
         repository.updateSet(set2.id) { it.copy(isCompleted = true) }
 
-        val completed = repository.completeWorkout(session.id)
+        val completed = complete(session.id)
         assertNotNull(completed)
         assertTrue(completed.isCompleted)
         assertEquals(1000.0, completed.totalVolumeKg) // (100 * 5) + (100 * 5)
@@ -128,7 +132,7 @@ class WorkoutRepositoryTest {
         val session1 = repository.startWorkout("Bench Day 1")
         val set1 = repository.addSet(session1.id, "ex_bench", 80.0, 8)
         repository.updateSet(set1.id) { it.copy(isCompleted = true) }
-        repository.completeWorkout(session1.id)
+        complete(session1.id)
 
         // Sezení 2: Bench 90 kg × 8 reps (~114 kg 1RM) -> Překonává sezení 1 -> PR!
         val session2 = repository.startWorkout("Bench Day 2")
@@ -173,7 +177,7 @@ class WorkoutRepositoryTest {
 
         val setsSess1 = repository.getSetsForSession(session1.id).first()
         assertTrue(setsSess1.first { it.id == workingSet1.id }.isPersonalRecord)
-        repository.completeWorkout(session1.id)
+        complete(session1.id)
 
         // Sezení 2: Pracovní set (105 kg × 5 = 122.5 kg 1RM) překonává předchozí pracovní 100×5, ačkoliv je nižší než starý warmup 150×10
         val session2 = repository.startWorkout("Session 2")

@@ -110,7 +110,7 @@ data object WorkoutCancelled : Effect()
 | ⚡ krátká zpráva o právě dokončené akci | Effect | `ShowSnackbar(...)` |
 | ⚡ picker je právě otevřený | State | `isPickerVisible` |
 | 📱 přejít po dokončení na jinou obrazovku | Effect | `WorkoutFinished` |
-| 💾 uložit trénink | repository příkaz z ViewModelu | `completeWorkout(session.id)` |
+| 💾 dokončit trénink i posun plánu | app workflow z ViewModelu | `completeWorkout.complete(session.id)` |
 
 ⚠️ Kanál efektů není broadcast ani replay historie. Více collectorů by si zprávy rozdělovalo; běžný kontrakt proto počítá s jedním effect collectorem v Rootu. Buffer dovoluje dočasně podržet odeslanou zprávu bez aktivního collectoru, ale efekt se neukládá na disk a nepřežívá zánik ViewModelu nebo procesu.
 
@@ -196,19 +196,23 @@ private fun updateWeight(set: WorkoutSet, weightKg: Double) {
 ```kotlin
 private fun finishWorkout() {
     val session = uiState.value.session ?: return
-    if (uiState.value.isSaving) return
-    updateState { copy(isSaving = true, error = null) }
-    launchOperation {
+    terminalCommand {
         when (completeWorkout.complete(session.id)) {
-            is Result.Error -> { onOperationFailure(DataError.Local.UNKNOWN); return@launchOperation }
-            is Result.Success -> Unit
+            is Result.Error -> onOperationFailure(DataError.Local.UNKNOWN)
+            is Result.Success -> {
+                cancelTimers()
+                sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)
+            }
         }
-        cancelTimers()
-        updateState { copy(isSaving = false) }
-        sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)
     }
 }
+// terminalCommand nastaví isSaving synchronně a uvolní jej ve vlastním finally.
+// onOperationFailure mění chybu, ale nikdy neuvolňuje zámek cizího příkazu.
 ```
+
+🔐 `WorkoutRepository` dokončení nenabízí. Jediný aplikační vstup `CompleteWorkout` spojuje idempotentní `WorkoutStore.completeOnce` a postup plánu ve společné transakci. Nízkourovňový `WorkoutStore` je integrační účastník workflow; UI jej nepoužívá.
+
+🏋️ `addExerciseWithInitialSet` ukládá nový výskyt cviku, první sérii a oba outbox řádky v jediném přijatém příkazu. Vytvoření vlastního katalogového cviku je samostatný příkaz. „Předchozí výkon“ pochází z poslední dokončené série poslední dokončené session, podle času session a pořadí výskytu/série, nikdy podle časů odhadnutých z UUID.
 
 | ⚙️ Práce | Vlastník | Co se stane při odstranění obrazovky |
 | --- | --- | --- |

@@ -31,7 +31,11 @@ data class CompletionOutcome(val session: WorkoutSession, val firstCompletion: B
 fun interface StartRoutineWorkout { suspend fun start(routineId: String): Result<StartOutcome, WorkoutError> }
 fun interface StartPlanWorkout { suspend fun start(planId: String): Result<StartOutcome, WorkoutError> }
 fun interface CompleteWorkout { suspend fun complete(sessionId: String): Result<CompletionOutcome, WorkoutError> }
-/** Low-level transactional participants. UI calls the actions above. */
+/**
+ * Low-level integration participants for the app-owned training workflow, never a presentation command.
+ * [completeOnce] only completes the workout. The app must commit plan progress in the same writer transaction.
+ * UI always calls [CompleteWorkout], which owns that combined invariant.
+ */
 interface WorkoutStore {
     suspend fun activeSession(): WorkoutSession?
     suspend fun createFromPrescription(prescription: WorkoutStartPrescription): Result<StartOutcome, WorkoutError>

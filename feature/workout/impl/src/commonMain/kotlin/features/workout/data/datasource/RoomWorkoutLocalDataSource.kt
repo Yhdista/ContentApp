@@ -42,9 +42,6 @@ internal class RoomWorkoutLocalDataSource(
     override suspend fun saveSession(session: WorkoutSession) =
         workoutDao.insertSession(session.toEntity())
 
-    override suspend fun completeSession(sessionId: String, endTimeEpochMs: Long, totalVolumeKg: Double) =
-        workoutDao.completeSession(sessionId, endTimeEpochMs, totalVolumeKg)
-
     override suspend fun deleteSessionWithSets(sessionId: String) {
         workoutDao.deleteSetsForSession(sessionId)
         workoutDao.deleteExercises(sessionId)

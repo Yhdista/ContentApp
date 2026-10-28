@@ -5,7 +5,6 @@ import core.database.MutationDao
 import core.database.SyncMutationEntity
 import core.storage.CommandCoordinator
 import features.workout.data.datasource.WorkoutLocalDataSource
-import features.workout.data.model.CompleteSessionSyncPayload
 import features.workout.data.model.ExerciseSyncPayload
 import features.workout.data.model.StartSessionSyncPayload
 import features.workout.data.model.UpdateSetSyncPayload
@@ -140,7 +139,15 @@ internal class OfflineFirstWorkoutRepository(
 
     override fun getWorkoutExercises(sessionId: String) = localDataSource.observeWorkoutExercises(sessionId)
 
-    override suspend fun addExerciseEntry(sessionId: String, exerciseId: String): features.workout.domain.WorkoutExercise = writes.write {
+    override suspend fun addExerciseWithInitialSet(
+        sessionId: String, exerciseId: String, weightKg: Double, reps: Int
+    ): features.workout.domain.WorkoutExercise = writes.write {
+        val entry = addExerciseEntry(sessionId, exerciseId)
+        addSetToEntry(sessionId, entry.id, weightKg, reps)
+        entry
+    }
+
+    private suspend fun addExerciseEntry(sessionId: String, exerciseId: String): features.workout.domain.WorkoutExercise = writes.write {
         val session = localDataSource.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
         check(!session.isCompleted)
         val exercise = localDataSource.getExerciseById(exerciseId)
@@ -338,34 +345,6 @@ internal class OfflineFirstWorkoutRepository(
         localDataSource.getSetsForSessionSnapshot(sessionId).filter { it.workoutExerciseId == entry.id }.forEach { deleteSet(it.id) }
         localDataSource.deleteWorkoutExercise(entry.id)
         mutationDao.insertMutation(SyncMutationEntity(Uuid.random().toString(),"workout_exercise",entry.id,"DELETE","{}",clock.nowMillis()))
-    }
-
-    override suspend fun completeWorkout(sessionId: String): WorkoutSession? = writes.write {
-        val session = localDataSource.getSessionById(sessionId) ?: return@write null
-        if (session.isCompleted) return@write session
-        val sets = localDataSource.getSetsForSessionSnapshot(sessionId)
-        val completedSets = sets.filter { it.isCompleted }
-        val totalVolume = completedSets.sumOf { it.weightKg * it.reps }
-        val now = clock.nowMillis()
-
-        localDataSource.completeSession(sessionId, now, totalVolume)
-
-        val payload = CompleteSessionSyncPayload(
-            isCompleted = true,
-            endTimeEpochMs = now,
-            totalVolumeKg = totalVolume
-        )
-        mutationDao.insertMutation(
-            SyncMutationEntity(
-                id = "mut-complete-${Uuid.random()}",
-                entityName = "workout_session",
-                recordId = sessionId,
-                operation = "COMPLETE",
-                payloadJson = json.encodeToString(payload),
-                createdAt = now
-            )
-        )
-        return@write getSessionById(sessionId)
     }
 
     override suspend fun cancelWorkout(sessionId: String) = writes.write {

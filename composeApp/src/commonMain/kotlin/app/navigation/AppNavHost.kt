@@ -67,7 +67,7 @@ internal data object AppGraphRoute
             AppTabs(listOf(AppTabItem("Tréninky", "◉"), AppTabItem("Rutiny", "≡"), AppTabItem("Plány", "↻")), selected) { index ->
                 val route: Any = when(index) { 1 -> RoutineListRoute; 2 -> PlanListRoute; else -> WorkoutHistoryRoute }
                 if(index != selected || editor) nav.navigate(route) {
-                    popUpTo(nav.graph.startDestinationId) { saveState = true }
+                    popUpTo<WorkoutHistoryRoute> { saveState = true }
                     launchSingleTop = true
                     restoreState = true
                 }

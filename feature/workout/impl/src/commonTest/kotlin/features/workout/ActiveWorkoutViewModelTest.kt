@@ -1,5 +1,9 @@
 package features.workout
 
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.flow
 import core.common.AppClock
 import core.common.ApplicationScope
 import core.feedback.PlatformFeedback
@@ -66,6 +70,68 @@ class ActiveWorkoutViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private fun testActiveWorkoutViewModel(workoutRepository: WorkoutRepository, clock: AppClock,
+        platformFeedback: PlatformFeedback = core.feedback.NoOpPlatformFeedback(),
+        completion: features.workout.domain.CompleteWorkout = features.workout.domain.CompleteWorkout { id ->
+            core.result.Result.Success(features.workout.domain.CompletionOutcome(fakeRepository.complete(id)!!, true))
+        }) = ActiveWorkoutViewModel(workoutRepository, clock, platformFeedback, completion)
+
+    @Test fun addingExerciseUsesOneAtomicCommand() = runTest(testDispatcher) {
+        val session = fakeRepository.startWorkout("Atomic")
+        var calls = 0
+        val repo = object : WorkoutRepository by fakeRepository {
+            override suspend fun addExerciseWithInitialSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int): features.workout.domain.WorkoutExercise {
+                calls++
+                assertEquals(session.id, sessionId)
+                assertEquals(fakeRepository.benchExercise.id, exerciseId)
+                assertEquals(60.0, weightKg); assertEquals(10, reps)
+                return fakeRepository.addExerciseWithInitialSet(sessionId, exerciseId, weightKg, reps)
+            }
+            override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?): WorkoutSet = error("UI must not issue a second write")
+        }
+        val vm = testActiveWorkoutViewModel(repo, fakeClock)
+        try {
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.OpenExercisePicker(true))
+            vm.onIntent(ActiveWorkoutContract.Intent.AddExerciseToWorkout(fakeRepository.benchExercise))
+            testScheduler.runCurrent()
+            assertEquals(1, calls)
+            assertEquals(1, fakeRepository.getSetsList().size)
+            assertFalse(vm.uiState.value.isPickerVisible)
+        } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
+    }
+
+    @Test fun observerFailureCannotUnlockPendingFinish() = runTest(testDispatcher) {
+        val session = fakeRepository.startWorkout("Pending")
+        val failObservation = CompletableDeferred<Unit>()
+        val finish = CompletableDeferred<Unit>()
+        var finishCalls = 0
+        val repository = object : WorkoutRepository by fakeRepository {
+            override fun getExercises() = flow {
+                emit(listOf(fakeRepository.benchExercise))
+                failObservation.await()
+                error("Controlled observation failure")
+            }
+        }
+        val vm = ActiveWorkoutViewModel(repository, fakeClock, completeWorkout = features.workout.domain.CompleteWorkout {
+            finishCalls++
+            finish.await()
+            core.result.Result.Success(features.workout.domain.CompletionOutcome(session.copy(isCompleted = true), true))
+        })
+        try {
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout); testScheduler.runCurrent()
+            assertTrue(vm.uiState.value.isSaving)
+            failObservation.complete(Unit); testScheduler.runCurrent()
+            assertNotNull(vm.uiState.value.error)
+            assertTrue(vm.uiState.value.isSaving, "Observer failure must not release the pending command")
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout); testScheduler.runCurrent()
+            assertEquals(1, finishCalls)
+            finish.complete(Unit); testScheduler.runCurrent()
+            assertFalse(vm.uiState.value.isSaving)
+        } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
+    }
+
     @Test fun repeatedEntriesLoadIndependentlyAndCommandsUseEntryIdentity() = runTest(testDispatcher) {
         val session=fakeRepository.startWorkout("Repeated")
         val entries=List(2) { i -> features.workout.domain.WorkoutExercise("entry$i",session.id,"ex_bench","Snapshot $i",MuscleGroup.CHEST,40+i,i) }
@@ -92,10 +158,8 @@ class ActiveWorkoutViewModelTest {
     @Test
     fun failedFinishKeepsSessionAndExposesRecoverableError() = runTest(testDispatcher) {
         fakeRepository.startWorkout("Keep editing")
-        val failing = object : WorkoutRepository by fakeRepository {
-            override suspend fun completeWorkout(sessionId: String): WorkoutSession? = error("Disk unavailable")
-        }
-        val vm = testActiveWorkoutViewModel(failing, fakeClock)
+        val vm = testActiveWorkoutViewModel(fakeRepository, fakeClock,
+            completion = features.workout.domain.CompleteWorkout { error("Disk unavailable") })
         try {
             testScheduler.runCurrent()
             vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
@@ -112,13 +176,11 @@ class ActiveWorkoutViewModelTest {
         val session = fakeRepository.startWorkout("Finish in progress")
         val set = fakeRepository.addSet(session.id, fakeRepository.benchExercise.id, 60.0, 10)
         val release = kotlinx.coroutines.CompletableDeferred<Unit>()
-        val delayed = object : WorkoutRepository by fakeRepository {
-            override suspend fun completeWorkout(sessionId: String): WorkoutSession? {
+        val vm = testActiveWorkoutViewModel(fakeRepository, fakeClock,
+            completion = features.workout.domain.CompleteWorkout { sessionId ->
                 release.await()
-                return fakeRepository.completeWorkout(sessionId)
-            }
-        }
-        val vm = testActiveWorkoutViewModel(delayed, fakeClock)
+                core.result.Result.Success(features.workout.domain.CompletionOutcome(fakeRepository.complete(sessionId)!!, true))
+            })
         try {
             testScheduler.runCurrent()
             vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
@@ -448,8 +510,10 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
     override fun getWorkoutExercises(sessionId: String) = fakeWorkoutEntries(this,sessionId)
     override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?) = addSet(sessionId,workoutExerciseId,weightKg,reps,rpe)
     override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = removeExerciseFromWorkout(sessionId,workoutExerciseId)
-    override suspend fun addExerciseEntry(sessionId: String, exerciseId: String) = features.workout.domain.WorkoutExercise(
-        exerciseId,sessionId,exerciseId,exerciseId,features.exercises.api.MuscleGroup.CHEST,90,0)
+    override suspend fun addExerciseWithInitialSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int): features.workout.domain.WorkoutExercise {
+        addSet(sessionId, exerciseId, weightKg, reps)
+        return features.workout.domain.WorkoutExercise(exerciseId, sessionId, exerciseId, exerciseId, MuscleGroup.CHEST, 90, 0)
+    }
     override suspend fun addSet(
         sessionId: String,
         exerciseId: String,
@@ -487,7 +551,7 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
         sets.value = sets.value.filter { it.id != setId }
     }
 
-    override suspend fun completeWorkout(sessionId: String): WorkoutSession? {
+    suspend fun complete(sessionId: String): WorkoutSession? {
         val session = activeSession.value ?: return null
         val totalVolume = sets.value.filter { it.sessionId == sessionId && it.isCompleted }.sumOf { it.weightKg * it.reps }
         val completed = session.copy(isCompleted = true, endTimeEpochMs = clock.nowMillis(), totalVolumeKg = totalVolume)
@@ -507,7 +571,3 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
     override fun getExerciseStats(exerciseId: String): Flow<features.workout.domain.ExerciseStats?> = MutableStateFlow(null)
     override suspend fun getAllCompletedSets(): List<WorkoutSet> = sets.value.filter { it.isCompleted }
 }
-
-private fun testActiveWorkoutViewModel(workoutRepository: WorkoutRepository, clock: AppClock,
-    platformFeedback: PlatformFeedback = core.feedback.NoOpPlatformFeedback()) = ActiveWorkoutViewModel(workoutRepository,clock,platformFeedback,
-    features.workout.domain.CompleteWorkout { id -> core.result.Result.Success(features.workout.domain.CompletionOutcome(workoutRepository.completeWorkout(id)!!,true)) })

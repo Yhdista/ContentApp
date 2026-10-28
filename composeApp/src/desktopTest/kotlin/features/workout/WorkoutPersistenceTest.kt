@@ -1,5 +1,9 @@
 package features.workout
 
+import features.workout.domain.*
+import features.workout.data.entity.WorkoutSetEntity
+import features.workout.data.entity.WorkoutExerciseEntity
+import kotlin.test.assertTrue
 import androidx.sqlite.use
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -64,6 +68,116 @@ class WorkoutPersistenceTest {
             }, exerciseFeatureModule(), features.routines.data.routineFeatureModule(), workoutFeatureModule())
         }
         return application.koin.get<WorkoutRepository>().also { application.close() }
+    }
+
+    @Test fun addingExerciseRollsBackEntryWhenInitialSetOutboxFails() = runTest {
+        val db = database()
+        try {
+            val outbox = object : MutationDao by db.mutationDao() {
+                override suspend fun insertMutation(mutation: SyncMutationEntity) {
+                    if (mutation.entityName == "workout_set") error("Controlled second outbox failure")
+                    db.mutationDao().insertMutation(mutation)
+                }
+            }
+            val repo = repository(db, writes(db), outbox)
+            val session = repo.startWorkout("Atomic add")
+            val before = db.mutationDao().getUnsentMutationsCount().first()
+            assertFailsWith<IllegalStateException> {
+                repo.addExerciseWithInitialSet(session.id, "bench", 60.0, 10)
+            }
+            assertTrue(db.workoutDao().getExercisesSnapshot(session.id).isEmpty(), "Entry must roll back with its first set")
+            assertTrue(db.workoutDao().getSetsForSessionSnapshot(session.id).isEmpty())
+            assertEquals(before, db.mutationDao().getUnsentMutationsCount().first())
+        } finally { db.close() }
+    }
+
+    @Test fun previousPerformanceUsesCompletedSessionChronologyInsteadOfSetId() = runTest {
+        val db = database()
+        try {
+            val dao = db.workoutDao()
+            dao.insertSession(WorkoutSessionEntity("old", "Old", 100L, 200L, true, 0.0))
+            dao.insertSession(WorkoutSessionEntity("new", "New", 300L, 400L, true, 0.0))
+            dao.insertOrUpdateSet(WorkoutSetEntity("zz-old", "old", "bench", 1, 10.0, 8, null, true, null))
+            dao.insertOrUpdateSet(WorkoutSetEntity("aa-new", "new", "bench", 1, 20.0, 8, null, true, null))
+            assertEquals("aa-new", dao.getLastPerformanceForExercise("bench")?.id)
+        } finally { db.close() }
+    }
+
+    @Test fun acceptedExerciseAndInitialSetSurviveCancellationAndKeepOccurrencesIndependent() = runTest {
+        val db = database()
+        try {
+            val entered = CompletableDeferred<Unit>()
+            val release = CompletableDeferred<Unit>()
+            var pause = true
+            val outbox = object : MutationDao by db.mutationDao() {
+                override suspend fun insertMutation(mutation: SyncMutationEntity) {
+                    if (pause && mutation.entityName == "workout_exercise") {
+                        pause = false
+                        entered.complete(Unit)
+                        release.await()
+                    }
+                    db.mutationDao().insertMutation(mutation)
+                }
+            }
+            val coordinator = writes(db)
+            val repo = repository(db, coordinator, outbox)
+            val session = repo.startWorkout("Repeated")
+            val before = db.mutationDao().getUnsentMutationsCount().first()
+            val caller = launch { repo.addExerciseWithInitialSet(session.id, "bench", 60.0, 10) }
+            entered.await(); caller.cancelAndJoin(); release.complete(Unit)
+            coordinator.write { Unit }
+            val second = repo.addExerciseWithInitialSet(session.id, "bench", 70.0, 8)
+            val entries = db.workoutDao().getExercisesSnapshot(session.id)
+            val sets = db.workoutDao().getSetsForSessionSnapshot(session.id)
+            assertEquals(2, entries.map { it.id }.distinct().size)
+            assertEquals(listOf(0, 1), entries.map { it.orderIndex })
+            assertEquals(second.id, entries.last().id)
+            assertEquals(entries.map { it.id }.toSet(), sets.map { it.workoutExerciseId }.toSet())
+            assertEquals(listOf(1, 1), sets.map { it.setNumber })
+            assertEquals(setOf(60.0, 70.0), sets.map { it.weightKg }.toSet())
+            assertEquals(before + 4, db.mutationDao().getUnsentMutationsCount().first())
+        } finally { db.close() }
+    }
+
+    @Test fun previousPerformanceExcludesActiveSessionsAndOrdersRepeatedOccurrencesAndSets() = runTest {
+        val db = database()
+        try {
+            val dao = db.workoutDao()
+            dao.insertSession(WorkoutSessionEntity("done", "Done", 100L, 200L, true, 0.0))
+            dao.insertSession(WorkoutSessionEntity("active", "Active", 300L, null, false, 0.0))
+            dao.insertExercise(WorkoutExerciseEntity("first", "done", "bench", "Bench", "CHEST", 90, 0))
+            dao.insertExercise(WorkoutExerciseEntity("last", "done", "bench", "Bench", "CHEST", 90, 1))
+            suspend fun set(id: String, session: String, entry: String?, number: Int, completed: Boolean = true) {
+                dao.insertOrUpdateSet(WorkoutSetEntity(id, session, "bench", number, 40.0, 8, null, completed, null,
+                    workoutExerciseId = entry))
+            }
+            set("zz-first", "done", "first", 99)
+            set("set-9999999999999", "done", "last", 1)
+            set("00000000-0000-4000-8000-000000000001", "done", "last", 2)
+            set("zz-active", "active", null, 99)
+            set("zz-incomplete", "done", "last", 3, completed = false)
+            assertEquals("00000000-0000-4000-8000-000000000001", dao.getLastPerformanceForExercise("bench")?.id)
+            set("00000000-0000-4000-8000-000000000002", "done", "last", 2)
+            assertEquals("00000000-0000-4000-8000-000000000002", dao.getLastPerformanceForExercise("bench")?.id)
+        } finally { db.close() }
+    }
+
+    @Test fun previousPerformanceUsesStartTimeFallbackAndStableSessionTieBreakers() = runTest {
+        val db = database()
+        try {
+            val dao = db.workoutDao()
+            suspend fun session(id: String, start: Long, end: Long?) {
+                dao.insertSession(WorkoutSessionEntity(id, id, start, end, true, 0.0))
+                dao.insertOrUpdateSet(WorkoutSetEntity("set-$id", id, "bench", 1, 40.0, 8, null, true, null))
+            }
+            session("z-earlier-start", 100L, 500L)
+            session("a-later-start", 300L, 500L)
+            assertEquals("a-later-start", dao.getLastPerformanceForExercise("bench")?.sessionId)
+            session("z-same-start", 300L, 500L)
+            assertEquals("z-same-start", dao.getLastPerformanceForExercise("bench")?.sessionId)
+            session("a-null-end", 600L, null)
+            assertEquals("a-null-end", dao.getLastPerformanceForExercise("bench")?.sessionId)
+        } finally { db.close() }
     }
 
     @Test
@@ -251,7 +365,8 @@ class WorkoutPersistenceTest {
             val session = repository.startWorkout("Finalized")
             val set = repository.addSet(session.id, "bench", 60.0, 10)
             repository.updateSet(set.id) { it.copy(isCompleted = true) }
-            repository.completeWorkout(session.id)
+            // Arrange a finalized stored record; app workflow completion is covered by TrainingWorkflowTest.
+            db.workoutDao().completeSession(session.id, 1000L, 600.0)
             assertFailsWith<IllegalStateException> {
                 repository.updateSet(set.id) { it.copy(weightKg = 100.0) }
             }

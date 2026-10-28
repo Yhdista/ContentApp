@@ -47,6 +47,11 @@ class TrainingWorkflowTest {
             RoutineExercise("entry$e", "bench", 60 + e, List(2) { s -> RoutineSet("set$e$s", 20.0+s, 8+s, WorkoutSetType.DROPSET) }) }), null))
         ok(plans.save(TrainingPlan("plan", "Cycle", slots=listOf(PlanSlot("A", "A", "routine"), PlanSlot("B", "B", "routine"))), null))
     }
+    @Test fun repositoryCannotBypassApplicationCompletionWorkflow() {
+        assertFalse(WorkoutRepository::class.java.methods.any { it.name == "completeWorkout" },
+            "Completion must only be offered through the app-owned CompleteWorkout action")
+    }
+
     @Test fun omittedAllActualRowsExportAndConvertAsNoPerformance() = runTest {
         val f = fixture()
         try {
@@ -219,10 +224,11 @@ class TrainingWorkflowTest {
             f.seed(); val id=ok(f.workflow.startPlan("plan")).sessionId
             val set=f.workouts.getSetsForSession(id).first().first()
             f.workouts.updateSet(set.id) { it.copy(isCompleted=true,weightKg=30.0,reps=10) }
-            val done=ok(f.workflow.complete(id)); assertTrue(done.firstCompletion); assertEquals(300.0,done.session.totalVolumeKg)
+            val complete = CompleteWorkout(f.workflow::complete)
+            val done=ok(complete.complete(id)); assertTrue(done.firstCompletion); assertEquals(300.0,done.session.totalVolumeKg)
             assertEquals("B",f.plans.getProgress("plan")!!.nextSlotId)
             val count=f.db.mutationDao().getUnsentMutationsCount().first()
-            assertFalse(ok(f.workflow.complete(id)).firstCompletion)
+            assertFalse(ok(complete.complete(id)).firstCompletion)
             assertEquals(count,f.db.mutationDao().getUnsentMutationsCount().first()); assertEquals(2L,f.plans.getProgress("plan")!!.progressRevision)
             f.workouts.cancelWorkout(ok(f.workflow.startPlan("plan")).sessionId)
             assertEquals(2L,f.plans.getProgress("plan")!!.progressRevision)
@@ -358,7 +364,8 @@ class TrainingWorkflowTest {
     @Test fun completedEmptyEntriesAndSessionsCannotBeRemovedOrCancelled() = runTest {
         val f=fixture(); try {
             f.seed(); val session=f.workouts.startWorkout("Empty entry")
-            val entry=f.workouts.addExerciseEntry(session.id,"bench")
+            val entry=f.workouts.addExerciseWithInitialSet(session.id,"bench",60.0,10)
+            f.workouts.getSetsForSession(session.id).first().forEach { f.workouts.deleteSet(it.id) }
             ok(f.workflow.complete(session.id))
             assertFailsWith<IllegalStateException> { f.workouts.removeExerciseFromWorkout(session.id,entry.id) }
             assertFailsWith<IllegalStateException> { f.workouts.cancelWorkout(session.id) }

@@ -14,7 +14,7 @@ internal class PlanLibraryViewModel(private val id: String?, private val reposit
     BaseViewModel<PlanLibraryContract.State, PlanLibraryContract.Intent, PlanLibraryContract.Effect>(PlanLibraryContract.State()) {
     private var observation: Job? = null
     init { load() }
-    override fun onOperationFailure(error: DataError.Local) { updateState { copy(isLoading = false, busy = false, error = "Nelze načíst nebo uložit data. Zkuste znovu.") } }
+    override fun onOperationFailure(error: DataError.Local) { updateState { copy(isLoading = false, error = "Nelze načíst nebo uložit data. Zkuste znovu.") } }
     override fun handleIntent(intent: PlanLibraryContract.Intent) {
         if(uiState.value.busy) return
         when(intent) {
@@ -39,7 +39,10 @@ internal class PlanLibraryViewModel(private val id: String?, private val reposit
     }
     private fun command(block: suspend () -> Unit) {
         updateState { copy(busy = true, error = null) }
-        launchOperation { block(); updateState { copy(busy = false) } }
+        launchOperation {
+            // Only the command owns busy, independently of the observation job.
+            try { block() } finally { updateState { copy(busy = false) } }
+        }
     }
     private fun <T, E: RootError> Result<T,E>.show() { if(this is Result.Error) updateState { copy(error = "Akce se nezdařila: $error") } }
     private fun handleStart(result: Result<StartOutcome,WorkoutError>) { when(result) {
@@ -56,6 +59,8 @@ internal class PlanLibraryViewModel(private val id: String?, private val reposit
 
             combine(repository.observeAll(true), routines.observeAll(true), repository.observeActive(),
                 if(id == null) flowOf(null) else repository.observeProgress(id)) { all, choices, active, progress ->
+                LibraryData(all, choices, active, progress)
+            }.collect { (all, choices, active, progress) ->
                 val detail = all.find { it.id == id }
                 val warning = when {
                     detail?.archived == true -> "Archivovaný plán nelze spustit."
@@ -63,9 +68,13 @@ internal class PlanLibraryViewModel(private val id: String?, private val reposit
                     detail != null && detail.slots.any { s -> choices.none { it.id == s.routineId && !it.archived } } -> "Plán obsahuje archivovanou nebo chybějící rutinu. Nahraďte ji v editoru nebo přeskočte aktuální den."
                     else -> null
                 }
-                uiState.value.copy(items = all, detail = detail, choices = choices, progress = progress, activeId = active?.id,
-                    warning = warning, isLoading = false, error = if(id != null && detail == null) "Plán nebyl nalezen." else null)
-            }.collect { value -> updateState { value } }
+                updateState { copy(items = all, detail = detail, choices = choices, progress = progress, activeId = active?.id,
+                    warning = warning, isLoading = false, error = if(id != null && detail == null) "Plán nebyl nalezen." else null) }
+            }
         }
     }
+    private data class LibraryData(
+        val plans: List<TrainingPlan>, val routines: List<Routine>,
+        val active: TrainingPlan?, val progress: PlanProgress?
+    )
 }

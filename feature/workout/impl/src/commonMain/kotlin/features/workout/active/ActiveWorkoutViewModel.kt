@@ -38,7 +38,7 @@ internal class ActiveWorkoutViewModel(
     }
 
     override fun onOperationFailure(error: DataError.Local) {
-        updateState { copy(error = error.toUiText(), isLoading = false, isSaving = false) }
+        updateState { copy(error = error.toUiText(), isLoading = false) }
         sendEffect(ActiveWorkoutContract.Effect.ShowSnackbar(error.toUiText().asString()))
     }
 
@@ -118,8 +118,7 @@ internal class ActiveWorkoutViewModel(
     private fun addExercise(exercise: Exercise) {
         val sessionId=uiState.value.session?.id ?: return
         launchOperation {
-            val entry=workoutRepository.addExerciseEntry(sessionId,exercise.id)
-            workoutRepository.addSetToEntry(sessionId,entry.id,60.0,10)
+            workoutRepository.addExerciseWithInitialSet(sessionId, exercise.id, 60.0, 10)
             updateState { copy(isPickerVisible=false) }
         }
     }
@@ -283,28 +282,32 @@ internal class ActiveWorkoutViewModel(
 
     private fun finishWorkout() {
         val session = uiState.value.session ?: return
-        if (uiState.value.isSaving) return
-        updateState { copy(isSaving = true, error = null) }
-        launchOperation {
-            when(val result=completeWorkout.complete(session.id)) {
-                is core.result.Result.Success -> Unit
-                is core.result.Result.Error -> { onOperationFailure(DataError.Local.UNKNOWN); return@launchOperation }
+        terminalCommand {
+            when (completeWorkout.complete(session.id)) {
+                is core.result.Result.Success -> {
+                    cancelTimers()
+                    sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)
+                }
+                is core.result.Result.Error -> onOperationFailure(DataError.Local.UNKNOWN)
             }
-            cancelTimers()
-            updateState { copy(isSaving = false) }
-            sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)
         }
     }
 
     private fun cancelWorkout() {
         val session = uiState.value.session ?: return
+        terminalCommand {
+            workoutRepository.cancelWorkout(session.id)
+            cancelTimers()
+            sendEffect(ActiveWorkoutContract.Effect.WorkoutCancelled)
+        }
+    }
+
+    private fun terminalCommand(block: suspend () -> Unit) {
         if (uiState.value.isSaving) return
         updateState { copy(isSaving = true, error = null) }
         launchOperation {
-            workoutRepository.cancelWorkout(session.id)
-            cancelTimers()
-            updateState { copy(isSaving = false) }
-            sendEffect(ActiveWorkoutContract.Effect.WorkoutCancelled)
+            // Only this accepted command owns the lock; observation failures cannot release it.
+            try { block() } finally { updateState { copy(isSaving = false) } }
         }
     }
 }

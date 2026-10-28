@@ -14,7 +14,7 @@ internal class RoutineLibraryViewModel(private val id: String?, private val repo
     BaseViewModel<RoutineLibraryContract.State, RoutineLibraryContract.Intent, RoutineLibraryContract.Effect>(RoutineLibraryContract.State()) {
     private var observation: Job? = null
     init { load() }
-    override fun onOperationFailure(error: DataError.Local) { updateState { copy(isLoading = false, busy = false, error = "Nelze načíst nebo uložit data. Zkuste znovu.") } }
+    override fun onOperationFailure(error: DataError.Local) { updateState { copy(isLoading = false, error = "Nelze načíst nebo uložit data. Zkuste znovu.") } }
     override fun handleIntent(intent: RoutineLibraryContract.Intent) {
         if(uiState.value.busy) return
         when(intent) {
@@ -34,7 +34,10 @@ internal class RoutineLibraryViewModel(private val id: String?, private val repo
     }
     private fun command(block: suspend () -> Unit) {
         updateState { copy(busy = true, error = null) }
-        launchOperation { block(); updateState { copy(busy = false) } }
+        launchOperation {
+            // Only the command owns busy, independently of the observation job.
+            try { block() } finally { updateState { copy(busy = false) } }
+        }
     }
     private fun <T, E: RootError> Result<T,E>.show() { if(this is Result.Error) updateState { copy(error = "Akce se nezdařila: $error") } }
     private fun handleStart(result: Result<StartOutcome,WorkoutError>) { when(result) {

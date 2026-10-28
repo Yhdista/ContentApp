@@ -16,13 +16,6 @@ internal data class StartSessionSyncPayload(
 )
 
 @Serializable
-internal data class CompleteSessionSyncPayload(
-    val isCompleted: Boolean,
-    val endTimeEpochMs: Long,
-    val totalVolumeKg: Double
-)
-
-@Serializable
 internal data class InsertSetSyncPayload(
     val sessionId: String,
     val exerciseId: String,

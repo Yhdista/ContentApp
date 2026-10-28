@@ -193,14 +193,13 @@ private class DetailFakeWorkoutRepository : WorkoutRepository {
     override fun getWorkoutExercises(sessionId: String) = fakeWorkoutEntries(this,sessionId)
     override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?) = addSet(sessionId,workoutExerciseId,weightKg,reps,rpe)
     override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = removeExerciseFromWorkout(sessionId,workoutExerciseId)
-    override suspend fun addExerciseEntry(sessionId: String, exerciseId: String) = features.workout.domain.WorkoutExercise(
+    override suspend fun addExerciseWithInitialSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int) = features.workout.domain.WorkoutExercise(
         exerciseId,sessionId,exerciseId,exerciseId,features.exercises.api.MuscleGroup.CHEST,90,0)
     override suspend fun addSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int, rpe: Double?): WorkoutSet = error("Not needed")
     override suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet = error("Not used")
     override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) {}
 
     override suspend fun deleteSet(setId: String) {}
-    override suspend fun completeWorkout(sessionId: String): WorkoutSession? = null
     override suspend fun cancelWorkout(sessionId: String) {}
     override suspend fun getLastPerformance(exerciseId: String): String? = null
     override suspend fun getHistoricalMax1RM(exerciseId: String, currentSessionId: String): Double = 0.0

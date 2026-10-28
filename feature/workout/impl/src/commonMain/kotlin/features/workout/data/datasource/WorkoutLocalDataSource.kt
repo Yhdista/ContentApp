@@ -27,7 +27,6 @@ internal interface WorkoutLocalDataSource {
     suspend fun getAllSessions(): List<WorkoutSession>
     suspend fun getSessionById(sessionId: String): WorkoutSession?
     suspend fun saveSession(session: WorkoutSession)
-    suspend fun completeSession(sessionId: String, endTimeEpochMs: Long, totalVolumeKg: Double)
     suspend fun deleteSessionWithSets(sessionId: String)
 
     fun observePrescription(sessionId: String): Flow<List<features.workout.domain.WorkoutPrescriptionSet>>

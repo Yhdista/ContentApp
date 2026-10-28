@@ -221,6 +221,33 @@ class PlanPresentationTest {
         store.failDelete = false
         vm.onIntent(PlanEditorContract.Intent.Discard); testScheduler.runCurrent(); assertNull(store.payload)
     }
+    @Test fun observerFailureCannotUnlockPendingDuplicate() = runTest(dispatcher) {
+        val vm = library(); testScheduler.runCurrent()
+        repository.duplicateGate = CompletableDeferred()
+        vm.onIntent(PlanLibraryContract.Intent.Duplicate); testScheduler.runCurrent()
+        assertTrue(vm.uiState.value.busy)
+        routines.updates.value = routines.updates.value!!.map { it.copy(name = "Updated while pending") }
+        testScheduler.runCurrent(); assertTrue(vm.uiState.value.busy)
+        routines.updates.value = null; testScheduler.runCurrent()
+        assertNotNull(vm.uiState.value.error)
+        assertTrue(vm.uiState.value.busy, "Observer failure must not release the pending command")
+        vm.onIntent(PlanLibraryContract.Intent.Duplicate); testScheduler.runCurrent()
+        assertEquals(1, repository.duplicateCalls)
+        repository.duplicateGate!!.complete(Unit); testScheduler.runCurrent()
+        assertFalse(vm.uiState.value.busy)
+    }
+
+    @Test fun failedDuplicateReleasesOnlyItsOwnLockAndAllowsRetry() = runTest(dispatcher) {
+        val vm = library(); testScheduler.runCurrent()
+        repository.failDuplicate = true
+        vm.onIntent(PlanLibraryContract.Intent.Duplicate); testScheduler.runCurrent()
+        assertFalse(vm.uiState.value.busy); assertNotNull(vm.uiState.value.error)
+        repository.failDuplicate = false
+        vm.onIntent(PlanLibraryContract.Intent.Duplicate); testScheduler.runCurrent()
+        assertFalse(vm.uiState.value.busy); assertNull(vm.uiState.value.error)
+        assertEquals(2, repository.duplicateCalls)
+    }
+
     @Test fun libraryReadFailureIsNotAnEmptySuccessAndResumeIsVisible() = runTest(dispatcher) {
         repository.failRead = true
         val failed = library(); testScheduler.runCurrent()
@@ -263,6 +290,7 @@ private class MemoryDrafts : DraftStore {
 private class Repository : TrainingPlanRepository {
     var item = TrainingPlan("existing", "Original", revision = 1, slots = listOf(PlanSlot("slot", "Den A", "routine")))
     var conflict = false; var failRead = false; var gate: CompletableDeferred<Unit>? = null
+    var duplicateGate: CompletableDeferred<Unit>? = null; var duplicateCalls = 0; var failDuplicate = false
     var readGate: CompletableDeferred<Unit>? = null
     val saved = mutableListOf<TrainingPlan>(); val expected = mutableListOf<Long?>()
     override fun observeAll(includeArchived: Boolean): Flow<List<TrainingPlan>> = flow { check(!failRead); emit(listOf(item)) }
@@ -273,7 +301,7 @@ private class Repository : TrainingPlanRepository {
         gate?.await(); saved.add(plan); expected.add(expectedRevision)
         return Result.Success(plan)
     }
-    override suspend fun duplicate(id: String): Result<TrainingPlan,PlanError> = Result.Success(item.copy(id = "copy"))
+    override suspend fun duplicate(id: String): Result<TrainingPlan,PlanError> { duplicateCalls++; duplicateGate?.await(); check(!failDuplicate); return Result.Success(item.copy(id = "copy")) }
     override suspend fun archive(id: String, expectedRevision: Long): Result<Unit,PlanError> = Result.Success(Unit)
 
     val progress = MutableStateFlow(PlanProgress("existing", "slot", 1, true))

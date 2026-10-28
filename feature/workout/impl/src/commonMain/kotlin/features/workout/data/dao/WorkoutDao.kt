@@ -57,7 +57,16 @@ interface WorkoutDao {
     @Query("DELETE FROM workout_sets WHERE sessionId = :sessionId")
     suspend fun deleteSetsForSession(sessionId: String)
 
-    @Query("SELECT * FROM workout_sets WHERE exerciseId = :exerciseId AND isCompleted = 1 ORDER BY id DESC LIMIT 1")
+    @Query("""
+        SELECT actual.* FROM workout_sets AS actual
+        JOIN workout_sessions AS session ON session.id = actual.sessionId
+        LEFT JOIN workout_exercises AS entry ON entry.id = actual.workoutExerciseId AND entry.sessionId = session.id
+        WHERE actual.exerciseId = :exerciseId AND actual.isCompleted = 1 AND session.isCompleted = 1
+        ORDER BY COALESCE(session.endTimeEpochMs, session.startTimeEpochMs) DESC,
+            session.startTimeEpochMs DESC, session.id DESC,
+            COALESCE(entry.orderIndex, -1) DESC, actual.setNumber DESC, actual.id DESC
+        LIMIT 1
+    """)
     suspend fun getLastPerformanceForExercise(exerciseId: String): WorkoutSetEntity?
 
     @Query("SELECT * FROM workout_sets WHERE exerciseId = :exerciseId AND isCompleted = 1 AND sessionId != :currentSessionId")
