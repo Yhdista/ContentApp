@@ -13,7 +13,9 @@ def platform = System.getProperty('os.name').toLowerCase().contains('mac') ? 'ma
 def arch = System.getProperty('os.arch') in ['aarch64', 'arm64'] ? 'arm64' : 'x64'
 def runtime = "org.jetbrains.compose.desktop:desktop-jvm-${platform}-${arch}:${catalog.findVersion('compose-multiplatform').get().requiredVersion}"
 pluginManager.withPlugin('org.jetbrains.kotlin.multiplatform') {
-    dependencies.add('desktopMainRuntimeOnly', runtime)
+    kotlin.sourceSets.matching { it.name == 'desktopMain' }.configureEach {
+        dependencies { runtimeOnly(runtime) }
+    }
     kotlin.targets.matching { it.name == 'android' }.configureEach {
         androidResources { enable = true }
     }
