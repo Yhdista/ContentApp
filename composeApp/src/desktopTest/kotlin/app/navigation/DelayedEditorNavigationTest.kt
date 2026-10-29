@@ -24,6 +24,7 @@ import org.koin.core.context.*
 import org.koin.dsl.module
 import kotlin.test.*
 import java.io.File
+import kotlin.time.Duration.Companion.seconds
 
 /** Delayed real SQLite publication must not navigate an unrelated tab during its transition. */
 @OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
@@ -33,7 +34,8 @@ class DelayedEditorNavigationTest {
     @Test fun routinePublishWhileLeavingKeepsOtherTab() = exerciseDelayedPublish(false)
     @Test fun planPublishWhileLeavingKeepsOtherTab() = exerciseDelayedPublish(true)
 
-    private fun exerciseDelayedPublish(plan: Boolean) = runDesktopComposeUiTest(width = 460, height = 760) {
+    // Modern Skiko idle waits inherit this deadline; their default is infinite.
+    private fun exerciseDelayedPublish(plan: Boolean) = runDesktopComposeUiTest(width = 460, height = 760, testTimeout = 30.seconds) {
         val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
         val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
         val owner = object : ViewModelStoreOwner, LifecycleOwner {
