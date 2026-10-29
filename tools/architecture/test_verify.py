@@ -56,8 +56,36 @@ class ArchitectureFixtures(unittest.TestCase):
                 self.check_fixture(self.kotlin('designsystem', 'Leak.kt', 'package ui\nimport ' + imported), 'designsystem-purity')
 
     def test_platform_import_and_fully_qualified_reference(self):
-        for source in ('import android.os.Bundle', 'val leak = java.awt.Color.RED'):
-            self.check_fixture(self.kotlin('feature/a/api', 'Leak.kt', 'package features.a\n' + source), 'common-platform-import')
+        for source in (
+            'import android.os.Bundle',
+            'val leak = android.os.Build.VERSION',
+            'val leak = java.awt.Color.RED',
+            'import javax.crypto.Cipher',
+            'import UIKit.UIView',
+            'val leak = Foundation.NSString()',
+            'val leak = platform.UIKit.UIView()',
+            'import platform.UIKit.UIView as NativeView',
+            'import platform as native\nval leak = native.UIKit.UIView()',
+            'import kotlinx.cinterop.CPointer',
+        ):
+            with self.subTest(source=source):
+                self.check_fixture(self.kotlin('feature/a/api', 'Leak.kt', 'package features.a\n' + source), 'common-platform-import')
+
+    def test_shared_platform_namespace_segments_are_allowed(self):
+        files = self.kotlin('designsystem', 'Navigation.kt', '''package ui.designsystem.organisms
+import androidx.compose.ui.platform.LocalDensity
+val density = androidx.compose.ui.platform.LocalDensity
+''')
+        files.update(self.kotlin('feature/a/impl', 'SetRowItem.kt', '''package features.a
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+'''))
+        files.update(self.kotlin('feature/a/impl', 'WorkoutHistoryViewModel.kt', '''package features.a
+import core.platform.PlatformClipboard
+import core.platform.NoOpPlatformClipboard
+val clipboard: core.platform.PlatformClipboard? = null
+'''))
+        self.check_fixture(files)
 
     def test_material_import_alias_qualified_and_package_alias(self):
         for source in ('import androidx.compose.material3.Text as Label', 'fun x() = androidx.compose.material3.Text("x")', 'import androidx.compose as ui\nfun x() = ui.material3.Text("x")'):

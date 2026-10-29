@@ -139,7 +139,9 @@ def scan(root: Path, inventory: list[dict] | None = None) -> list[str]:
                 reject(path, 'foundation-purity', imported)
             if module == ':designsystem' and re.match(r'(features\.|core\.|app\.|androidx\.room\.|io\.ktor\.)', imported):
                 reject(path, 'designsystem-purity', imported)
-        if 'commonMain' in path.parts and re.search(r'\b(?:import\s+)?(?:android\.|java\.|javax\.|UIKit\.|Foundation\.|platform\.|kotlinx\.cinterop\.)', expanded):
+        # Match a platform root, never a later segment in legitimate shared
+        # namespaces such as androidx.compose.ui.platform or core.platform.
+        if 'commonMain' in path.parts and re.search(r'(?<![\w.])(?:android\.|java\.|javax\.|UIKit\.|Foundation\.|platform\.|kotlinx\.cinterop\.)', expanded):
             reject(path, 'common-platform-import', 'platform reference in commonMain')
         nucleus = module == ':designsystem' and 'nucleus' in path.relative_to(root).parts
         if not nucleus and re.search(r'\b(?:androidx|org\.jetbrains)\.compose\.material3\b', expanded):
