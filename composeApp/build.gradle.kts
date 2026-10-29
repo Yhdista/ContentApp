@@ -68,7 +68,10 @@ kotlin {
             }
         }
 
-        val desktopTest by getting { dependencies { implementation(libs.compose.ui.test.junit4) } }
+        val desktopTest by getting { dependencies {
+            implementation(libs.compose.ui.test.junit4)
+            implementation(libs.kotlinx.serialization.json)
+        } }
 
 
         getByName("androidHostTest").dependencies {

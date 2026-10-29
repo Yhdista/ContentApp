@@ -18,7 +18,7 @@ jobs:
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Install Android SDK
-        run: sdkmanager 'platforms;android-37' 'build-tools;37.0.0'
+        run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
       - name: Boundaries, negative fixtures and public design system consumer
         run: ./gradlew verifyArchitecture testArchitectureGuard :verification:designsystem-consumer:compileCommonMainKotlinMetadata :verification:designsystem-consumer:compileKotlinDesktop
       - name: Desktop and shared Android host tests
@@ -45,6 +45,6 @@ jobs:
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Install Android SDK for multiplatform configuration
-        run: sdkmanager 'platforms;android-37' 'build-tools;37.0.0'
+        run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
       - name: Apple Silicon simulator compile
         run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64
