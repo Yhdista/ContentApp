@@ -12,7 +12,7 @@ import ui.designsystem.nucleus.AppTheme
         AppText("Upravit položku", heading = true)
         AppInput("Název", "Den A") {}
         AppInput("Poznámka", "Víceřádkový text", singleLine = false) {}
-        StatusBadge("Čeká na synchronizaci", StatusTone.Pending)
+        StatusBadge("Čeká na synchronizaci", tone = StatusTone.Pending)
         AppButton({}) { AppText("Uložit") }
         AppToggle("Ověřeno", true, {}) { AppText("✓ Ověřeno") }
     }

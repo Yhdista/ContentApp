@@ -28,17 +28,19 @@ flowchart LR
 
 ## 🔌 Veřejný kontrakt
 
-- 🧷 Layout přijímá `Modifier = Modifier` na svůj kořen. Consumer tak přidá testTag, focus nebo rozměry bez kopírování implementace. Theme provider sám layout nevytváří.
-- 👆 Akce používá `ActionVariant` a obsahový slot. `Primary`, `Secondary`, `Quiet` a `Destructive` nesou význam; konkrétní barvy volí téma.
+- 🧷 Layout přijímá `Modifier = Modifier` jako první volitelný parametr na svůj kořen. Consumer tak přidá testTag, focus nebo rozměry bez kopírování implementace. Theme provider sám layout nevytváří.
+- 👆 Akce používá `ActionVariant` z `ui.designsystem.nucleus` a obsahový slot. `Primary`, `Secondary`, `Quiet` a `Destructive` nesou význam; konkrétní barvy volí téma.
 - ⌨️ `AppInput` přijímá raw text, `KeyboardOptions`, `singleLine`, `isError` a `supportingText`. Numerický filtr ani doménová validace se do obecného pole neschovávají.
 - 💬 Dialog přijímá texty/sloty potvrzení i zrušení. Text produktu nebo jméno ukládaného modelu vlastní consumer.
 - 🧭 `AppTabs` přijímá obsah a ikony. Routy, pořadí záložek a navigační controller vlastní aplikace.
-- 🛡️ `StatusBadge(label, tone)` zná pouze UI `StatusTone`. `ItemSyncStatus` mapuje feature; design system kvůli němu nepotřebuje foundation, storage ani feature API.
+- 🛡️ `StatusBadge(label = …, tone = …)` zná pouze UI `StatusTone`. `ItemSyncStatus` mapuje feature; design system kvůli němu nepotřebuje foundation, storage ani feature API.
 - 🎨 `AppStyle` vystavuje vlastní sadu barev a Compose `TextStyle`. Veřejný kontrakt nevyžaduje Material `ColorScheme` ani `Typography`.
 
 Příklad uvnitř feature Screen:
 
 ```kotlin
+import ui.designsystem.nucleus.ActionVariant
+
 AppCard(modifier = Modifier.testTag("routine-name")) {
     AppInput(
         label = "Název rutiny",

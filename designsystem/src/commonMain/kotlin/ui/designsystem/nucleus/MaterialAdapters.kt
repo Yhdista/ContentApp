@@ -11,7 +11,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import ui.designsystem.atoms.*
 
 @Composable internal fun NucleusText(text: String, modifier: Modifier, color: Color, style: TextStyle, fontSize: TextUnit, fontWeight: FontWeight?, textAlign: TextAlign?, maxLines: Int, overflow: TextOverflow) {
     Text(text, modifier, color = color, style = style, fontSize = fontSize, fontWeight = fontWeight, textAlign = textAlign, maxLines = maxLines, overflow = overflow)
@@ -46,7 +45,9 @@ internal suspend fun MaterialMessages.show(message: String) { state.showSnackbar
 @Composable internal fun NucleusChoice(label: String, options: List<Pair<String, String>>, enabled: Boolean, modifier: Modifier, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box(modifier) {
-        AppButton({ expanded = true }, enabled = enabled && options.isNotEmpty(), variant = ActionVariant.Secondary) { AppText(label) }
+        OutlinedButton({ expanded = true }, modifier = Modifier.appInteractiveSize(), enabled = enabled && options.isNotEmpty()) {
+            Text(label, style = MaterialTheme.typography.bodyMedium)
+        }
         DropdownMenu(expanded, { expanded = false }) {
             options.forEach { (id, text) -> DropdownMenuItem(text = { Text(text) }, onClick = { expanded = false; onSelect(id) }, modifier = Modifier.appInteractiveSize()) }
         }

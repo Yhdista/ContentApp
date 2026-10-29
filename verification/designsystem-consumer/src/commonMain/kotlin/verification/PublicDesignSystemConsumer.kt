@@ -1,5 +1,7 @@
 package verification
 
+import ui.designsystem.nucleus.ActionVariant
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -22,7 +24,7 @@ import ui.designsystem.nucleus.AppStyle
             AppMessageHost(messages)
             AppPage("Consumer") {
                 item { AppCard {
-                    StatusBadge("Ready", StatusTone.Success)
+                    StatusBadge("Ready", tone = StatusTone.Success)
                     AppInput("Label", "-", keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), isError = true, supportingText = "Review input") {}
                     AppText("Styled", style = AppStyle.typography.bodyMedium, color = AppStyle.colors.success.content)
                     AppButton({}, variant = ActionVariant.Primary) { AppText("Save") }

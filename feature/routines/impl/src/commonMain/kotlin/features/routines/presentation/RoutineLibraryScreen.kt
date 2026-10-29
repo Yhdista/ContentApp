@@ -34,7 +34,7 @@ import features.routines.api.*
 @Composable internal fun RoutineLibraryScreen(state: RoutineLibraryContract.State, detailMode: Boolean,
     onIntent: (RoutineLibraryContract.Intent) -> Unit, onDetail: (String) -> Unit,
     onEditor: (String) -> Unit, onBack: () -> Unit) {
-    AppPage(if(detailMode) state.detail?.name ?: "Detail" else "📋 Rutiny", if(detailMode) onBack else null) {
+    AppPage(if(detailMode) state.detail?.name ?: "Detail" else "📋 Rutiny", onBack = if(detailMode) onBack else null) {
         if(state.isLoading) item { AppLoading() }
         state.error?.let { item { EditorNotice(it) { onIntent(RoutineLibraryContract.Intent.Retry) } } }
         state.warning?.let { item { AppCard { AppText(it) } } }
@@ -43,22 +43,22 @@ import features.routines.api.*
             item { AppAction("Nový nebo rozepsaný návrh rutiny") { onEditor("new") } }
             if(!state.isLoading && state.error == null && state.items.isEmpty()) item { EmptyLibrary("Zatím nemáte rutiny. Přidejte cviky a jednotlivé série.") }
             items(state.items, key = { it.id }) { item -> AppCard {
-                AppText(item.name, true); AppText(item.notes)
+                AppText(item.name, heading = true); AppText(item.notes)
                 AppText(if(item.archived) "🗃️ Archivováno" else "Revize ${item.revision}")
                 AppAction("Otevřít") { onDetail(item.id) }
             } }
         } else {
             state.detail?.let { detail ->
                 item { AppText(detail.notes) }
-                item { AppAction("Spustit rutinu", !detail.archived && !state.busy && state.warning == null) { onIntent(RoutineLibraryContract.Intent.Start) } }
-                item { AppAction("Upravit / pokračovat v návrhu", !detail.archived && !state.busy) { onEditor("edit:" + detail.id) } }
-                item { AppAction("Duplikovat", !state.busy) { onIntent(RoutineLibraryContract.Intent.Duplicate) } }
-                item { AppAction("Archivovat", !detail.archived && !state.busy) { onIntent(RoutineLibraryContract.Intent.Archive) } }
+                item { AppAction("Spustit rutinu", enabled = !detail.archived && !state.busy && state.warning == null) { onIntent(RoutineLibraryContract.Intent.Start) } }
+                item { AppAction("Upravit / pokračovat v návrhu", enabled = !detail.archived && !state.busy) { onEditor("edit:" + detail.id) } }
+                item { AppAction("Duplikovat", enabled = !state.busy) { onIntent(RoutineLibraryContract.Intent.Duplicate) } }
+                item { AppAction("Archivovat", enabled = !detail.archived && !state.busy) { onIntent(RoutineLibraryContract.Intent.Archive) } }
 
                 item { AppText("Dotčené plány: ${state.dependentPlans}. Změny ovlivní budoucí starty, historie zůstává zachována.") }
                 items(detail.exercises, key = { it.id }) { entry ->
                     AppCard {
-                        AppText(state.choices.find { it.id == entry.exerciseId }?.name ?: "Chybějící cvik", true)
+                        AppText(state.choices.find { it.id == entry.exerciseId }?.name ?: "Chybějící cvik", heading = true)
                         AppText("Pauza ${entry.restSeconds} s")
                         entry.sets.forEach { AppText("${it.weightKg} kg × ${it.reps} · ${it.setType.displayName}") }
                         entry.legacyValues?.let { AppText("Převedený předpis: ${it.targetSets} sérií · ${it.defaultWeightKg} kg × ${it.defaultReps}. Původní hodnoty jsou zachovány.") }
@@ -69,7 +69,7 @@ import features.routines.api.*
         }
     }
     if(state.archiveConfirmation) AppConfirm("Archivovat?", "Archivace zablokuje budoucí starty. Historie a již spuštěný workout se nezmění. Dotčené plány: ${state.dependentPlans}.", "Archivovat", "Pokračovat v úpravách",
-        { onIntent(RoutineLibraryContract.Intent.ConfirmArchive) }, { onIntent(RoutineLibraryContract.Intent.CancelArchive) }, !state.busy, confirmVariant = ActionVariant.Destructive)
+        { onIntent(RoutineLibraryContract.Intent.ConfirmArchive) }, { onIntent(RoutineLibraryContract.Intent.CancelArchive) }, enabled = !state.busy, confirmVariant = ActionVariant.Destructive)
 }
 @Preview @Composable private fun RoutineLibraryLightPreview() { AppTheme(darkTheme = false) {
     RoutineLibraryScreen(RoutineLibraryContract.State(isLoading = false, items = listOf(Routine("preview", "Síla · Den A", "Postupně, s rezervou", exercises = emptyList()))), false, {}, {}, {}, {})

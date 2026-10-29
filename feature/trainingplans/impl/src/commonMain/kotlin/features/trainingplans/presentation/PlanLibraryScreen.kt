@@ -34,7 +34,7 @@ import features.trainingplans.api.*
 @Composable internal fun PlanLibraryScreen(state: PlanLibraryContract.State, detailMode: Boolean,
     onIntent: (PlanLibraryContract.Intent) -> Unit, onDetail: (String) -> Unit,
     onEditor: (String) -> Unit, onBack: () -> Unit, onRoutine: (String) -> Unit = {}) {
-    AppPage(if(detailMode) state.detail?.name ?: "Detail" else "🗓️ Plány", if(detailMode) onBack else null) {
+    AppPage(if(detailMode) state.detail?.name ?: "Detail" else "🗓️ Plány", onBack = if(detailMode) onBack else null) {
         if(state.isLoading) item { AppLoading() }
         state.error?.let { item { EditorNotice(it) { onIntent(PlanLibraryContract.Intent.Retry) } } }
         state.warning?.let { item { AppCard { AppText(it) } } }
@@ -44,30 +44,30 @@ import features.trainingplans.api.*
             item { AppAction("Nový nebo rozepsaný plán") { onEditor("new") } }
             if(!state.isLoading && state.error == null && state.items.isEmpty()) item { EmptyLibrary("Zatím nemáte plán. Sestavte cyklus z uložených rutin.") }
             items(state.items, key = { it.id }) { item -> AppCard {
-                AppText(item.name, true); AppText(item.notes)
+                AppText(item.name, heading = true); AppText(item.notes)
                 AppText(if(item.archived) "🗃️ Archivováno" else "Revize ${item.revision}")
                 AppAction("Otevřít") { onDetail(item.id) }
             } }
         } else {
             state.detail?.let { detail ->
                 item { AppText(detail.notes) }
-                item { AppAction("Spustit příští den", !detail.archived && !state.busy && state.progress?.needsReview == false && state.progress.nextSlotId != null) { onIntent(PlanLibraryContract.Intent.Start) } }
-                item { AppAction("Upravit / pokračovat v návrhu", !detail.archived && !state.busy) { onEditor("edit:" + detail.id) } }
-                item { AppAction("Duplikovat", !state.busy) { onIntent(PlanLibraryContract.Intent.Duplicate) } }
-                item { AppAction("Archivovat", !detail.archived && !state.busy) { onIntent(PlanLibraryContract.Intent.Archive) } }
+                item { AppAction("Spustit příští den", enabled = !detail.archived && !state.busy && state.progress?.needsReview == false && state.progress.nextSlotId != null) { onIntent(PlanLibraryContract.Intent.Start) } }
+                item { AppAction("Upravit / pokračovat v návrhu", enabled = !detail.archived && !state.busy) { onEditor("edit:" + detail.id) } }
+                item { AppAction("Duplikovat", enabled = !state.busy) { onIntent(PlanLibraryContract.Intent.Duplicate) } }
+                item { AppAction("Archivovat", enabled = !detail.archived && !state.busy) { onIntent(PlanLibraryContract.Intent.Archive) } }
 
-                item { AppAction(if(state.activeId == detail.id) "Zrušit aktuální výběr" else "Zvolit jako aktuální plán", !detail.archived && !state.busy) {
+                item { AppAction(if(state.activeId == detail.id) "Zrušit aktuální výběr" else "Zvolit jako aktuální plán", enabled = !detail.archived && !state.busy) {
                     onIntent(if(state.activeId == detail.id) PlanLibraryContract.Intent.ClearActive else PlanLibraryContract.Intent.SelectActive)
                 } }
-                item { AppAction("Přeskočit den", !detail.archived && state.progress?.needsReview == false && !state.busy) { onIntent(PlanLibraryContract.Intent.Skip) } }
+                item { AppAction("Přeskočit den", enabled = !detail.archived && state.progress?.needsReview == false && !state.busy) { onIntent(PlanLibraryContract.Intent.Skip) } }
                 items(detail.slots, key = { it.id }) { slot ->
                     val routine = state.choices.find { it.id == slot.routineId }
                     AppCard {
-                        AppText((if(state.progress?.nextSlotId == slot.id) "→ " else "") + slot.label, true)
+                        AppText((if(state.progress?.nextSlotId == slot.id) "→ " else "") + slot.label, heading = true)
                         AppText((routine?.name ?: "Chybějící rutina") + if(routine?.archived == true) " · archivováno" else "")
-                        if(state.progress?.needsReview == true) AppAction("Potvrdit jako další slot", !detail.archived && routine?.archived == false && !state.busy) { onIntent(PlanLibraryContract.Intent.ConfirmNext(slot.id)) }
+                        if(state.progress?.needsReview == true) AppAction("Potvrdit jako další slot", enabled = !detail.archived && routine?.archived == false && !state.busy) { onIntent(PlanLibraryContract.Intent.ConfirmNext(slot.id)) }
                         AppAction("Otevřít rutinu") { onRoutine(slot.routineId) }
-                        AppAction("Spustit samostatně · bez posunu plánu", routine?.archived == false && !state.busy) { onIntent(PlanLibraryContract.Intent.StartStandalone(slot.routineId)) }
+                        AppAction("Spustit samostatně · bez posunu plánu", enabled = routine?.archived == false && !state.busy) { onIntent(PlanLibraryContract.Intent.StartStandalone(slot.routineId)) }
                     }
                 }
 
@@ -75,7 +75,7 @@ import features.trainingplans.api.*
         }
     }
     if(state.archiveConfirmation) AppConfirm("Archivovat?", "Archivace zablokuje budoucí starty. Historie a již spuštěný workout se nezmění.", "Archivovat", "Pokračovat v úpravách",
-        { onIntent(PlanLibraryContract.Intent.ConfirmArchive) }, { onIntent(PlanLibraryContract.Intent.CancelArchive) }, !state.busy, confirmVariant = ActionVariant.Destructive)
+        { onIntent(PlanLibraryContract.Intent.ConfirmArchive) }, { onIntent(PlanLibraryContract.Intent.CancelArchive) }, enabled = !state.busy, confirmVariant = ActionVariant.Destructive)
 }
 @Preview @Composable private fun PlanLibraryLightPreview() { AppTheme(darkTheme = false) {
     PlanLibraryScreen(PlanLibraryContract.State(isLoading = false, items = listOf(TrainingPlan("preview", "Síla · Den A", "Postupně, s rezervou", slots = emptyList()))), false, {}, {}, {}, {})

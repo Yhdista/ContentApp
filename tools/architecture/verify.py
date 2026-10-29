@@ -15,6 +15,17 @@ import re
 import sys
 
 
+ATOMIC_LAYERS = {name: rank for rank, name in enumerate(('nucleus', 'atoms', 'molecules', 'organisms', 'templates'))}
+
+
+def atomic_layer(path: Path) -> str | None:
+    """Physical Kotlin directory owns the layer, not the declared package."""
+    parts = path.parts
+    if 'kotlin' not in parts:
+        return None
+    return next((part for part in parts[parts.index('kotlin') + 1:] if part in ATOMIC_LAYERS), None)
+
+
 def clean(text: str, literals: bool = True) -> str:
     """Mask Kotlin/Groovy comments (including nested blocks) and string literals."""
     out, i, n = [], 0, len(text)
@@ -114,14 +125,33 @@ def scan(root: Path, inventory: list[dict] | None = None) -> list[str]:
                if production(p) and not any(x in ('build', '.gradle', '.codegraph') for x in p.relative_to(root).parts)]
     symbols: dict[str, set[str]] = {}
     packages: dict[str, set[str]] = {}
-    for _, text, module in sources:
+    atomic_symbols: dict[str, set[str]] = {}
+    atomic_packages: dict[str, set[str]] = {}
+    for path, text, module in sources:
         package = re.search(r'^\s*package\s+([\w.]+)', text, re.M)
         if not package:
             continue
         pkg = package[1]
         packages.setdefault(pkg, set()).add(module)
+        layer = atomic_layer(path) if module == ':designsystem' else None
+        if layer:
+            atomic_packages.setdefault(pkg, set()).add(layer)
         for symbol in re.findall(r'\b(?:class|interface|object|typealias|fun|val)\s+([A-Za-z_]\w*)', text):
             symbols.setdefault(pkg + '.' + symbol, set()).add(module)
+            if layer:
+                atomic_symbols.setdefault(pkg + '.' + symbol, set()).add(layer)
+
+    def referenced_layers(reference: str) -> set[str]:
+        candidate = reference.removesuffix('.*')
+        while candidate:
+            if candidate in atomic_symbols:
+                return atomic_symbols[candidate]
+            if candidate in atomic_packages:
+                return atomic_packages[candidate]
+            candidate = candidate.rpartition('.')[0]
+        # Also reject unresolved higher-layer imports; compilation checks their existence.
+        match = re.match(r'ui\.designsystem\.(nucleus|atoms|molecules|organisms|templates)(?:\.|$)', reference)
+        return {match[1]} if match else set()
 
     for path, text, module in sources:
         imports = re.findall(r'^\s*import\s+([\w.*]+)(?:\s+as\s+(\w+))?', text, re.M)
@@ -146,6 +176,13 @@ def scan(root: Path, inventory: list[dict] | None = None) -> list[str]:
         nucleus = module == ':designsystem' and 'nucleus' in path.relative_to(root).parts
         if not nucleus and re.search(r'\b(?:androidx|org\.jetbrains)\.compose\.material3\b', expanded):
             reject(path, 'material-ownership', 'Material3 belongs to designsystem/nucleus')
+        layer = atomic_layer(path) if module == ':designsystem' else None
+        if layer:
+            references = re.sub(r'^\s*package\s+[\w.]+', '', expanded, flags=re.M)
+            for reference in set(re.findall(r'(?<![\w.])[A-Za-z_]\w*(?:\.(?:[A-Za-z_]\w*|\*))+', references)):
+                for target in referenced_layers(reference):
+                    if ATOMIC_LAYERS[target] > ATOMIC_LAYERS[layer]:
+                        reject(path, 'atomic-layer-direction', f'{layer} -> {target} via {reference}')
         ui = path.name.endswith(('Screen.kt', 'Root.kt', 'ViewModel.kt'))
         if ui:
             for imported, _ in imports:

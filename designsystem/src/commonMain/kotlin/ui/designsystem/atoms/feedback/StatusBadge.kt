@@ -11,7 +11,7 @@ import ui.designsystem.nucleus.AppStyle
 
 enum class StatusTone { Neutral, Success, Pending, Error }
 /** UI-only status. Domain-to-label/tone mapping belongs to the consumer. */
-@Composable fun StatusBadge(label: String, tone: StatusTone = StatusTone.Neutral, modifier: Modifier = Modifier) {
+@Composable fun StatusBadge(label: String, modifier: Modifier = Modifier, tone: StatusTone = StatusTone.Neutral) {
     val colors = AppStyle.colors
     val (container, foreground) = when(tone) {
         StatusTone.Neutral -> colors.surfaceVariant to colors.onSurfaceVariant

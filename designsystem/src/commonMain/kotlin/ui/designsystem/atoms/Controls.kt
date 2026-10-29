@@ -22,19 +22,17 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import ui.designsystem.nucleus.*
 
-enum class ActionVariant { Primary, Secondary, Quiet, Destructive }
-fun Modifier.appInteractiveSize(): Modifier = sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-@Composable fun AppText(text: String, heading: Boolean = false, modifier: Modifier = Modifier, color: Color = Color.Unspecified, style: TextStyle = if(heading) AppStyle.typography.titleLarge else AppStyle.typography.bodyMedium, fontSize: TextUnit = TextUnit.Unspecified, fontWeight: FontWeight? = null, fontFamily: FontFamily? = null, textAlign: TextAlign? = null, maxLines: Int = Int.MAX_VALUE, overflow: TextOverflow = TextOverflow.Clip) {
+@Composable fun AppText(text: String, modifier: Modifier = Modifier, heading: Boolean = false, color: Color = Color.Unspecified, style: TextStyle = if(heading) AppStyle.typography.titleLarge else AppStyle.typography.bodyMedium, fontSize: TextUnit = TextUnit.Unspecified, fontWeight: FontWeight? = null, fontFamily: FontFamily? = null, textAlign: TextAlign? = null, maxLines: Int = Int.MAX_VALUE, overflow: TextOverflow = TextOverflow.Clip) {
     NucleusText(text, if(heading) modifier.semantics { this.heading() } else modifier, color, if(fontFamily != null) style.copy(fontFamily = fontFamily) else style, fontSize, fontWeight, textAlign, maxLines, overflow)
 }
-@Composable fun AppAction(text: String, enabled: Boolean = true, modifier: Modifier = Modifier, variant: ActionVariant = ActionVariant.Secondary, onClick: () -> Unit) = AppButton(onClick, modifier, enabled = enabled, variant = variant) { AppText(text) }
+@Composable fun AppAction(text: String, modifier: Modifier = Modifier, enabled: Boolean = true, variant: ActionVariant = ActionVariant.Secondary, onClick: () -> Unit) = AppButton(onClick, modifier, enabled = enabled, variant = variant) { AppText(text) }
 @Composable fun AppButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, variant: ActionVariant = ActionVariant.Primary, content: @Composable RowScope.() -> Unit) {
     NucleusAction(onClick, modifier.appInteractiveSize(), enabled, variant, content)
 }
 @Composable fun AppIconAction(label: String, onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
     AppButton(onClick, modifier.semantics { contentDescription = label }, variant = ActionVariant.Quiet, content = content)
 }
-@Composable fun AppInput(label: String, value: String, enabled: Boolean = true, modifier: Modifier = Modifier, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, singleLine: Boolean = true, isError: Boolean = false, supportingText: String? = null, onChange: (String) -> Unit) {
+@Composable fun AppInput(label: String, value: String, modifier: Modifier = Modifier, enabled: Boolean = true, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, singleLine: Boolean = true, isError: Boolean = false, supportingText: String? = null, onChange: (String) -> Unit) {
     NucleusInput(label, value, modifier.fillMaxWidth().appInteractiveSize(), enabled, keyboardOptions, singleLine, isError, supportingText, onChange)
 }
 @Composable fun AppFrame(modifier: Modifier = Modifier, containerColor: Color = AppStyle.colors.surface, shape: Shape = RoundedCornerShape(16.dp), content: @Composable ColumnScope.() -> Unit) {

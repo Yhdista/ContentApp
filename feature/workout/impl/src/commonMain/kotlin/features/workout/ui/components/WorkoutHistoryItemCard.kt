@@ -28,9 +28,9 @@ import ui.designsystem.nucleus.AppSpacing
 @Composable
 internal fun WorkoutHistoryItemCard(
     session: WorkoutSession,
-    exerciseNames: List<String> = emptyList(),
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    exerciseNames: List<String> = emptyList()
 ) {
     val colorScheme = AppStyle.colors
     val volumeFormatted = session.totalVolumeKg.formatCompactDecimal()

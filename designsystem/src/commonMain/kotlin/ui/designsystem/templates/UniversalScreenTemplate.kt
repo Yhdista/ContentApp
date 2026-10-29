@@ -26,11 +26,11 @@ import ui.designsystem.nucleus.AppSpacing
 @Composable
 fun UniversalScreenTemplate(
     topBar: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
     timerBar: (@Composable () -> Unit)? = null,
-    content: @Composable (PaddingValues) -> Unit,
     thumbActionZone: (@Composable () -> Unit)? = null,
     snackbarHost: (@Composable () -> Unit)? = null,
-    modifier: Modifier = Modifier
+    content: @Composable (PaddingValues) -> Unit
 ) {
     AppScreen(
         modifier = modifier.fillMaxSize(),

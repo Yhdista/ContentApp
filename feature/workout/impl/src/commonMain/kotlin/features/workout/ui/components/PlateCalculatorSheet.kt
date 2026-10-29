@@ -60,10 +60,10 @@ internal fun calculatePlatesPerSide(totalWeightKg: Double, barWeightKg: Double =
 @Composable
 internal fun PlateCalculatorSheet(
     isVisible: Boolean,
-    initialWeightKg: Double = 60.0,
     onDismissRequest: () -> Unit,
-    onApplyWeight: ((Double) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialWeightKg: Double = 60.0,
+    onApplyWeight: ((Double) -> Unit)? = null
 ) {
     if (!isVisible) return
 

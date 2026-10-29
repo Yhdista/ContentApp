@@ -1,5 +1,7 @@
 package features.workout.ui.components
 
+import ui.designsystem.nucleus.ActionVariant
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -30,9 +32,9 @@ internal fun SetRowItem(
     onRepsChange: (Int) -> Unit,
     onRpeChange: (Double?) -> Unit,
     onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
     onOpenPlateCalculator: () -> Unit = {},
-    onSetTypeChange: (WorkoutSetType) -> Unit = {},
-    modifier: Modifier = Modifier
+    onSetTypeChange: (WorkoutSetType) -> Unit = {}
 ) {
     var weightText by remember(set.id) { mutableStateOf(set.weightKg.formatCompactDecimal()) }
     var repsText by remember(set.id) { mutableStateOf(set.reps.toString()) }

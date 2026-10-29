@@ -104,9 +104,9 @@ internal fun WorkoutHistoryScreen(
 
                         Box(modifier = Modifier.padding(end = AppSpacing.sm)) {
                             if (state.pendingSyncCount > 0) {
-                                StatusBadge("PENDING", StatusTone.Pending)
+                                StatusBadge("PENDING", tone = StatusTone.Pending)
                             } else {
-                                StatusBadge("LOKÁLNĚ", StatusTone.Neutral)
+                                StatusBadge("LOKÁLNĚ", tone = StatusTone.Neutral)
                             }
                         }
                     }

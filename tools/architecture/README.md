@@ -18,6 +18,13 @@ in `designsystem/nucleus`, and storage/workflow ownership in `*Screen.kt`,
 `CommandCoordinator` publish sequencing. Component tests in the design system
 and workout desktop test sources run in the ordinary desktop CI test selection.
 
+Inside the single design system module, physical Kotlin directories own the
+atomic rank: `nucleus < atoms < molecules < organisms < templates`. Imports and
+qualified references may point to the same or a lower rank. Wildcards, symbol
+aliases and package aliases are checked; declaring a different package does not
+change a known symbol's physical rank. Nucleus adapters therefore cannot call
+atoms. Domain-free semantic variants and interaction-size policy live in nucleus.
+
 Explicit ownership exceptions are structural: `composeApp` and `androidApp` are
 composition roots; feature DI/controller factories and the generic core editor
 controller may bridge storage; platform and test source sets may import platform

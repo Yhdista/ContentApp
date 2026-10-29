@@ -91,6 +91,53 @@ val clipboard: core.platform.PlatformClipboard? = null
         for source in ('import androidx.compose.material3.Text as Label', 'fun x() = androidx.compose.material3.Text("x")', 'import androidx.compose as ui\nfun x() = ui.material3.Text("x")'):
             self.check_fixture(self.kotlin('feature/a/impl', 'Leak.kt', 'package features.a\n' + source), 'material-ownership')
 
+    def test_atomic_nucleus_cannot_call_atoms_through_imports_or_aliases(self):
+        for source in (
+            'import ui.designsystem.atoms.*\nfun use() = AppButton()',
+            'import ui.designsystem.atoms.AppButton as Action\nfun use() = Action()',
+            'fun use() = ui.designsystem.atoms.AppButton()',
+            'import ui.designsystem as ds\nfun use() = ds.atoms.AppButton()',
+        ):
+            with self.subTest(source=source):
+                files = self.kotlin('designsystem', 'atoms/Controls.kt', 'package ui.designsystem.atoms\nfun AppButton() = Unit')
+                files.update(self.kotlin('designsystem', 'nucleus/Adapter.kt', 'package ui.designsystem.nucleus\n' + source))
+                self.check_fixture(files, 'atomic-layer-direction: nucleus -> atoms')
+
+    def test_atomic_all_upward_edges_are_rejected(self):
+        layers = ('nucleus', 'atoms', 'molecules', 'organisms', 'templates')
+        for index, layer in enumerate(layers):
+            for target in layers[index + 1:]:
+                with self.subTest(layer=layer, target=target):
+                    source = f'package ui.designsystem.{layer}\nval leak = ui.designsystem.{target}.Widget()'
+                    self.check_fixture(self.kotlin('designsystem', layer + '/Leak.kt', source), 'atomic-layer-direction')
+
+    def test_atomic_ownership_follows_physical_directories(self):
+        # A high declared package cannot grant a physically low adapter high-layer access.
+        self.check_fixture(self.kotlin('designsystem', 'nucleus/Leak.kt', 'package ui.designsystem.templates\nimport ui.designsystem.atoms.*'), 'atomic-layer-direction')
+        # A low declared package cannot hide a physically high implementation from an atom.
+        files = self.kotlin('designsystem', 'organisms/Hidden.kt', 'package ui.designsystem.nucleus\nclass Hidden')
+        files.update(self.kotlin('designsystem', 'atoms/Use.kt', 'package ui.designsystem.atoms\nimport ui.designsystem.nucleus.Hidden'))
+        self.check_fixture(files, 'atomic-layer-direction: atoms -> organisms')
+
+    def test_atomic_same_lower_layers_and_ignored_literals_are_allowed(self):
+        files = {}
+        layers = ('nucleus', 'atoms', 'molecules', 'organisms', 'templates')
+        for index, layer in enumerate(layers):
+            source = f'package ui.designsystem.{layer}\n'
+            source += f'import ui.designsystem.{layer}.peer.*\n'
+            if index:
+                source += f'import ui.designsystem.{layers[index - 1]}.Component as Lower\n'
+            source += 'class Component\n'
+            source += '// ui.designsystem.templates.Forbidden()\n/* ui.designsystem.organisms.AlsoIgnored */\n'
+            source += 'val example = "ui.designsystem.templates.Forbidden()"\n'
+            source += 'val raw = """import ui.designsystem.templates.*"""\n'
+            files.update(self.kotlin('designsystem', layer + '/Component.kt', source))
+        self.check_fixture(files)
+        # Known symbols use physical ownership even if the package name suggests a higher rank.
+        files = self.kotlin('designsystem', 'nucleus/Neutral.kt', 'package ui.designsystem.templates\nclass Neutral')
+        files.update(self.kotlin('designsystem', 'atoms/Use.kt', 'package ui.designsystem.atoms\nval token = ui.designsystem.templates.Neutral()'))
+        self.check_fixture(files)
+
     def test_ui_room_dao_and_network(self):
         for imported in ('androidx.room.Room', 'features.a.data.WorkoutDao', 'features.a.data.dao.*', 'io.ktor.client.HttpClient'):
             self.check_fixture(self.kotlin('feature/a/impl', 'ThingScreen.kt', 'package features.a\nimport ' + imported), 'ui-storage-ownership')

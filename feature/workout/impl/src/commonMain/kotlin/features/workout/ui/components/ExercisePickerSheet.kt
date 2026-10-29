@@ -45,8 +45,8 @@ internal fun ExercisePickerSheet(
     exercises: List<Exercise>,
     onSelectExercise: (Exercise) -> Unit,
     onDismissRequest: () -> Unit,
-    onCreateCustomExercise: (name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) -> Unit = { _, _, _ -> },
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCreateCustomExercise: (name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) -> Unit = { _, _, _ -> }
 ) {
     if (!isVisible) return
 

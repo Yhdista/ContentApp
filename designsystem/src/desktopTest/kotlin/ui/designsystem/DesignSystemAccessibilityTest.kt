@@ -62,7 +62,7 @@ class DesignSystemAccessibilityTest {
                             AppButton({ clicks++ }, Modifier.testTag("action")) { AppText("Uložit změny") }
                             AppToggle("Ověřeno", checked, { checked = !checked }, Modifier.testTag("toggle")) { AppText("✓ Ověřit") }
                             AppSelection(true, { AppText("Vybraná možnost") }, {}, Modifier.testTag("selection"))
-                            StatusBadge("PENDING", StatusTone.Pending)
+                            StatusBadge("PENDING", tone = StatusTone.Pending)
                         }
                     } }
                 }

@@ -8,7 +8,7 @@ import androidx.compose.ui.window.Dialog
 import features.exercises.api.MuscleGroup
 import ui.designsystem.atoms.*
 import ui.designsystem.molecules.*
-@Composable internal fun CreateCustomExerciseDialog(initialName: String = "", onDismiss: () -> Unit, onConfirm: (name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) -> Unit, modifier: Modifier = Modifier) {
+@Composable internal fun CreateCustomExerciseDialog(onDismiss: () -> Unit, onConfirm: (name: String, muscleGroup: MuscleGroup, defaultRestSeconds: Int) -> Unit, modifier: Modifier = Modifier, initialName: String = "") {
     var name by remember { mutableStateOf(initialName) }
     var group by remember { mutableStateOf(MuscleGroup.CHEST) }
     var rest by remember { mutableStateOf(90) }

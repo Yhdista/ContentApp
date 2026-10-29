@@ -1,5 +1,7 @@
 package features.workout.ui.components
 
+import ui.designsystem.nucleus.ActionVariant
+
 import ui.designsystem.atoms.*
 
 import androidx.compose.foundation.background
@@ -38,10 +40,10 @@ internal fun ExerciseCard(
     onRpeChange: (WorkoutSet, Double?) -> Unit,
     onDeleteSet: (WorkoutSet) -> Unit,
     onRemoveExercise: () -> Unit,
+    modifier: Modifier = Modifier,
     onOpenPlateCalculator: ((WorkoutSet) -> Unit)? = null,
     onShowStats: (() -> Unit)? = null,
-    onSetTypeChange: ((WorkoutSet, WorkoutSetType) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    onSetTypeChange: ((WorkoutSet, WorkoutSetType) -> Unit)? = null
 ) {
     AppCard(modifier) {
         AppText(exercise.name, heading = true)
