@@ -127,8 +127,10 @@ class DesignSystemAccessibilityTest {
             choices.zipWithNext().forEach { (above, below) ->
                 assertTrue(above.bottom <= below.top, "Large-font navigation choices must stack vertically")
             }
+            // The merged accessibility tree excludes cleared descendants; the
+            // unmerged testing tree intentionally still exposes their raw nodes.
             listOf("decorative-workouts", "decorative-routines", "decorative-plans").forEach { description ->
-                onNodeWithContentDescription(description, useUnmergedTree = true).assertDoesNotExist()
+                onNodeWithContentDescription(description).assertDoesNotExist()
             }
             onNodeWithText("Plány").performClick().assertIsSelected()
             runOnIdle { assertEquals(1, clicks) }

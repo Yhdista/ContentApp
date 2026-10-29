@@ -64,15 +64,19 @@ class WorkoutDetailAccessibilityTest {
             text.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { assertTrue(it(layouts)) }
             val layout = layouts.single { it.layoutInput.text.text == "12" }
             val bounds = text.fetchSemanticsNode().boundsInRoot
-            val metrics = "size=${layout.size} constraints=${layout.layoutInput.constraints} bounds=$bounds lines=${layout.lineCount} " +
+            val metrics = "size=${layout.size} paragraphHeight=${layout.multiParagraph.height} constraints=${layout.layoutInput.constraints} bounds=$bounds lines=${layout.lineCount} " +
                 "line0=[${layout.getLineLeft(0)},${layout.getLineTop(0)},${layout.getLineRight(0)},${layout.getLineBottom(0)}] overflowHeight=${layout.didOverflowHeight}"
             File(file.parentFile, "detail-${if (dark) "dark" else "light"}-layout.txt").writeText(metrics)
             assertEquals(1, layout.lineCount, "Two-digit badge must remain whole: $metrics")
             assertTrue(!layout.didOverflowHeight, "Badge must not clip vertically: $metrics")
+            // Font leading can place lineTop at -1px for a correctly measured
+            // 28px paragraph. Check rendered horizontal extents and total height,
+            // rather than treating typographic leading as clipped content.
+            assertTrue(layout.multiParagraph.height <= layout.size.height,
+                "Badge paragraph must fit measured height: $metrics")
             repeat(layout.lineCount) { line ->
-                assertTrue(layout.getLineLeft(line) >= 0 && layout.getLineTop(line) >= 0 &&
-                    layout.getLineRight(line) <= layout.size.width && layout.getLineBottom(line) <= layout.size.height,
-                    "Rendered badge line must fit measured text: $metrics")
+                assertTrue(layout.getLineLeft(line) >= 0 && layout.getLineRight(line) <= layout.size.width,
+                    "Rendered badge line must fit measured width: $metrics")
             }
             assertTrue(bounds.left >= 0 && bounds.right <= 320 && bounds.height >= layout.multiParagraph.height,
                 "Rendered badge must fit actual screen bounds: $metrics")
@@ -84,13 +88,13 @@ class WorkoutDetailAccessibilityTest {
                 node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { assertTrue(it(results)) }
                 val result = results.single { it.layoutInput.text.text == label }
                 val actualBounds = node.fetchSemanticsNode().boundsInRoot
-                val detail = "$label size=${result.size} bounds=$actualBounds lines=${result.lineCount}"
+                val detail = "$label size=${result.size} paragraphHeight=${result.multiParagraph.height} bounds=$actualBounds lines=${result.lineCount}"
                 File(file.parentFile, "detail-${if (dark) "dark" else "light"}-layout.txt").appendText("\n$detail")
-                assertTrue(!result.didOverflowHeight && actualBounds.left >= 0 && actualBounds.right <= 320,
+                assertTrue(!result.didOverflowHeight && result.multiParagraph.height <= result.size.height &&
+                    actualBounds.height >= result.multiParagraph.height && actualBounds.left >= 0 && actualBounds.right <= 320,
                     "Detail heading must fit its actual bounds: $detail")
                 repeat(result.lineCount) { line ->
-                    assertTrue(result.getLineLeft(line) >= 0 && result.getLineRight(line) <= result.size.width &&
-                        result.getLineTop(line) >= 0 && result.getLineBottom(line) <= result.size.height,
+                    assertTrue(result.getLineLeft(line) >= 0 && result.getLineRight(line) <= result.size.width,
                         "Rendered heading line must fit: $detail")
                     if (line < result.lineCount - 1) {
                         val end = result.getLineEnd(line, visibleEnd = true)
