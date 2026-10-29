@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import ui.designsystem.atoms.*
 import ui.designsystem.nucleus.AppStyle
@@ -26,13 +27,29 @@ import ui.designsystem.nucleus.AppStyle
 }
 
 data class AppTabItem(val content: @Composable () -> Unit, val icon: @Composable () -> Unit)
-/** Natural-height navigation keeps labels and icons visible when text wraps. */
+/** Narrow navigation and large text use full-width choices, preserving whole labels. */
 @Composable fun AppTabs(items: List<AppTabItem>, selected: Int, modifier: Modifier = Modifier, onSelect: (Int) -> Unit) {
-    Row(modifier.fillMaxWidth().background(AppStyle.colors.surface).navigationBarsPadding().padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        items.forEachIndexed { index, item ->
-            AppSelection(selected == index, {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) { item.icon(); item.content() }
-            }, { onSelect(index) }, Modifier.weight(1f))
+    BoxWithConstraints(modifier.fillMaxWidth().background(AppStyle.colors.surface).navigationBarsPadding().padding(4.dp)) {
+        val stacked = LocalDensity.current.fontScale > 1.3f || maxWidth / maxOf(items.size, 1) < 96.dp
+        if(stacked) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                items.forEachIndexed { index, item ->
+                    AppSelection(selected == index, {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            item.icon()
+                            Box(Modifier.weight(1f)) { item.content() }
+                        }
+                    }, { onSelect(index) }, Modifier.fillMaxWidth())
+                }
+            }
+        } else {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                items.forEachIndexed { index, item ->
+                    AppSelection(selected == index, {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) { item.icon(); item.content() }
+                    }, { onSelect(index) }, Modifier.weight(1f))
+                }
+            }
         }
     }
 }

@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import org.junit.Test
@@ -76,6 +78,23 @@ class DesignSystemAccessibilityTest {
             onNodeWithTag("toggle").performClick().assertIsOn()
             onNodeWithTag("selection").assertIsSelected()
             onNodeWithText("Obrazovka").assertIsDisplayed()
+            // Actual text layout must retain whole labels; bounds alone allowed character columns.
+            val labels = listOf("Tréninky", "Rutiny", "Plány")
+            val choices = labels.map { label ->
+                val layouts = mutableListOf<TextLayoutResult>()
+                onNodeWithText(label, useUnmergedTree = true).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { getLayout ->
+                    assertTrue(getLayout(layouts), "Text layout is available for $label")
+                }
+                val layout = layouts.single { it.layoutInput.text.text == label }
+                assertEquals(1, layout.lineCount, "$label must remain a whole single-line label at fontScale2")
+                assertTrue(!layout.didOverflowWidth && !layout.didOverflowHeight, "$label must fit its measured text bounds")
+                onNodeWithText(label).fetchSemanticsNode().boundsInRoot.also { bounds ->
+                    assertTrue(bounds.width >= 280f && bounds.height >= 48f, "$label must have a full-width choice: $bounds")
+                }
+            }
+            choices.zipWithNext().forEach { (above, below) ->
+                assertTrue(above.bottom <= below.top, "Large-font navigation choices must stack vertically")
+            }
             onNodeWithText("Plány").performClick().assertIsSelected()
             runOnIdle { assertEquals(1, clicks) }
             val file = File("build/task3-visual/controls-${if(dark) "dark" else "light"}-320-font2.png")
