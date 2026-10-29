@@ -103,11 +103,21 @@ class DesignSystemAccessibilityTest {
             }
             File(file.parentFile, "navigation-text-layout-${if(dark) "dark" else "light"}-320-font2.txt")
                 .writeText(metrics.values.joinToString("\n"))
-            metrics.values.forEach { println("NAVIGATION_TEXT_LAYOUT $it") }
             val choices = labels.map { label ->
                 val layout = navigationLayouts.getValue(label)
                 assertEquals(1, layout.lineCount, "$label must remain a whole single-line label at fontScale2; ${metrics[label]}")
-                assertTrue(!layout.didOverflowWidth && !layout.didOverflowHeight, "$label must fit its measured text bounds; ${metrics[label]}")
+                // Compose 1.7 can retain the paragraph's constraint width (e.g.208px)
+                // while measuring this single-line Text intrinsically (112px). Its
+                // didOverflowWidth then reports unused paragraph space as overflow.
+                // Check the actual rendered line rectangle against the measured Text.
+                assertTrue(!layout.didOverflowHeight, "$label must not overflow vertically; ${metrics[label]}")
+                repeat(layout.lineCount) { line ->
+                    assertTrue(
+                        layout.getLineLeft(line) >= 0f && layout.getLineRight(line) <= layout.size.width &&
+                            layout.getLineTop(line) >= 0f && layout.getLineBottom(line) <= layout.size.height,
+                        "$label rendered line $line must fit its measured text bounds; ${metrics[label]}"
+                    )
+                }
                 onNodeWithText(label).fetchSemanticsNode().boundsInRoot.also { bounds ->
                     assertTrue(bounds.width >= 280f && bounds.height >= 48f, "$label must have a full-width choice: $bounds")
                 }
