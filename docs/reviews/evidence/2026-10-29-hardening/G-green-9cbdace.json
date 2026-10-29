@@ -1,0 +1,561 @@
+{
+  "status": "GREEN after scoped G fixes at 9cbdace; A6 final direction/API patch and reviews pending",
+  "counts": {
+    "desktop": {
+      "suites": 32,
+      "tests": 220,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "android_host_unit": {
+      "suites": 20,
+      "tests": 132,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "suites": [
+    {
+      "path": "designsystem/build/test-results/desktopTest/TEST-ui.designsystem.DesignSystemAccessibilityTest.xml",
+      "name": "DesignSystemAccessibilityTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "core/storage/build/test-results/testAndroidHostTest/TEST-core.sync.SyncManagerTest.xml",
+      "name": "core.sync.SyncManagerTest",
+      "source_revision": "caea2ad",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "core/storage/build/test-results/testAndroidHostTest/TEST-core.storage.OrderedDraftsTest.xml",
+      "name": "core.storage.OrderedDraftsTest",
+      "source_revision": "caea2ad",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "core/storage/build/test-results/desktopTest/TEST-core.sync.SyncManagerTest.xml",
+      "name": "SyncManagerTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "core/storage/build/test-results/desktopTest/TEST-core.storage.OrderedDraftsTest.xml",
+      "name": "OrderedDraftsTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "core/presentation/build/test-results/testAndroidHostTest/TEST-core.ui.UiTextTest.xml",
+      "name": "core.ui.UiTextTest",
+      "source_revision": "caea2ad",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "core/presentation/build/test-results/testAndroidHostTest/TEST-core.viewmodel.DurableEditorControllerTest.xml",
+      "name": "core.viewmodel.DurableEditorControllerTest",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "core/presentation/build/test-results/desktopTest/TEST-core.ui.UiTextTest.xml",
+      "name": "UiTextTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "core/presentation/build/test-results/desktopTest/TEST-core.viewmodel.DurableEditorControllerTest.xml",
+      "name": "DurableEditorControllerTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "foundation/build/test-results/testAndroidHostTest/TEST-core.result.ResultTest.xml",
+      "name": "core.result.ResultTest",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "foundation/build/test-results/desktopTest/TEST-core.result.ResultTest.xml",
+      "name": "ResultTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.TypedNavigationTest.xml",
+      "name": "TypedNavigationTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.DelayedEditorNavigationTest.xml",
+      "name": "DelayedEditorNavigationTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.RetainedEditorLeaseTest.xml",
+      "name": "RetainedEditorLeaseTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-features.trainingplans.TrainingPlanPersistenceTest.xml",
+      "name": "TrainingPlanPersistenceTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.workflow.TrainingWorkflowTest.xml",
+      "name": "TrainingWorkflowTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-features.routines.RoutinePersistenceTest.xml",
+      "name": "RoutinePersistenceTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-features.workout.WorkoutPersistenceTest.xml",
+      "name": "WorkoutPersistenceTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.workflow.WorkoutMigrationTest.xml",
+      "name": "WorkoutMigrationTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.LibrarySmokeTest.xml",
+      "name": "LibrarySmokeTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-features.exercises.ExerciseCatalogCommandsTest.xml",
+      "name": "ExerciseCatalogCommandsTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.DelayedWorkoutNavigationTest.xml",
+      "name": "DelayedWorkoutNavigationTest[desktop]",
+      "source_revision": "9cbdace",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/routines/impl/build/test-results/testAndroidHostTest/TEST-features.routines.presentation.RoutinePresentationTest.xml",
+      "name": "features.routines.presentation.RoutinePresentationTest",
+      "source_revision": "caea2ad",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/routines/impl/build/test-results/desktopTest/TEST-features.routines.presentation.RoutinePresentationTest.xml",
+      "name": "RoutinePresentationTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/routines/api/build/test-results/testAndroidHostTest/TEST-features.routines.api.RoutineValidationTest.xml",
+      "name": "features.routines.api.RoutineValidationTest",
+      "source_revision": "caea2ad",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/routines/api/build/test-results/desktopTest/TEST-features.routines.api.RoutineValidationTest.xml",
+      "name": "RoutineValidationTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/testAndroidHostTest/TEST-features.workout.WorkoutRepositoryTest.xml",
+      "name": "features.workout.WorkoutRepositoryTest",
+      "source_revision": "caea2ad",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/testAndroidHostTest/TEST-features.workout.WorkoutDetailViewModelTest.xml",
+      "name": "features.workout.WorkoutDetailViewModelTest",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/testAndroidHostTest/TEST-features.workout.ActiveWorkoutViewModelTest.xml",
+      "name": "features.workout.ActiveWorkoutViewModelTest",
+      "source_revision": "caea2ad",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/testAndroidHostTest/TEST-features.workout.WorkoutHistoryViewModelTest.xml",
+      "name": "features.workout.WorkoutHistoryViewModelTest",
+      "source_revision": "caea2ad",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/desktopTest/TEST-features.workout.WorkoutRepositoryTest.xml",
+      "name": "WorkoutRepositoryTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/desktopTest/TEST-features.workout.WorkoutDetailViewModelTest.xml",
+      "name": "WorkoutDetailViewModelTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/desktopTest/TEST-features.workout.ActiveWorkoutViewModelTest.xml",
+      "name": "ActiveWorkoutViewModelTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/desktopTest/TEST-features.workout.ui.components.SetRowAccessibilityTest.xml",
+      "name": "SetRowAccessibilityTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/desktopTest/TEST-features.workout.WorkoutHistoryViewModelTest.xml",
+      "name": "WorkoutHistoryViewModelTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/testAndroidHostTest/TEST-features.workout.WeeklyActivityCalculatorTest.xml",
+      "name": "features.workout.WeeklyActivityCalculatorTest",
+      "source_revision": "caea2ad",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/testAndroidHostTest/TEST-features.workout.ExerciseStatsCalculatorTest.xml",
+      "name": "features.workout.ExerciseStatsCalculatorTest",
+      "source_revision": "caea2ad",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/testAndroidHostTest/TEST-features.workout.PlateCalculatorTest.xml",
+      "name": "features.workout.PlateCalculatorTest",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/testAndroidHostTest/TEST-features.workout.WorkoutDataExporterTest.xml",
+      "name": "features.workout.WorkoutDataExporterTest",
+      "source_revision": "caea2ad",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/testAndroidHostTest/TEST-features.workout.PersonalRecordCalculatorTest.xml",
+      "name": "features.workout.PersonalRecordCalculatorTest",
+      "source_revision": "caea2ad",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/desktopTest/TEST-features.workout.WeeklyActivityCalculatorTest.xml",
+      "name": "WeeklyActivityCalculatorTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/desktopTest/TEST-features.workout.ExerciseStatsCalculatorTest.xml",
+      "name": "ExerciseStatsCalculatorTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/desktopTest/TEST-features.workout.PlateCalculatorTest.xml",
+      "name": "PlateCalculatorTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/desktopTest/TEST-features.workout.WorkoutDataExporterTest.xml",
+      "name": "WorkoutDataExporterTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/api/build/test-results/desktopTest/TEST-features.workout.PersonalRecordCalculatorTest.xml",
+      "name": "PersonalRecordCalculatorTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/trainingplans/impl/build/test-results/testAndroidHostTest/TEST-features.trainingplans.data.PlanProgressRulesTest.xml",
+      "name": "features.trainingplans.data.PlanProgressRulesTest",
+      "source_revision": "caea2ad",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/trainingplans/impl/build/test-results/testAndroidHostTest/TEST-features.trainingplans.presentation.PlanPresentationTest.xml",
+      "name": "features.trainingplans.presentation.PlanPresentationTest",
+      "source_revision": "caea2ad",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/trainingplans/impl/build/test-results/desktopTest/TEST-features.trainingplans.data.PlanProgressRulesTest.xml",
+      "name": "PlanProgressRulesTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/trainingplans/impl/build/test-results/desktopTest/TEST-features.trainingplans.presentation.PlanPresentationTest.xml",
+      "name": "PlanPresentationTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/trainingplans/api/build/test-results/testAndroidHostTest/TEST-features.trainingplans.api.PlanValidationTest.xml",
+      "name": "features.trainingplans.api.PlanValidationTest",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/trainingplans/api/build/test-results/desktopTest/TEST-features.trainingplans.api.PlanValidationTest.xml",
+      "name": "PlanValidationTest[desktop]",
+      "source_revision": "caea2ad",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "androidApp/build/test-results/testDebugUnitTest/TEST-com.yhdista.contentapp.ExampleUnitTest.xml",
+      "name": "com.yhdista.contentapp.ExampleUnitTest",
+      "source_revision": "caea2ad",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "lint": [
+    {
+      "path": "designsystem/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 8
+    },
+    {
+      "path": "core/storage/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "core/presentation/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "foundation/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 1
+    },
+    {
+      "path": "composeApp/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "feature/routines/impl/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "feature/routines/api/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "feature/exercises/impl/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "feature/exercises/api/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "feature/workout/impl/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 7
+    },
+    {
+      "path": "feature/workout/api/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "feature/trainingplans/impl/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "feature/trainingplans/api/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "path": "androidApp/build/reports/lint-results-debug.xml",
+      "errors": 0,
+      "warnings": 30
+    }
+  ]
+}

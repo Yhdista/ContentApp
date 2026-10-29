@@ -1,0 +1,140 @@
+{
+  "revision": "45e2133",
+  "result": "PASS85s753tasks219executed534uptodate",
+  "scope": "Allmetadata/desktop/Androidsourceandtestcompile,iOSsimulatorcompile,all9appnavigation+4DS/workoutUItests,17guardfixtures,Gradleinventory,publicconsumer,allKMP/hostlint,normalAndroidAPK",
+  "suites": [
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.TypedNavigationTest.xml",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.DelayedEditorNavigationTest.xml",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.RetainedEditorLeaseTest.xml",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.LibrarySmokeTest.xml",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "composeApp/build/test-results/desktopTest/TEST-app.navigation.DelayedWorkoutNavigationTest.xml",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "designsystem/build/test-results/desktopTest/TEST-ui.designsystem.DesignSystemAccessibilityTest.xml",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "feature/workout/impl/build/test-results/desktopTest/TEST-features.workout.ui.components.SetRowAccessibilityTest.xml",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "lint": [
+    {
+      "path": "designsystem/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "core/storage/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "core/presentation/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "foundation/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {
+        "ObsoleteSdkInt": 1
+      }
+    },
+    {
+      "path": "composeApp/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "feature/routines/impl/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "feature/routines/api/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "feature/exercises/impl/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "feature/exercises/api/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "feature/workout/impl/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {
+        "EmptySuperCall": 1
+      }
+    },
+    {
+      "path": "feature/workout/api/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "feature/trainingplans/impl/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "feature/trainingplans/api/build/reports/lint-results-androidMain.xml",
+      "errors": 0,
+      "warnings": {}
+    },
+    {
+      "path": "androidApp/build/reports/lint-results-debug.xml",
+      "errors": 0,
+      "warnings": {
+        "EmptySuperCall": 1,
+        "OldTargetApi": 1,
+        "RedundantLabel": 1,
+        "AndroidGradlePluginVersion": 3,
+        "ObsoleteSdkInt": 1,
+        "UnusedResources": 8,
+        "IconLocation": 1
+      }
+    }
+  ]
+}
