@@ -1,6 +1,6 @@
 # 🧭 Atomic architecture hardening — integrační stav
 
-📅 29. 10. 2026 · větev `refactor/atomic-foundation`, base `fb6078d`. Uživatel schválil implementaci auditu, postupy yhdi-dev, zapojení obou dalších notebooků přes yhdi-mesh a moderní stack s Apple Silicon iOS simulátorem. Tato vlna má lokální commity; dřívější merge do main patří předchozí dokončené vlně rutin/plánů.
+📅 29. 10. 2026 · cílová větev `main`, zdroj `refactor/atomic-foundation`, base `fb6078d`. Uživatel schválil implementaci auditu, postupy yhdi-dev, zapojení obou dalších notebooků přes yhdi-mesh a moderní stack s Apple Silicon iOS simulátorem. Uživatel následně 29. 10. v 09:18 CET výslovně schválil merge, commit a push této vlny. Integrační postup: fast-forward do `main` a běžný push `origin/main`.
 
 ## ✅ Implementace a důkazy
 
@@ -26,4 +26,4 @@ Air i Windows dokončily izolovanou přípravu. Windows podklad má výslovně p
 
 Air build copy `/Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build`, poslední HEAD `8b21c1e`, tracked source čistý. Profil 2g Gradle / 1g Kotlin / 1 worker; root vlastní Air gate. Native Homebrew JDK21 pro Gradle, JVM compile toolchain17. Žádný cizí daemon/IDE/emulator nebyl ukončen. Všechny vlastní Gradle běhy skončily; žádný čekající build.
 
-Kanonický stav: claude-mem `atomic-architecture-hardening`. Implementace, dokumentace, ověření i nezávislé kontroly dokončené. Všechny vlastní buildy a review procesy skončily. Celou G neopakovat bez změny jejích předpokladů; případnou další změnu ověřit dotčenými kontrolami. Tato vlna se nepushovala ani nemergovala do main.
+Kanonický stav: claude-mem `atomic-architecture-hardening`. Implementace, dokumentace, ověření i nezávislé kontroly dokončené. Všechny vlastní buildy a review procesy skončily. Celou G neopakovat bez změny jejích předpokladů; případnou další změnu ověřit dotčenými kontrolami. Integrační předkontrola po `git fetch origin`: lokální i vzdálený main jsou přímým předkem ověřeného `ca101ff` (0 divergentních commitů, 35 nových commitů). Následující integrační commit mění pouze tento záznam; produkční kód, testy a konfigurace mají stejný ověřený obsah. Nová plná G proto není potřeba. Výsledek push a shodu lokálního/vzdáleného HEAD eviduje kanonický stav `merge-atomic-hardening`.
