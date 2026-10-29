@@ -72,8 +72,8 @@ class DelayedEditorNavigationTest {
                     }
                 } }
             }))
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
-                LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) { AppNavHost() }  }
+            setContent { host.Content(app) { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+                LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) { AppNavHost() }  } }
             onNodeWithText(if (plan) "Plány" else "Rutiny", useUnmergedTree = true).performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Otevřít")).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Otevřít").performClick()

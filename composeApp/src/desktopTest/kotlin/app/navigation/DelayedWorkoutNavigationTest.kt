@@ -55,7 +55,7 @@ class DelayedWorkoutNavigationTest {
                 accepted.complete(Unit); release.await()
                 complete.complete(id).also { committed.complete(Unit) }
             } } }))
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+            setContent { host.Content(app) { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                 AppTheme(darkTheme = false) {
                     nav = rememberNavController()
@@ -66,7 +66,7 @@ class DelayedWorkoutNavigationTest {
                     } }
                     NavHost(nav, graph)
                 }
-            }  }
+            }  } }
             runOnIdle { nav.navigate(ActiveWorkoutRoute) }
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Ukončit trénink ✓")).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Ukončit trénink ✓").performClick()

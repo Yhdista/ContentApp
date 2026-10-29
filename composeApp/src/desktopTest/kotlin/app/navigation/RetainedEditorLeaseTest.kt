@@ -64,7 +64,7 @@ class RetainedEditorLeaseTest {
                 assertIs<Result.Success<TrainingPlan>>(app.koin.get<TrainingPlanRepository>().save(
                     TrainingPlan("plan", "Original", slots = listOf(PlanSlot("slot", "Day", "routine"))), null))
             }
-            setContent {
+            setContent { host.Content(app) {
                 CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                     LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                     AppTheme(darkTheme = false) {
@@ -80,7 +80,7 @@ class RetainedEditorLeaseTest {
                         NavHost(nav, graph)
                     }
                 }
-             }
+             } }
             runOnIdle { nav.navigate(route) }
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
             val originalEntry = nav.currentBackStackEntry!!

@@ -1,5 +1,9 @@
 package app.navigation
 
+import androidx.compose.runtime.Composable
+import org.koin.compose.KoinIsolatedContext
+import org.koin.compose.getKoin
+import org.koin.core.KoinApplication
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.lifecycle.ViewModelStoreOwner
@@ -27,6 +31,14 @@ internal class AppUiTestHost(
     private val owner: ViewModelStoreOwner,
     private val resources: AppUiTestResources
 ) {
+    /** Bind each start/stop fixture explicitly; Koin's default Compose local can retain an older app. */
+    @Composable fun Content(application: KoinApplication, content: @Composable () -> Unit) {
+        KoinIsolatedContext(application) {
+            check(getKoin() === application.koin) { "UI composition must use this fixture's Koin application" }
+            content()
+        }
+    }
+
     fun run(beforeClear: () -> Unit = {}, afterClear: List<() -> Unit> = emptyList(), block: () -> Unit) {
         // Clearing VM owners and closing Koin while the runner still owns a scene can
         // recreate VMs against a closed scope. Register these for the OUTER finally.

@@ -44,10 +44,10 @@ class LibrarySmokeTest {
         }
         val host = AppUiTestHost(this, owner, resources)
         host.run(afterClear = listOf({ app.koin.get<ApplicationScope>().cancel() }, { stopKoin() }, { db.close() })) {
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+            setContent { host.Content(app) { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                 Box(Modifier.requiredSize(460.dp,760.dp)) { AppNavHost() }
-            }  }
+            }  } }
             onNodeWithText("Rutiny", useUnmergedTree = true).performClick()
             onNodeWithText("Nový nebo rozepsaný návrh rutiny").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
@@ -121,10 +121,10 @@ class LibrarySmokeTest {
         }
         val host = AppUiTestHost(this, owner, resources)
         host.run(afterClear = listOf({ app.koin.get<ApplicationScope>().cancel() }, { stopKoin() }, { db.close() })) {
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+            setContent { host.Content(app) { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                 Box(Modifier.requiredSize(460.dp,760.dp)) { AppNavHost() }
-            }  }
+            }  } }
             onNodeWithText("Plány", useUnmergedTree = true).performClick()
             onNodeWithText("Nový nebo rozepsaný plán").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
@@ -171,11 +171,11 @@ class LibrarySmokeTest {
                 store.completeOnce(sessionId)
                 sessionId
             }
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner) {
+            setContent { host.Content(app) { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner) {
                 ui.designsystem.nucleus.AppTheme {
                     features.workout.detail.WorkoutDetailRoot(id, {}, {}, Modifier.requiredSize(460.dp, 760.dp))
                 }
-            }  }
+            }  } }
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Původní předpis", substring = true)).fetchSemanticsNodes().isNotEmpty() }
             for (weight in 20..23) {
                 val originalNumber = if (weight % 2 == 0) 1 else 2
