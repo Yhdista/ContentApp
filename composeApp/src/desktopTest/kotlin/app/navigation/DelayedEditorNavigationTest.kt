@@ -23,6 +23,7 @@ import org.junit.After
 import org.koin.core.context.*
 import org.koin.dsl.module
 import kotlin.test.*
+import java.io.File
 
 /** Delayed real SQLite publication must not navigate an unrelated tab during its transition. */
 @OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
@@ -42,7 +43,23 @@ class DelayedEditorNavigationTest {
         val accepted = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
         val committed = CompletableDeferred<Unit>()
+        var hostVisible by mutableStateOf(true)
+        val evidence = File("build/g-ui-fix/${if(plan) "plan" else "routine"}-delayed-publish").apply { mkdirs() }
+        val trace = File(evidence, "phases.txt").apply { writeText("") }
+        var phase = "fixtures"
+        var failedAt: String? = null
+        var primaryFailure: Throwable? = null
+        fun mark(next: String) {
+            phase = next
+            trace.appendText("$next clock=${mainClock.currentTime} autoAdvance=${mainClock.autoAdvance} accepted=${accepted.isCompleted} committed=${committed.isCompleted}\n")
+        }
+        fun recordFailure(failure: Throwable, at: String) {
+            runCatching {
+                File(evidence, "failure.txt").writeText("phase=$at\n" + failure.stackTraceToString())
+            }.onFailure { failure.addSuppressed(it) }
+        }
         try {
+            mark("fixtures")
             val routines = app.koin.get<RoutineRepository>()
             val plans = app.koin.get<TrainingPlanRepository>()
             runBlocking {
@@ -66,45 +83,82 @@ class DelayedEditorNavigationTest {
                     }
                 } }
             }))
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+            setContent { if(hostVisible) CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) { AppNavHost() } }
+            mark("open library")
             onNodeWithText(if (plan) "Plány" else "Rutiny", useUnmergedTree = true).performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Otevřít")).fetchSemanticsNodes().isNotEmpty() }
+            mark("open detail")
             onNodeWithText("Otevřít").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Upravit / pokračovat v návrhu")).fetchSemanticsNodes().isNotEmpty() }
+            mark("open editor")
             onNodeWithText("Upravit / pokračovat v návrhu").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
+            mark("edit and publish")
             onNodeWithText("Název").performTextReplacement("Committed while leaving")
             onNode(hasScrollAction()).performScrollToNode(hasText("Uložit"))
             onNodeWithText("Uložit").performClick()
+            mark("await accepted write")
             waitUntil(timeoutMillis = 5000) { accepted.isCompleted }
             // Hold the outgoing composition in the NavHost transition while the write completes.
+            mark("leave with paused transition")
             mainClock.autoAdvance = false
             onNodeWithText(if (plan) "Rutiny" else "Plány", useUnmergedTree = true).performClick()
+            mark("release accepted write")
             runOnIdle { release.complete(Unit) }
+            mark("await committed write")
             waitUntil(timeoutMillis = 5000) { committed.isCompleted }
             // Allow the effect collector and the real SQL transaction to finish before transition disposal.
+            mark("await transactional draft deletion")
             runBlocking { withTimeout(5000) {
                 while (db.editorDraftDao().get(if (plan) "trainingplans" else "routines", if (plan) "edit:plan" else "edit:routine") != null) delay(10)
             } }
+            mark("settle outgoing transition")
             mainClock.autoAdvance = true
             mainClock.advanceTimeBy(1000)
             waitForIdle()
+            mark("assert unrelated tab remains selected")
             onNodeWithText(if (plan) "Nový nebo rozepsaný návrh rutiny" else "Nový nebo rozepsaný plán").assertIsDisplayed()
             runBlocking {
                 assertEquals("Committed while leaving", if (plan) plans.getById("plan")!!.name else routines.getById("routine")!!.name)
                 assertNull(db.editorDraftDao().get(if (plan) "trainingplans" else "routines", if (plan) "edit:plan" else "edit:routine"))
             }
+            mark("restore retained source entry")
             onNodeWithText(if (plan) "Plány" else "Rutiny", useUnmergedTree = true).performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Committed while leaving")).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText(if (plan) "Spustit příští den" else "Spustit rutinu").assertIsDisplayed()
+            mark("assertions complete")
+        } catch (failure: Throwable) {
+            primaryFailure = failure
+            failedAt = phase
+            // Persist before cleanup: a renderer/idle failure must remain observable.
+            recordFailure(failure, phase)
+            throw failure
         } finally {
-            release.complete(Unit)
-            runOnIdle { owner.viewModelStore.clear() }
-            app.koin.get<ApplicationScope>().cancel()
+            val cleanupFailures = mutableListOf<Throwable>()
+            fun cleanup(action: () -> Unit) {
+                runCatching(action).onFailure { cleanupFailures += it }
+            }
+            cleanup { release.complete(Unit) }
+            cleanup { mainClock.autoAdvance = false }
+            // runOnUiThread dispatches directly; runOnIdle would advance/render forever
+            // while unwinding an already failed test. Unmount only during cleanup.
+            cleanup { runOnUiThread { hostVisible = false; owner.viewModelStore.clear() } }
+            cleanup { app.koin.get<ApplicationScope>().cancel() }
             // Restore overridden global Module definitions so Koin closes their original singleton instances too.
-            app.koin.loadModules(listOf(commonModule))
-            stopKoin(); db.close()
+            cleanup { app.koin.loadModules(listOf(commonModule)) }
+            cleanup { stopKoin() }
+            cleanup { db.close() }
+            val failure = primaryFailure
+            if(failure != null) {
+                cleanupFailures.forEach(failure::addSuppressed)
+                recordFailure(failure, failedAt ?: phase)
+            } else if(cleanupFailures.isNotEmpty()) {
+                val first = cleanupFailures.first()
+                cleanupFailures.drop(1).forEach(first::addSuppressed)
+                recordFailure(first, "cleanup")
+                throw first
+            }
         }
     }
 }
