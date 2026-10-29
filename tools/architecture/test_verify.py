@@ -146,6 +146,28 @@ val clipboard: core.platform.PlatformClipboard? = null
         for filename in ('ThingScreen.kt', 'ThingRoot.kt', 'ThingViewModel.kt'):
             self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\nimport features.workout.domain.WorkoutStore as Store'), 'ui-workflow-ownership')
 
+    def test_workflow_participants_cannot_escape_to_foreign_ordinary_files(self):
+        for name, package in (('WorkoutStore', 'features.workout.domain'), ('ExerciseCatalogImport', 'features.exercises.api')):
+            for filename in ('ThingUseCase.kt', 'data/Thing.kt'):
+                for reference in (
+                    f'import {package}.{name}',
+                    f'import {package}.{name} as Participant\nval participant: Participant? = null',
+                    f'val participant: {package}.{name}? = null',
+                    f'import {package}.*\nval participant: {name}? = null',
+                    f'import {package} as workflow\nval participant: workflow.{name}? = null',
+                ):
+                    with self.subTest(name=name, filename=filename, reference=reference):
+                        self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+
+    def test_workflow_participants_are_owned_by_their_modules_and_app(self):
+        for name, package, feature_name in (('WorkoutStore', 'features.workout.domain', 'workout'), ('ExerciseCatalogImport', 'features.exercises.api', 'exercises')):
+            for module in (f'feature/{feature_name}/api', f'feature/{feature_name}/impl', 'composeApp'):
+                with self.subTest(name=name, module=module):
+                    self.check_fixture(self.kotlin(module, 'Participant.kt', f'package own\nimport {package}.{name}'))
+            for filename in ('ThingScreen.kt', 'ThingRoot.kt', 'ThingViewModel.kt'):
+                with self.subTest(name=name, filename=filename):
+                    self.check_fixture(self.kotlin(f'feature/{feature_name}/impl', filename, f'package own\nimport {package}.*\nval participant: {name}? = null'), 'ui-workflow-ownership')
+
     def test_viewmodel_publish_protocol(self):
         for imported in ('core.storage.DraftStore', 'core.storage.CommandCoordinator'):
             self.check_fixture(self.kotlin('feature/a/impl', 'ThingViewModel.kt', 'package features.a\nimport ' + imported), 'viewmodel-publish-ownership')

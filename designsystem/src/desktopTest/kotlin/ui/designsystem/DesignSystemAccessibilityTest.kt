@@ -11,6 +11,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -57,7 +59,7 @@ class DesignSystemAccessibilityTest {
                         var checked by remember { mutableStateOf(false) }
                         AppTopBar(title = { AppText("Obrazovka", heading = true) }, actions = { AppButton({}, Modifier.testTag("toolbar-action")) { AppText("Akce") } })
                         var selectedTab by remember { mutableStateOf(0) }
-                        AppTabs(listOf(AppTabItem({ AppText("Tréninky") }, { AppText("◉") }), AppTabItem({ AppText("Rutiny") }, { AppText("≡") }), AppTabItem({ AppText("Plány") }, { AppText("↻") })), selectedTab) { selectedTab = it }
+                        AppTabs(listOf(AppTabItem({ AppText("Tréninky") }, { AppText("◉", Modifier.semantics { contentDescription = "decorative-workouts" }) }), AppTabItem({ AppText("Rutiny") }, { AppText("≡", Modifier.semantics { contentDescription = "decorative-routines" }) }), AppTabItem({ AppText("Plány") }, { AppText("↻", Modifier.semantics { contentDescription = "decorative-plans" }) })), selectedTab) { selectedTab = it }
                         AppCard { AppInput("Název", value, modifier = Modifier.testTag("field"), isError = true, supportingText = "Opravte hodnotu") { value = it }
                             AppButton({ clicks++ }, Modifier.testTag("action")) { AppText("Uložit změny") }
                             AppToggle("Ověřeno", checked, { checked = !checked }, Modifier.testTag("toggle")) { AppText("✓ Ověřit") }
@@ -124,6 +126,9 @@ class DesignSystemAccessibilityTest {
             }
             choices.zipWithNext().forEach { (above, below) ->
                 assertTrue(above.bottom <= below.top, "Large-font navigation choices must stack vertically")
+            }
+            listOf("decorative-workouts", "decorative-routines", "decorative-plans").forEach { description ->
+                onNodeWithContentDescription(description, useUnmergedTree = true).assertDoesNotExist()
             }
             onNodeWithText("Plány").performClick().assertIsSelected()
             runOnIdle { assertEquals(1, clicks) }
