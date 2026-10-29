@@ -1,12 +1,13 @@
 # 🏗️ Architektura a použití POC jako základu
 
-📅 Implementovaný stav po rutinách a cyklických plánech (28. 10. 2026). [MVI průvodce](mvi.md) vysvětluje prezentační tok; [README](../README.md) uvádí spuštění, příkazy a produktová omezení. Původní [rozbor](reviews/2026-10-28-architecture-review.md) a [mesh příprava](reviews/2026-10-28-mesh-preparation.md) jsou historické záznamy.
+📅 Základ rutin/plánů a navazující hardening architektury (29. 10. 2026). [MVI průvodce](mvi.md) vysvětluje prezentační tok; [README](../README.md) uvádí spuštění, příkazy a produktová omezení. Původní [rozbor](reviews/2026-10-28-architecture-review.md) a [mesh příprava](reviews/2026-10-28-mesh-preparation.md) jsou historické záznamy.
 
 ## 🧱 Hranice modulů
 
 ```mermaid
 flowchart TD
-    App[composeApp: DB, DI, workflow, NavHost] --> W[workout impl]
+    Android[androidApp: Activity + Application] --> App[composeApp: DB, DI, workflow, NavHost]
+    App --> W[workout impl]
     App --> R[routines impl]
     App --> P[trainingplans impl]
     App --> C[exercises impl]
@@ -17,6 +18,7 @@ flowchart TD
     R --> WA
     PA --> WA
     W --> CA[exercises API]
+    WA --> CA
     R --> CA
     C --> CA
     W --> Storage[core storage]
@@ -24,21 +26,22 @@ flowchart TD
     P --> Storage
     App --> Presentation[core presentation]
     Presentation --> Foundation[foundation]
+    Presentation --> Storage
     Storage --> Foundation
     App --> Design[designsystem]
 ```
 
 🧱 Každá produktová feature má `api` a `impl`. API vlastní serializovatelné routes, modely a veřejné kontrakty. Implementace vlastní Room adaptér, validaci příkazů a interní ViewModely; veřejné Roots berou callbacky. Cizí DAO ani cizí `impl` do feature nepatří. App smí znát všechny entity, aby sestavila jednu databázi.
 
-🧱 `foundation` zůstává bez Compose, Room a Koin. Obsahuje obecné chyby, čas, aplikační scope, MVI markery a platformní adaptéry. `UiText` a mapování infrastrukturních chyb vlastní `core:presentation` (bez fitness validačních enumů ve foundation); plná lokalizace resources zůstává omezením POC.
+🧱 `foundation` zůstává bez Compose, Room a Koin. `core:presentation` má explicitní `api(core:storage)`, protože veřejná konstrukce editor controlleru používá storage kontrakty. Samotné editorové ViewModely je nepřebírají; propojení vlastní feature factories. Obsahuje obecné chyby, čas, aplikační scope, MVI markery a platformní adaptéry. `UiText` a mapování infrastrukturních chyb vlastní `core:presentation` (bez fitness validačních enumů ve foundation); plná lokalizace resources zůstává omezením POC.
 
-🎨 `designsystem` nezná fitness modely ani ViewModely. Nové obrazovky používají Material konstrukce přes `nucleus/LibraryComponents.kt`: vstupy, akce, volby, dialog, page a hlavní záložky. `molecules/EditorNotices.kt` skládá obecné chybové/prázdné stavy. Interaktivní prvky mají min. 48 dp, page zpracuje insets a IME; previews pokrývají obě témata. Starší workout UI stále používá i přímé Material prvky.
+🎨 `designsystem` nezná fitness modely, storage ani ViewModely. Všechny produktové obrazovky používají společné komponenty a `AppStyle`; Material3 adaptéry jsou interní v `nucleus/MaterialAdapters.kt`. Atomy vystavují malé sloty a root Modifier, molekuly skládají interakce, organisms navigaci a templates strukturu stránky s insets/IME. `StatusBadge` přijímá UI label/tone; fitness význam mapuje feature. Podrobná mapa, příklady a přístupnost: [Atomic design](atomic-design.md).
 
 ## 🗂️ Mapa kódu
 
 ```text
 foundation/src/commonMain/kotlin/core/       # common, result, mvi, feedback, platform
-core/storage/src/commonMain/kotlin/core/    # storage, database, sync, network
+core/storage/src/commonMain/kotlin/core/    # storage, database, sync
 core/presentation/src/commonMain/kotlin/core/viewmodel/
 designsystem/src/commonMain/kotlin/ui/designsystem/
 feature/exercises/{api,impl}/src/commonMain/kotlin/features/exercises/
@@ -55,6 +58,10 @@ composeApp/src/commonMain/kotlin/app/
   database/ di/ workflow/ navigation/
 composeApp/schemas/app.database.AppDatabase/ # závazné schema6 + schema7
 composeApp/src/desktopTest/                  # skutečný Room, migrace, Skia/NavHost
+androidApp/src/main/                        # jediný Android host + manifest/resources
+build-logic/                                # KMP/Compose konvence
+verification/designsystem-consumer/          # nezávislý veřejný UI consumer
+tools/architecture/                         # pravidla hranic + negativní fixtures
 ```
 
 ## 🧩 Vlastnictví vrstev
@@ -84,7 +91,7 @@ composeApp/src/desktopTest/                  # skutečný Room, migrace, Skia/Na
 
 ## 💾 Příkazy a drafty
 
-🔄 Po vnějším úspěšném commitu RoomCommandCoordinator vyvolá `invalidationTracker.refreshAsync()`: připnutý `useWriterConnection` tuto notifikaci nedělá. Živé Flow odběry tak uvidí změnu bez opětovného otevření obrazovky; savepoint ani rollback neposílají necommitnutý mezistav. Regrese je ověřena skutečným dlouhodobým Room odběrem i návratem na přejmenovaný detail.
+🔄 Po vnějším úspěšném commitu RoomCommandCoordinator vyvolá `invalidationTracker.refreshAsync()`. Tento krok zůstává součástí integračního kontraktu i po upgradu Room; jeho odstranění nebylo prokázáno jako bezpečné. Živé Flow odběry mají vidět commit bez opětovného otevření obrazovky; savepoint ani rollback nesmí poslat necommitnutý mezistav. Regresi pokrývá skutečný dlouhodobý Room odběr i návrat na přejmenovaný detail.
 
 💾 [CommandCoordinator](../core/storage/src/commonMain/kotlin/core/storage/CommandCoordinator.kt) řadí celé příkazy v aplikačním scope. Room adaptér otevře writer transaction, vnořené zápisy používají savepoint. Feature nesmí proměnit dílčí `Result.Error` na úspěch vnější transakce; workflow při chybě vyhodí interní abort a přeloží jej až mimo celou transakci.
 
@@ -124,12 +131,28 @@ composeApp/src/desktopTest/                  # skutečný Room, migrace, Skia/Na
 
 ## 🧭 Jedna typovaná navigace
 
-🧭 [AppNavHost](../composeApp/src/commonMain/kotlin/app/navigation/AppNavHost.kt) obsahuje devět serializovatelných feature routes pro historii, aktivní workout, detail workoutu, seznam/detail/editor rutin a plánů. Přenášejí pouze ID. `AppTabs` přijímá neutrální `AppTabItem(label, icon)`; popisky, ikony, pořadí Tréninky/Rutiny/Plány i mapování routes vlastní app. Tabs používají framework save/restore; Back z editoru jde přes jediný intent (toolbar i Android system Back). Workout se popne na zdrojový detail. Všechny Root efekty čekají přes `CollectScreenEffects` na `RESUMED` své entry; opožděný commit během odchodu nesmí přesměrovat jinou záložku. Uchovaná entry zpracuje buffered efekt po návratu.
+🧭 [AppNavHost](../composeApp/src/commonMain/kotlin/app/navigation/AppNavHost.kt) obsahuje devět serializovatelných feature routes pro historii, aktivní workout, detail workoutu, seznam/detail/editor rutin a plánů. Přenášejí pouze ID. `AppTabs` přijímá neutrální `AppTabItem(content, icon)`; popisky, ikony, pořadí Tréninky/Rutiny/Plány i mapování routes vlastní app. Tabs používají framework save/restore; Back z editoru jde přes jediný intent (toolbar i Android system Back). Workout se popne na zdrojový detail. Všechny Root efekty čekají přes `CollectScreenEffects` na `RESUMED` své entry; opožděný commit během odchodu nesmí přesměrovat jinou záložku. Uchovaná entry zpracuje buffered efekt po návratu.
 
-🛠️ V připnuté verzi `org.jetbrains.androidx.navigation:2.8.0-alpha10` neandroidí `NavBackStackEntryState.fromBundle` zahazuje entry s null argumenty. Proto [withRestorableEntries](../composeApp/src/commonMain/kotlin/app/navigation/RestorableGraph.kt) přidá všem destinations včetně root grafu privátní default `_hostEntry=true`. Hlídá kolizi s argumenty; doménové routes argument nepoužívají. Není to vlastní stack. Při upgradu odstranit až po průchodu skutečného host recreation testu.
+✅ Po přechodu na stabilní Navigation `2.10.0` byl `withRestorableEntries` odstraněn z produkčního grafu i testových grafů. Přesný `TypedNavigationTest.entryOwnershipRestorationAndWorkoutReturnsToSource` prošel bez pomocného `_hostEntry` argumentu: obnoví skutečný NavHost, rozliší entry ViewModely a vrátí workout na zdrojovou obrazovku. Doménové routes zůstaly stejné; nový vlastní stack ani migrace na Navigation3 nevznikly.
+
+## 🛠️ Build a automatické hranice
+
+📦 [Build průvodce](build-toolchain.md) uvádí ověřenou matici knihoven, konvence, samostatný Android host a nové názvy Android host-test úloh. [Guard](../tools/architecture/README.md) kontroluje skutečné Gradle dependencies a zdrojové hranice; jeho pozitivní i negativní fixtures musí prokázat, že pravidlo nejen projde na projektu, ale zachytí i porušení. Veřejný UI consumer doplňuje to, co samotný import scanner nepozná.
 
 ## 🧪 Ověření a další aplikace
 
 🧪 Common testy feature ověřují modely, ViewModely, chyby, konflikty a raw návrhy. Desktop používá reálný Room/Bundled SQLite pro rollback/CAS/migraci. [TypedNavigationTest](../composeApp/src/desktopTest/kotlin/app/navigation/TypedNavigationTest.kt) ověřuje oddělené entry ViewModely, návrat, pop clear i obnovení argumentů po nové kompozici. [LibrarySmokeTest](../composeApp/src/desktopTest/kotlin/app/navigation/LibrarySmokeTest.kt) vykresluje skutečné Roots/DI/Room přes Desktop Skia v izolované DB a ukládá screenshoty. Testový host poskytuje lifecycle/saveable owner a simulovaný Main dispatcher.
 
 🚀 Při nové feature založ malé API/impl, přidej route a public Root s callbacky, registruj DAO u app databáze a factory u feature modulu. Obecné prvky patří do foundation/storage/presentation/designsystem, produktová rozhodnutí zůstávají ve feature/app workflow. Platformní compile a APK jsou nutné, ale nenahrazují runtime ověření Android Back na zařízení ani iOS host.
+
+
+## 🌱 Převzetí základu pro další aplikaci
+
+1. 🎯 **Pojmenuj novou doménu.** Obecné `foundation`, `core:storage`, `core:presentation` a `designsystem` lze převzít. Workout/rutiny/plány jsou ukázkové produktové moduly, nikoli povinná vrstva každé aplikace.
+2. 📦 **Založ API a implementaci feature.** Veřejné modely, kontrakty a routes patří API; konkrétní persistence, ViewModely a Screens do impl. Externí feature zná pouze API. App skládá workflow přes více feature.
+3. 💾 **Rozhodni o transakci podle uživatelské akce.** Jedno potvrzení, které musí uspět celé, předá jeden příkaz koordinátoru. Obecný writer nezná význam agregátu; repository/workflow kontroluje doménové invarianty.
+4. 📝 **Rozliš data a rozepsaný návrh.** Pro durable formulář slož feature codec/factory s `DurableEditorController`; raw obsah, validaci, konflikt a ID vlastní feature. Pro jednoduchou obrazovku bez návrhu controller nepřidávej.
+5. 🎨 **Začni společnými UI prvky.** Význam stavů a callbacky mapuje feature. Nový obecný prvek přidej až podle skutečně společného použití a ověř veřejným consumerem.
+6. 🧪 **Zachovej senzory i omezení.** Spouštěj architektonické kontroly, testy consumers a platformní sestavení. Nová persistentní struktura potřebuje vlastní schéma a migrační politiku; vydaná historická schémata se nepřepisují.
+
+📱 Před konkrétním produkčním vydáním doplň jeho vlastní požadavky: lokalizaci a velké obrazovky, oprávnění, cílové Android SDK, sync/offline konflikty, zálohování a bezpečnost dat. KMP sdílená kompilace sama nevytváří iOS host ani jeho release proces.

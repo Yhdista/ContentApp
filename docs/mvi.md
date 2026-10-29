@@ -121,8 +121,8 @@ data object WorkoutCancelled : Effect()
 📱 Relevantní část skutečného Rootu:
 
 ```kotlin
-val state by viewModel.uiState.collectAsState()
-val snackbarHostState = remember { SnackbarHostState() }
+val state by viewModel.uiState.collectAsStateWithLifecycle()
+val snackbarHostState = rememberAppMessages()
 
 CollectScreenEffects(viewModel.effect) { effect ->
     when (effect) {
@@ -138,13 +138,13 @@ ActiveWorkoutScreen(
     state = state,
     onIntent = viewModel::onIntent,
     modifier = modifier,
-    snackbarHost = { SnackbarHost(snackbarHostState) }
+    snackbarHost = { AppMessageHost(snackbarHostState) }
 )
 ```
 
 📱 `CollectScreenEffects` váže effect collector na Flow a lifecycle vlastní entry; odebírá jen v `RESUMED`. Samostatný `launch` pro snackbar dovolí dál přijímat například navigační efekt, i když snackbar ještě čeká na zmizení.
 
-📱 Kód používá `collectAsState()`, nikoli `collectAsStateWithLifecycle()`. Odběr je svázaný s kompozicí; dokumentace netvrdí, že se automaticky pozastaví při každém přechodu aplikace do pozadí.
+📱 `collectAsStateWithLifecycle()` pozoruje UI stav podle lifecycle nav entry, výchozí aktivní hranice je `STARTED`. Efekty mají přísnější `RESUMED`, aby odcházející obrazovka během přechodu nenavigovala za jinou entry. Toto řízení odběrů neukončuje přijaté databázové příkazy.
 
 📱 Screen je nezávislý na ViewModelu a DI. Může ale mít lokální Compose stav: ActiveWorkoutScreen například používá `remember` pro otevření kalkulátoru a vybranou sérii. „Stateless Screen“ zde znamená business stav dodaný parametrem, nikoli absolutní zákaz `remember`. Data, která mají přežít rekreaci nebo určují doménový příkaz, vyžadují vlastní pravidla obnovy.
 
@@ -189,7 +189,7 @@ private fun updateWeight(set: WorkoutSet, weightKg: Double) {
 
 ## 💾 Dokončení tréninku a dvě různé životnosti
 
-🔄 Po vnějším úspěšném commitu RoomCommandCoordinator vyvolá `invalidationTracker.refreshAsync()`: připnutý `useWriterConnection` tuto notifikaci nedělá. Živé Flow odběry tak uvidí změnu bez opětovného otevření obrazovky; savepoint ani rollback neposílají necommitnutý mezistav. Regrese je ověřena skutečným dlouhodobým Room odběrem i návratem na přejmenovaný detail.
+🔄 Po vnějším úspěšném commitu RoomCommandCoordinator vyvolá `invalidationTracker.refreshAsync()`. Tento krok zůstává součástí integračního kontraktu i po upgradu Room; jeho odstranění nebylo prokázáno jako bezpečné. Živé Flow odběry mají vidět commit bez opětovného otevření obrazovky; savepoint ani rollback nesmí poslat necommitnutý mezistav. Regresi pokrývá skutečný dlouhodobý Room odběr i návrat na přejmenovaný detail.
 
 💾 Zkrácený průchod `finishWorkout` přes app workflow (úplná implementace také mapuje chybu):
 
@@ -238,12 +238,12 @@ protected fun launchOperation(block: suspend CoroutineScope.() -> Unit): Job = v
 
 ```kotlin
 override fun onOperationFailure(error: DataError.Local) {
-    updateState { copy(error = error.toUiText(), isLoading = false, isSaving = false) }
+    updateState { copy(error = error.toUiText(), isLoading = false) }
     sendEffect(ActiveWorkoutContract.Effect.ShowSnackbar(error.toUiText().asString()))
 }
 ```
 
-🚦 Tím zůstane chyba viditelná ve stavu a Root zároveň zobrazí zprávu. „Obnovit data“ posílá LoadWorkout; původní zápis se automaticky neopakuje. Detail historie používá `CreateRoutineDraft`: úspěch otevře editovatelný návrh a chyba ponechá detail s možností opakování.
+🚦 Chyba zůstane viditelná ve stavu a Root zároveň zobrazí zprávu. `isSaving` zde úmyslně neměníme: observation failure nesmí uvolnit zámek jiné probíhající operace. Zámek ukončuje pouze vlastník příkazu ve svém `finally`. „Obnovit data“ posílá LoadWorkout; původní zápis se automaticky neopakuje. Detail historie používá `CreateRoutineDraft`: úspěch otevře editovatelný návrh a chyba ponechá detail s možností opakování.
 
 🚦 LoadWorkout a LoadHistory ruší uložený `loadJob`, než založí nové odběry. Výběr statistik obdobně používá `statsJob`. Při přidání podobného intentu je nutné určit, zda předchozí odběr zrušit; opakovaná rekompozice není důvod zakládat další collector.
 
@@ -255,7 +255,7 @@ override fun onOperationFailure(error: DataError.Local) {
 
 🧭 Všechny Roots odebírají efekty přes [CollectScreenEffects](../core/presentation/src/commonMain/kotlin/core/viewmodel/CollectScreenEffects.kt) pouze ve stavu `RESUMED` vlastní nav entry. Odcházející kompozice během animace tak nepopne jinou záložku. Buffered efekt čeká při uchování entry a provede se právě po návratu do ní; skutečný pop zruší ViewModel. Callback se aktualizuje přes `rememberUpdatedState`. Datový commit na tento lifecycle nečeká.
 
-♻️ Nové Roots používají `collectAsStateWithLifecycle`; effect Channel zůstává jednorázový a není náhradou durable business stavu. Workout Rooty mají původní `collectAsState`, jejich životnost ale rovněž vlastní NavHost. Odpočet pauzy nemá garantovanou procesní obnovu.
+♻️ Všechny produktové Roots včetně workoutu používají `collectAsStateWithLifecycle`; effect Channel zůstává jednorázový a není náhradou durable business stavu. NavHost poskytuje lifecycle konkrétní entry. Odpočet pauzy nemá garantovanou procesní obnovu.
 
 ## 💾 Raw draft → publikace → návrat
 
@@ -271,17 +271,21 @@ override fun onOperationFailure(error: DataError.Local) {
 sequenceDiagram
     participant UI as Screen
     participant VM as Editor ViewModel
+    participant C as DurableEditorController
     participant Q as OrderedDrafts (ApplicationScope)
     participant DB as CommandCoordinator / SQLite
     UI->>VM: Mutate raw field
-    VM->>Q: put(snapshot), okamžité přijetí
+    VM->>C: edit(raw draft)
+    C->>Q: codec + put(snapshot), okamžité přijetí
     Q->>DB: uložit lokální draft
     UI->>VM: Save
-    VM->>VM: isSaving = true
-    VM->>Q: finish (za všemi přijatými put)
+    VM->>C: publish(validate + save)
+    C->>VM: isSaving = true
+    C->>Q: publish (za všemi přijatými put)
     Q->>DB: transakce save + outbox + delete draft
     DB-->>Q: commit
-    Q-->>VM: id, stará session je uzavřená
+    Q-->>C: id, stará session je uzavřená
+    C-->>VM: úspěch publikace
     VM-->>UI: Saved(id) → navigační callback
 ```
 

@@ -7,9 +7,12 @@
 | 🔎 Co hledáš | Dokument |
 | --- | --- |
 | 🧱 moduly, DI, transakce a migrace | [Architektura](docs/architecture.md) |
+| 🎨 atomic vrstvy, komponenty a přístupnost | [Atomic design](docs/atomic-design.md) |
 | 🧠 State, Intent, Effect, lifecycle a durable drafty | [Praktický průvodce MVI](docs/mvi.md) |
 | 📋🗓️ schválená obchodní pravidla | [Návrh rutin a plánů](docs/superpowers/specs/2026-10-28-routines-trainingplans-design.md) |
-| ✅ scénáře, buildy a potvrzené opravy | [Závěrečná akceptace](docs/reviews/2026-10-28-routines-trainingplans-acceptance.md) |
+| 🛠️ verze, hosté, build konvence a CI | [Build a platformy](docs/build-toolchain.md) |
+| ✅ opravy architektury a jejich ověření | [Akceptace hardeningu](docs/reviews/2026-10-29-hardening-acceptance.md) |
+| 📋 historická akceptace rutin/plánů | [Původní výsledky](docs/reviews/2026-10-28-routines-trainingplans-acceptance.md) |
 | 🌐 historický audit na druhém počítači | [Mesh příprava](docs/reviews/2026-10-28-mesh-preparation.md) |
 
 ## 📱 Průchod aplikací
@@ -30,13 +33,16 @@
 | --- | --- |
 | `foundation` | Result/chyby, čas, ApplicationScope, MVI markery, platformní adaptéry |
 | `core:storage` | CommandCoordinator, Room writer, outbox/sync a lokální DraftStore/OrderedDrafts |
-| `core:presentation` | BaseViewModel, entry-scoped ViewModel holder a editor Back handler |
-| `designsystem` | téma, nucleus Material facades, obecné prvky a layouty |
+| `core:presentation` | BaseViewModel, entry-scoped ViewModel, DurableEditorController, UiText a Back handler |
+| `designsystem` | vlastní UI tokeny, interní Material adaptéry, atoms/molecules/organisms/templates |
 | `feature:exercises:{api,impl}` | společný katalog, atomické uživatelské create/update/archive + outbox; oddělený seed/import |
 | `feature:workout:{api,impl}` | session, snímek předpisu, skutečné série, historie, export |
 | `feature:routines:{api,impl}` | předpisy, validace, drafty a obrazovky rutin |
 | `feature:trainingplans:{api,impl}` | cyklus, kurzor/revize postupu, výběr aktuálního plánu a obrazovky |
-| `composeApp` | platformní vstupy, složení DB/DI, integrační workflow a typovaný NavHost |
+| `composeApp` | sdílené složení DB/DI, integrační workflow, typovaný NavHost, desktop vstup a platformní adaptéry |
+| `androidApp` | jediný Android host: Activity, Application, manifest a resources |
+| `build-logic` | společné KMP/Compose konvence; doménové závislosti zůstávají v modulech |
+| `verification:designsystem-consumer` | samostatný konzument veřejného UI API pro kompilační kontrolu |
 
 🧱 Žádná feature implementace nezávisí na implementaci jiné feature. Workout API nezná rutiny ani plány; integrační akce skládá aplikace.
 
@@ -50,20 +56,22 @@
 
 📤 **CSV/JSON export je export workoutů a jejich snímků, nikoli úplná záloha aplikace.** Neexportuje definice rutin/plánů, jejich postup ani drafty. JSON odděluje skutečné `sets` od úplných `prescriptions`; CSV označí odebrané cíle jako `OMITTED` s prázdnými sloupci skutečného výkonu. Staré template projekce/API byly odstraněny. Obnova z exportu zatím není implementovaná.
 
-🧭 Navigation Compose `2.8.0-alpha10` používá [malý adaptační krok](composeApp/src/commonMain/kotlin/app/navigation/RestorableGraph.kt) pro obnovu prázdných argumentů mimo Android. Test obnovuje skutečný NavHost; podrobnosti a odstranění workaroundu při upgradu jsou v architektuře.
+🧭 Stabilní Navigation `2.10.0` používá standardní typované routes a obnovu entry. Starý pomocný `_hostEntry` argument byl odstraněn po úspěšné kontrole skutečné rekreace NavHostu; aplikace neudržuje paralelní navigační stack.
 
 ## 🚀 Spuštění a ověření
 
 ```sh
 ./gradlew :composeApp:run
-./gradlew :composeApp:installDebug
+./gradlew :androidApp:installDebug
 
 # Všechny moduly, nikoli jen aplikace:
-./gradlew desktopTest testDebugUnitTest \
-  :composeApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64
+./gradlew desktopTest testAndroidHostTest :androidApp:testDebugUnitTest \
+  verifyArchitecture testArchitectureGuard lintAndroidMain :androidApp:lintDebug \
+  :verification:designsystem-consumer:compileKotlinDesktop \
+  :androidApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64
 
 # Skutečné Root → ViewModel → Room → NavHost interakce přes Desktop Skia:
 ./gradlew :composeApp:desktopTest --tests '*LibrarySmokeTest' --tests '*TypedNavigationTest'
 ```
 
-🧪 Finální sada: **198 desktopových a 124 Android unit testů**, bez selhání; APK a iOS SimulatorArm64 compile prošly. Testy zahrnují živé volby po návratu do editoru, zachování celého předpisu po smazání skutečnosti, raw draft/reopen, konflikt a kopii, rollback při selhání smazání draftu, odmítnutí pozdního autosave, skutečnou v6 fixture, workout snapshoty a idempotentní postup plánu. Skia smoke vytváří obrázky v `composeApp/build/task5-visual`; pokrývá editor, Zpět, záložky, uložení, plánový start/dokončení a světlé/tmavé téma. Android APK a iOS compile samy nedokazují běh na zařízení.
+🧪 Aktuální revize, počty a výsledky jsou v [akceptaci hardeningu](docs/reviews/2026-10-29-hardening-acceptance.md). Sada pokrývá raw draft/reopen, lease, konflikt/kopii, rollback/outbox, cancellation, skutečnou v6 fixture, neměnný předpis, postup plánu a živé odběry. Skia smoke vykresluje skutečné Roots/Room/NavHost; komponentové kontroly přidávají kontrast, checked state a 320dp/fontScale2. Screenshoty jsou evidence scénářů, nikoli pixelové golden testy. Android APK a iOS compile samy nedokazují běh na zařízení.

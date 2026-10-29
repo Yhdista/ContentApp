@@ -21,3 +21,10 @@ build/
 # Local build budgets and agent workspaces.
 .yhdista/
 .superpowers/
+
+# Local APKs and other reviewable build outputs.
+/artifacts/
+
+# Python architecture-check cache.
+__pycache__/
+*.py[cod]

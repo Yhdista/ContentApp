@@ -4,13 +4,17 @@
 
 ## ⚙️ Realizační postup — yhdi-dev
 
-Uživatel výslovně aktivoval `yhdi-dev` v 00:37 CET. Tento postup nahrazuje původní SDD orchestrace. Jde o jednu vlnu šesti navazujících balíků: **K po každém balíku → jedna závěrečná G → triáž a eskalační review → Astra kontrola architektury**. Specifikace oprav níže zůstává závazná. Shared rules a briefy: [pravidla vlny](../../plans/2026-10-29-hardening-wave-rules.md). Aktuální stav: [MERGE-STATE](../../../MERGE-STATE.md).
+Uživatel výslovně aktivoval `yhdi-dev` v 00:37 CET. Tento postup nahrazuje původní SDD orchestrace. Jde o jednu vlnu šesti věcných oblastí: **K po každém balíku → jedna závěrečná G → triáž a eskalační review → Astra kontrola architektury**. Specifikace oprav níže zůstává závazná. Shared rules a briefy: [pravidla vlny](../../plans/2026-10-29-hardening-wave-rules.md). Aktuální stav: [MERGE-STATE](../../../MERGE-STATE.md).
 
 - K = kompilace dotčených modulů a consumers včetně common metadata a testových source sets, výhradně přes `yhdi-dev/scripts/gw`.
 - L1 = pouze konkrétní `--tests` pro hlášené chyby nebo sdílený persistence/concurrency invariant, na kterém stojí další balík. Přesný filtr/invariant musí být v briefu/reportu.
 - Testy se průběžně píší a kompilují, ostatní běhy/statika/review patří do G. Níže uvedené ověření určuje požadované pokrytí, nikoli další plné gate po každém balíku.
 - Milník pro vyzkoušení: po balíku3 debug APK / desktop run příkaz označený „před finální G“. Pokračovat bez čekání na reakci.
 - Jeden integrátor, integrační větev a další implementační balíky ve vlastních připravených worktrees. Balík1 doběhl v existujícím checkoutu, kde začal před novým pokynem. Na jednom stroji jeden build; mesh příprava na Air a Windows souběžně, bez společných source writes.
+
+📦 Na hranici balíku 3 byly Task4 a Task5 spojeny do jedné implementační jednotky: konvence rovnou používají cílový Android KMP plugin. Obě akceptace zůstávají platné; vyhneme se dvěma přepisům stejných Gradle souborů.
+
+📱 Uživatel zvolil moderní stack: Android, desktop JVM, iOS zařízení (`iosArm64`) a simulátor na Apple Silicon (`iosSimulatorArm64`). `iosX64` se při modernizaci odstraní, protože nové stabilní Navigation/Lifecycle/SQLite tento cíl nepublikují. Nevzniká nový nativní iOS host.
 
 ## Global Constraints
 

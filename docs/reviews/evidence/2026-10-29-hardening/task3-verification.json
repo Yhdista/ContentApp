@@ -1,0 +1,44 @@
+{
+  "scope": "Task3 before toolchain modernization; final wave G pending",
+  "production_revision": "7aba0e64d2e7e194e55d7c6e275b10513dda733b",
+  "test_revision": "29efd04369e40790f3b343b3ac39bc4aff11ad72",
+  "node": "macbook-air",
+  "K_initial": {
+    "commit": "494fd12",
+    "status": "PASS",
+    "gw_seconds": 345,
+    "tasks_executed": 411
+  },
+  "L1_initial": {
+    "commit": "494fd12",
+    "status": "PASS",
+    "gw_seconds": 10,
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "K_tabs": {
+    "commit": "7aba0e6",
+    "status": "PASS",
+    "tasks_executed": 8,
+    "tasks_up_to_date": 403
+  },
+  "L1_final_tabs": {
+    "commit": "29efd04",
+    "status": "PASS",
+    "gw_seconds": 5,
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "visual_review": "Root viewed all five final light/dark font2 and compact font1 captures; not pixel-golden tests",
+  "milestone_APK": {
+    "commit": "494fd12",
+    "status": "PASS",
+    "gw_seconds": 42,
+    "tasks_executed": 85,
+    "tasks_up_to_date": 177
+  }
+}
