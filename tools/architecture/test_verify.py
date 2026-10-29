@@ -82,6 +82,9 @@ val explanation = "androidx.compose.material3.Text core.storage.DraftStore java.
         files.update(self.kotlin('composeApp', 'Composition.kt', 'package app\nimport features.b.api.Public\nimport core.storage.CommandCoordinator'))
         files.update(self.kotlin('feature/a/impl', 'ControllerFactory.kt', 'package features.a\nimport core.storage.DraftStore\nimport core.storage.CommandCoordinator'))
         files['composeApp/src/desktopTest/kotlin/Test.kt'] = 'import java.awt.Color\nimport features.b.data.Hidden'
+        files['feature/a/impl/build.gradle.kts'] = '''val example = """implementation(project(":feature:b:impl"))"""
+// implementation(project(":feature:b:impl"))
+'''
         self.check_fixture(files)
 
 

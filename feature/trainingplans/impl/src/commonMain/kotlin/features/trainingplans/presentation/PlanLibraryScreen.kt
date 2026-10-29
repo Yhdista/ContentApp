@@ -11,7 +11,7 @@ import core.viewmodel.rememberScreenViewModel
 import core.viewmodel.CollectScreenEffects
 import org.koin.core.parameter.parametersOf
 import ui.designsystem.nucleus.*
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import features.trainingplans.api.*
 
 @Composable fun PlanListRoot(onDetail: (String) -> Unit, onEditor: (String) -> Unit) {

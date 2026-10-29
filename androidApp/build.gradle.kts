@@ -18,6 +18,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     testOptions { unitTests.all { it.maxParallelForks = 1 } }
+    lint { checkDependencies = true }
 }
 
 kotlin { jvmToolchain(17) }

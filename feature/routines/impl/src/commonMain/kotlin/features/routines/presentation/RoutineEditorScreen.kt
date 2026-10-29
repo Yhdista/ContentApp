@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import core.viewmodel.*
 import org.koin.core.parameter.parametersOf
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import ui.designsystem.nucleus.*
 import features.routines.api.*
 import features.workout.domain.WorkoutSetType

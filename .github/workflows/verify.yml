@@ -25,6 +25,8 @@ jobs:
         run: xvfb-run -a ./gradlew desktopTest testAndroidHostTest :androidApp:testDebugUnitTest
       - name: Debug application and instrumentation source compile
         run: ./gradlew :androidApp:assembleDebug :androidApp:compileDebugAndroidTestKotlin
+      - name: Android application lint
+        run: ./gradlew :androidApp:lintDebug
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -18,7 +18,7 @@ import features.workout.domain.WorkoutSetType
 import ui.designsystem.atoms.*
 import ui.designsystem.nucleus.AppStyle
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Preview
 import ui.designsystem.nucleus.AppTheme
 
 /** A set is a small form. Vertical fields retain their labels at narrow widths and large text. */

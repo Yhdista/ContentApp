@@ -93,12 +93,20 @@ def scan(root: Path, inventory: list[dict] | None = None) -> list[str]:
         if not p.exists():
             continue
         text = clean(p.read_text(), literals=False)
-        for target in re.findall(r'project\s*\(\s*["\'](:[^"\']+)["\']\s*\)', text):
-            dependency(module, target, p)
+        # Tokenize literals as units: text describing a project dependency in a
+        # Gradle string is not itself a project dependency.
+        tokens = re.findall(r'"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[A-Za-z_]\w*|[^\s]', text)
+        for index in range(len(tokens) - 3):
+            if tokens[index:index + 2] == ['project', '('] and tokens[index + 2].startswith(('"', "'")):
+                target = tokens[index + 2][1:-1]
+                if target.startswith(':'):
+                    dependency(module, target, p)
         # Catalog aliases are checked in the real Gradle inventory. Direct
         # coordinates are also understood in standalone fixtures.
-        for target in re.findall(r'["\']((?:androidx\.|org\.jetbrains\.compose|io\.insert-koin|org\.koin|io\.ktor)[^"\']+:[^"\']+)["\']', text):
-            dependency(module, target, p)
+        for token in tokens:
+            target = token[1:-1] if token.startswith(('"', "'")) else ''
+            if re.fullmatch(r'(?:androidx\.|org\.jetbrains\.compose|io\.insert-koin|org\.koin|io\.ktor)[\w.\-]+:[\w.\-]+(?::[\w.\-]+)?', target):
+                dependency(module, target, p)
     for edge in inventory or []:
         dependency(edge['module'], edge['target'], f"{edge['module']} [{edge['configuration']}]")
 
