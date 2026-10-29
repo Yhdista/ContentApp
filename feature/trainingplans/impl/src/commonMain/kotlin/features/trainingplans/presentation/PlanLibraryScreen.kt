@@ -1,5 +1,9 @@
 package features.trainingplans.presentation
 
+import ui.designsystem.atoms.*
+import ui.designsystem.molecules.*
+import ui.designsystem.templates.*
+
 import androidx.compose.runtime.*
 import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -7,7 +11,6 @@ import core.viewmodel.rememberScreenViewModel
 import core.viewmodel.CollectScreenEffects
 import org.koin.core.parameter.parametersOf
 import ui.designsystem.nucleus.*
-import ui.designsystem.molecules.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import features.trainingplans.api.*
 
@@ -71,8 +74,8 @@ import features.trainingplans.api.*
             }
         }
     }
-    if(state.archiveConfirmation) AppConfirm("Archivovat?", "Archivace zablokuje budoucí starty. Historie a již spuštěný workout se nezmění.", "Archivovat",
-        { onIntent(PlanLibraryContract.Intent.ConfirmArchive) }, { onIntent(PlanLibraryContract.Intent.CancelArchive) }, !state.busy)
+    if(state.archiveConfirmation) AppConfirm("Archivovat?", "Archivace zablokuje budoucí starty. Historie a již spuštěný workout se nezmění.", "Archivovat", "Pokračovat v úpravách",
+        { onIntent(PlanLibraryContract.Intent.ConfirmArchive) }, { onIntent(PlanLibraryContract.Intent.CancelArchive) }, !state.busy, confirmVariant = ActionVariant.Destructive)
 }
 @Preview @Composable private fun PlanLibraryLightPreview() { AppTheme(darkTheme = false) {
     PlanLibraryScreen(PlanLibraryContract.State(isLoading = false, items = listOf(TrainingPlan("preview", "Síla · Den A", "Postupně, s rezervou", slots = emptyList()))), false, {}, {}, {}, {})

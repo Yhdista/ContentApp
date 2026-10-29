@@ -1,9 +1,9 @@
 package features.workout.history
 
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import ui.designsystem.molecules.*
+
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -21,8 +21,8 @@ fun WorkoutHistoryRoot(
     onToggleTheme: () -> Unit = {}
 ) {
     val viewModel: WorkoutHistoryViewModel = rememberScreenViewModel()
-    val state by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = rememberAppMessages()
 
     CollectScreenEffects(viewModel.effect) { effect ->
         when (effect) {
@@ -45,6 +45,6 @@ fun WorkoutHistoryRoot(
         modifier = modifier,
         isDarkTheme = isDarkTheme,
         onToggleTheme = onToggleTheme,
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { AppMessageHost(snackbarHostState) }
     )
 }

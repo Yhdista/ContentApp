@@ -1,5 +1,8 @@
 package features.workout.ui.components
 
+import ui.designsystem.atoms.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,10 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,21 +27,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import features.workout.domain.ExerciseHistorySessionEntry
 import ui.designsystem.nucleus.AppSpacing
-import ui.designsystem.nucleus.statusPending
-import ui.designsystem.nucleus.statusSynced
 
 @Composable
 internal fun ProgressionChart(
     entries: List<ExerciseHistorySessionEntry>,
     modifier: Modifier = Modifier
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
     val sortedEntries = entries.sortedBy { it.dateEpochMs }
 
-    Card(
+    AppFrame(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(AppSpacing.md),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)
+        containerColor = colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
@@ -54,7 +51,7 @@ internal fun ProgressionChart(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
+                AppText(
                     text = "📈 Vývoj odhadovaného 1RM",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -65,7 +62,7 @@ internal fun ProgressionChart(
                         .background(colorScheme.primaryContainer, RoundedCornerShape(AppSpacing.xs))
                         .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xxs)
                 ) {
-                    Text(
+                    AppText(
                         text = "Epley vzorec",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
@@ -83,7 +80,7 @@ internal fun ProgressionChart(
                         .height(140.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
+                    AppText(
                         text = "Zatím žádná data pro graf",
                         fontSize = 13.sp,
                         color = colorScheme.onSurfaceVariant
@@ -99,13 +96,13 @@ internal fun ProgressionChart(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
+                        AppText(
                             text = "${((single.max1RMKg * 10).toInt() / 10.0)} kg",
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary
                         )
-                        Text(
+                        AppText(
                             text = "První zaznamenaný trénink (${single.sessionTitle})",
                             fontSize = 12.sp,
                             color = colorScheme.onSurfaceVariant
@@ -210,15 +207,15 @@ internal fun ProgressionChart(
                 ) {
                     val first = sortedEntries.first()
                     val last = sortedEntries.last()
-                    Text(
+                    AppText(
                         text = "Start: ${((first.max1RMKg * 10).toInt() / 10.0)} kg",
                         fontSize = 11.sp,
                         color = colorScheme.onSurfaceVariant
                     )
                     val diff = last.max1RMKg - first.max1RMKg
                     val diffText = if (diff >= 0) "+${((diff * 10).toInt() / 10.0)} kg" else "${((diff * 10).toInt() / 10.0)} kg"
-                    val diffColor = if (diff >= 0) colorScheme.statusSynced else colorScheme.statusPending
-                    Text(
+                    val diffColor = if (diff >= 0) colorScheme.success.content else colorScheme.pending.content
+                    AppText(
                         text = "Aktuálně: ${((last.max1RMKg * 10).toInt() / 10.0)} kg ($diffText)",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,

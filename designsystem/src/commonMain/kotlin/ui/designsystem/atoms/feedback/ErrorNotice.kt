@@ -1,15 +1,9 @@
 package ui.designsystem.atoms.feedback
-
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-
-@Composable
-fun ErrorNotice(message: String, onRetry: () -> Unit) {
-    Column {
-        Text(message, color = MaterialTheme.colorScheme.error)
-        TextButton(onClick = onRetry) { Text("Obnovit data") }
-    }
+import androidx.compose.ui.Modifier
+import ui.designsystem.atoms.*
+import ui.designsystem.nucleus.AppStyle
+@Composable fun ErrorNotice(message: String, modifier: Modifier = Modifier, onRetry: () -> Unit) {
+    Column(modifier) { AppText(message, color = AppStyle.colors.error); AppAction("Obnovit data", onClick = onRetry) }
 }

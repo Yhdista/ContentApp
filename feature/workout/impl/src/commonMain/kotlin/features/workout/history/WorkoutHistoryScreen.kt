@@ -1,10 +1,15 @@
 package features.workout.history
 
+import ui.designsystem.atoms.*
+import ui.designsystem.organisms.*
+import ui.designsystem.templates.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,14 +23,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import core.common.formatCompactDecimal
-import core.model.ItemSyncStatus
+import ui.designsystem.atoms.feedback.StatusTone
 import features.workout.ui.components.ExercisePickerSheet
 import features.workout.ui.components.ExerciseStatsSheet
 import features.workout.ui.components.WeeklyStreakCard
@@ -47,7 +44,6 @@ import ui.designsystem.nucleus.AppSpacing
 import ui.designsystem.atoms.feedback.ErrorNotice
 import ui.designsystem.templates.UniversalScreenTemplate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WorkoutHistoryScreen(
     state: WorkoutHistoryContract.State,
@@ -57,24 +53,24 @@ internal fun WorkoutHistoryScreen(
     onToggleTheme: () -> Unit = {},
     snackbarHost: (@Composable () -> Unit)? = null
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
 
     UniversalScreenTemplate(
         modifier = modifier,
         snackbarHost = snackbarHost,
         topBar = {
-            TopAppBar(
+            AppTopBar(
                 title = {
                     Column {
-                        Text(
+                        AppText(
                             text = "Tréninky",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = AppStyle.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onBackground
                         )
-                        Text(
+                        AppText(
                             text = "Přehled & historie (Hevy styl)",
-                            style = MaterialTheme.typography.bodySmall,
+                            style = AppStyle.typography.bodySmall,
                             color = colorScheme.onSurfaceVariant
                         )
                     }
@@ -85,39 +81,36 @@ internal fun WorkoutHistoryScreen(
                         horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                     ) {
                         // Tlačítko pro přepnutí Dark / Light mode (☀️ / 🌙)
-                        IconButton(
+                        AppIconAction(label = "Přepnout barevné téma",
                             onClick = onToggleTheme,
                             modifier = Modifier.size(AppSpacing.minInteractiveTouchTarget)
                         ) {
-                            Text(if (isDarkTheme) "☀️" else "🌙", fontSize = 18.sp)
+                            AppText(if (isDarkTheme) "☀️" else "🌙", fontSize = 18.sp)
                         }
 
-                        IconButton(
+                        AppIconAction(label = "Zobrazit katalog cviků",
                             onClick = { onIntent(WorkoutHistoryContract.Intent.OpenExerciseCatalog) },
                             modifier = Modifier.size(AppSpacing.minInteractiveTouchTarget)
                         ) {
-                            Text("📈", fontSize = 18.sp)
+                            AppText("📈", fontSize = 18.sp)
                         }
 
-                        IconButton(
+                        AppIconAction(label = "Exportovat tréninky",
                             onClick = { onIntent(WorkoutHistoryContract.Intent.OpenExportDialog) },
                             modifier = Modifier.size(AppSpacing.minInteractiveTouchTarget)
                         ) {
-                            Text("💾", fontSize = 18.sp)
+                            AppText("💾", fontSize = 18.sp)
                         }
 
                         Box(modifier = Modifier.padding(end = AppSpacing.sm)) {
                             if (state.pendingSyncCount > 0) {
-                                StatusBadge(status = ItemSyncStatus.PENDING)
+                                StatusBadge("PENDING", StatusTone.Pending)
                             } else {
-                                StatusBadge(status = ItemSyncStatus.LOCAL)
+                                StatusBadge("LOKÁLNĚ", StatusTone.Neutral)
                             }
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorScheme.background
-                )
             )
         },
         thumbActionZone = {
@@ -127,21 +120,20 @@ internal fun WorkoutHistoryScreen(
                     .padding(AppSpacing.md)
             ) {
                 if (state.activeSession != null) {
-                    Box(
+                    AppSurfaceAction(onClick = {
+                                onIntent(WorkoutHistoryContract.Intent.ResumeActiveWorkout)
+                            }, enabled = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .minimumInteractiveComponentSize()
                             .height(52.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .background(colorScheme.primary)
-                            .clickable(role = Role.Button) {
-                                onIntent(WorkoutHistoryContract.Intent.ResumeActiveWorkout)
-                            },
+                            ,
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
+                        AppText(
                             text = "Pokračovat v tréninku ⚡",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = AppStyle.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onPrimary
                         )
@@ -151,42 +143,40 @@ internal fun WorkoutHistoryScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
-                        Box(
+                        AppSurfaceAction(onClick = {
+                                    onIntent(WorkoutHistoryContract.Intent.StartNewWorkout)
+                                }, enabled = true,
                             modifier = Modifier
                                 .weight(1.3f)
-                                .minimumInteractiveComponentSize()
                                 .height(52.dp)
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(colorScheme.primary)
-                                .clickable(role = Role.Button) {
-                                    onIntent(WorkoutHistoryContract.Intent.StartNewWorkout)
-                                },
+                                ,
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
+                            AppText(
                                 text = "+ Nový trénink",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = AppStyle.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = colorScheme.onPrimary
                             )
                         }
 
-                        Box(
+                        AppSurfaceAction(onClick = {
+                                    onIntent(WorkoutHistoryContract.Intent.OpenRoutines)
+                                }, enabled = true,
                             modifier = Modifier
                                 .weight(1f)
-                                .minimumInteractiveComponentSize()
                                 .height(52.dp)
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(colorScheme.surface)
                                 .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(14.dp))
-                                .clickable(role = Role.Button) {
-                                    onIntent(WorkoutHistoryContract.Intent.OpenRoutines)
-                                },
+                                ,
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
+                            AppText(
                                 text = "📋 Rutiny",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = AppStyle.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = colorScheme.onSurface
                             )
@@ -230,15 +220,15 @@ internal fun WorkoutHistoryScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             val volumeFormatted = state.totalVolumeAllTimeKg.formatCompactDecimal()
-                            Text(
+                            AppText(
                                 text = "$volumeFormatted kg",
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = colorScheme.primary
                             )
-                            Text(
+                            AppText(
                                 text = "Celkový objem",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = AppStyle.typography.labelSmall,
                                 color = colorScheme.onSurfaceVariant
                             )
                         }
@@ -250,15 +240,15 @@ internal fun WorkoutHistoryScreen(
                         )
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
+                            AppText(
                                 text = "${state.totalWorkoutsCount}",
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = colorScheme.onSurface
                             )
-                            Text(
+                            AppText(
                                 text = "Tréninků",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = AppStyle.typography.labelSmall,
                                 color = colorScheme.onSurfaceVariant
                             )
                         }
@@ -268,37 +258,24 @@ internal fun WorkoutHistoryScreen(
                 // 3. Banner pro aktivní trénink (pokud existuje)
                 if (state.activeSession != null) {
                     item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .minimumInteractiveComponentSize()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(colorScheme.surfaceVariant)
-                                .border(1.5.dp, colorScheme.primary, RoundedCornerShape(14.dp))
-                                .clickable(role = Role.Button) {
-                                    onIntent(WorkoutHistoryContract.Intent.ResumeActiveWorkout)
-                                }
-                                .padding(AppSpacing.md),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        AppCard(onClick = { onIntent(WorkoutHistoryContract.Intent.ResumeActiveWorkout) }) {
                             Column {
-                                Text(
+                                AppText(
                                     text = "🔴 PROBÍHÁ TRÉNINK",
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = AppStyle.typography.labelSmall,
                                     color = colorScheme.primary,
                                     fontWeight = FontWeight.Bold
                                 )
-                                Text(
+                                AppText(
                                     text = state.activeSession.title,
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = AppStyle.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = colorScheme.onSurface
                                 )
                             }
-                            Text(
+                            AppText(
                                 text = "Otevřít →",
-                                style = MaterialTheme.typography.labelLarge,
+                                style = AppStyle.typography.labelLarge,
                                 color = colorScheme.primary,
                                 fontWeight = FontWeight.Bold
                             )
@@ -308,9 +285,9 @@ internal fun WorkoutHistoryScreen(
 
                 // 4. Hlavička sekce historie a vyhledávání
                 item {
-                    Text(
+                    AppText(
                         text = "HISTORIE DOKONČENÝCH TRÉNINKŮ",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = AppStyle.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = AppSpacing.sm)
@@ -329,39 +306,21 @@ internal fun WorkoutHistoryScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
-                        Text("🔍", fontSize = 16.sp)
-                        BasicTextField(
-                            value = state.searchQuery,
-                            onValueChange = { onIntent(WorkoutHistoryContract.Intent.UpdateSearchQuery(it)) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(44.dp)
-                                .padding(vertical = 12.dp),
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = colorScheme.onSurface),
-                            cursorBrush = SolidColor(colorScheme.primary),
-                            singleLine = true,
-                            decorationBox = { innerTextField ->
-                                if (state.searchQuery.isEmpty()) {
-                                    Text(
-                                        text = "Hledat trénink nebo cvik...",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        )
+                        AppText("🔍", fontSize = 16.sp)
+                        AppInput("Hledat trénink nebo cvik...", state.searchQuery, modifier = Modifier.weight(1f)) {
+                            onIntent(WorkoutHistoryContract.Intent.UpdateSearchQuery(it))
+                        }
+
                         if (state.searchQuery.isNotEmpty()) {
-                            Box(
+                            AppSurfaceAction(onClick = { onIntent(WorkoutHistoryContract.Intent.ClearSearchQuery) }, enabled = true,
                                 modifier = Modifier
-                                    .minimumInteractiveComponentSize()
-                                    .size(28.dp)
+                                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                                     .clip(CircleShape)
                                     .background(colorScheme.surfaceVariant)
-                                    .clickable(role = Role.Button) { onIntent(WorkoutHistoryContract.Intent.ClearSearchQuery) },
+                                    ,
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
+                                AppText(
                                     text = "✕",
                                     fontSize = 12.sp,
                                     color = colorScheme.onSurfaceVariant,
@@ -389,10 +348,10 @@ internal fun WorkoutHistoryScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                             ) {
-                                Text(text = "📋", fontSize = 32.sp)
-                                Text(
+                                AppText(text = "📋", fontSize = 32.sp)
+                                AppText(
                                     text = "Zatím žádné dokončené tréninky",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = AppStyle.typography.bodyMedium,
                                     color = colorScheme.onSurfaceVariant
                                 )
                             }
@@ -413,16 +372,16 @@ internal fun WorkoutHistoryScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                             ) {
-                                Text(text = "🔍", fontSize = 28.sp)
-                                Text(
+                                AppText(text = "🔍", fontSize = 28.sp)
+                                AppText(
                                     text = "Žádný trénink neodpovídá \"${state.searchQuery}\"",
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = AppStyle.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = colorScheme.onSurface
                                 )
-                                Text(
+                                AppText(
                                     text = "Zkuste jiný název tréninku nebo cviku",
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = AppStyle.typography.labelSmall,
                                     color = colorScheme.onSurfaceVariant
                                 )
                             }

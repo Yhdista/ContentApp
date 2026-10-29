@@ -1,5 +1,9 @@
 package features.routines.presentation
 
+import ui.designsystem.atoms.*
+import ui.designsystem.molecules.*
+import ui.designsystem.templates.*
+
 import androidx.compose.runtime.*
 import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -7,7 +11,6 @@ import core.viewmodel.rememberScreenViewModel
 import core.viewmodel.CollectScreenEffects
 import org.koin.core.parameter.parametersOf
 import ui.designsystem.nucleus.*
-import ui.designsystem.molecules.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import features.routines.api.*
 
@@ -65,8 +68,8 @@ import features.routines.api.*
             }
         }
     }
-    if(state.archiveConfirmation) AppConfirm("Archivovat?", "Archivace zablokuje budoucí starty. Historie a již spuštěný workout se nezmění. Dotčené plány: ${state.dependentPlans}.", "Archivovat",
-        { onIntent(RoutineLibraryContract.Intent.ConfirmArchive) }, { onIntent(RoutineLibraryContract.Intent.CancelArchive) }, !state.busy)
+    if(state.archiveConfirmation) AppConfirm("Archivovat?", "Archivace zablokuje budoucí starty. Historie a již spuštěný workout se nezmění. Dotčené plány: ${state.dependentPlans}.", "Archivovat", "Pokračovat v úpravách",
+        { onIntent(RoutineLibraryContract.Intent.ConfirmArchive) }, { onIntent(RoutineLibraryContract.Intent.CancelArchive) }, !state.busy, confirmVariant = ActionVariant.Destructive)
 }
 @Preview @Composable private fun RoutineLibraryLightPreview() { AppTheme(darkTheme = false) {
     RoutineLibraryScreen(RoutineLibraryContract.State(isLoading = false, items = listOf(Routine("preview", "Síla · Den A", "Postupně, s rezervou", exercises = emptyList()))), false, {}, {}, {}, {})

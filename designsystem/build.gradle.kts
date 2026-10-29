@@ -15,13 +15,13 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":foundation"))
             api(compose.runtime)
             api(compose.foundation)
-            api(compose.material3)
+            implementation(compose.material3)
             api(compose.ui)
             implementation(compose.components.uiToolingPreview)
         }
+        val desktopTest by getting { dependencies { implementation(compose.desktop.uiTestJUnit4); implementation(kotlin("test")); implementation(compose.desktop.currentOs) } }
     }
 }
 

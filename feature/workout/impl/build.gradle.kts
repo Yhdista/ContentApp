@@ -23,7 +23,8 @@ kotlin {
             implementation(project(":designsystem"))
             api(compose.runtime)
             implementation(compose.foundation)
-            implementation(compose.material3)
+            implementation(compose.components.uiToolingPreview)
+            implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
             api(compose.ui)
             api(libs.androidx.room.runtime)
             api(libs.koin.core)
@@ -32,6 +33,7 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.androidx.lifecycle.viewmodel)
         }
+        val desktopTest by getting { dependencies { implementation(compose.desktop.uiTestJUnit4); implementation(kotlin("test")); implementation(compose.desktop.currentOs) } }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)

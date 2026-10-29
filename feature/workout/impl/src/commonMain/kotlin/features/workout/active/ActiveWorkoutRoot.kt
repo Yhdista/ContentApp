@@ -1,11 +1,11 @@
 package features.workout.active
 
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import ui.designsystem.molecules.*
+
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import core.viewmodel.rememberScreenViewModel
@@ -17,9 +17,9 @@ fun ActiveWorkoutRoot(
     modifier: Modifier = Modifier
 ) {
     val viewModel: ActiveWorkoutViewModel = rememberScreenViewModel()
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarHostState = rememberAppMessages()
 
     CollectScreenEffects(viewModel.effect) { effect ->
         when (effect) {
@@ -35,6 +35,6 @@ fun ActiveWorkoutRoot(
         state = state,
         onIntent = viewModel::onIntent,
         modifier = modifier,
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { AppMessageHost(snackbarHostState) }
     )
 }

@@ -1,5 +1,9 @@
 package features.workout.ui.components
 
+import ui.designsystem.atoms.*
+import ui.designsystem.molecules.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -13,16 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import features.workout.domain.ExportFormat
 import ui.designsystem.nucleus.AppSpacing
-import ui.designsystem.nucleus.statusSynced
 
 @Composable
 internal fun WorkoutExportDialog(
@@ -48,7 +41,7 @@ internal fun WorkoutExportDialog(
     onCopyToClipboard: (text: String, isJson: Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
     var selectedFormat by remember { mutableStateOf(ExportFormat.CSV) }
     val currentContent = when (selectedFormat) {
         ExportFormat.CSV -> csvData
@@ -56,16 +49,15 @@ internal fun WorkoutExportDialog(
     }
     var copiedFeedback by remember { mutableStateOf(false) }
 
-    AlertDialog(
+    AppDialog(
         onDismissRequest = onDismiss,
-        containerColor = colorScheme.surface,
         title = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
+                AppText(
                     text = "📤 Export tréninků",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
@@ -75,7 +67,7 @@ internal fun WorkoutExportDialog(
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
+                AppText(
                     text = "Vyexportujte tréninkovou historii do CSV nebo JSON. Export neobsahuje rutiny, plány ani rozpracované návrhy.",
                     fontSize = 13.sp,
                     color = colorScheme.onSurfaceVariant
@@ -88,33 +80,21 @@ internal fun WorkoutExportDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
-                    FilterChip(
+                    AppSelection(
                         selected = selectedFormat == ExportFormat.CSV,
                         onClick = {
                             selectedFormat = ExportFormat.CSV
                             copiedFeedback = false
                         },
-                        label = { Text("CSV (Tabulka / Hevy)") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = colorScheme.primaryContainer,
-                            selectedLabelColor = colorScheme.onPrimaryContainer,
-                            containerColor = colorScheme.surfaceVariant,
-                            labelColor = colorScheme.onSurfaceVariant
-                        )
+                        label = { AppText("CSV (Tabulka / Hevy)") }
                     )
-                    FilterChip(
+                    AppSelection(
                         selected = selectedFormat == ExportFormat.JSON,
                         onClick = {
                             selectedFormat = ExportFormat.JSON
                             copiedFeedback = false
                         },
-                        label = { Text("JSON (Tréninky)") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = colorScheme.primaryContainer,
-                            selectedLabelColor = colorScheme.onPrimaryContainer,
-                            containerColor = colorScheme.surfaceVariant,
-                            labelColor = colorScheme.onSurfaceVariant
-                        )
+                        label = { AppText("JSON (Tréninky)") }
                     )
                 }
 
@@ -128,12 +108,12 @@ internal fun WorkoutExportDialog(
                         .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
+                    AppText(
                         text = "Tréninků: $sessionsCount",
                         fontSize = 12.sp,
                         color = colorScheme.onSurface
                     )
-                    Text(
+                    AppText(
                         text = "Sérií: $setsCount",
                         fontSize = 12.sp,
                         color = colorScheme.onSurface
@@ -145,12 +125,12 @@ internal fun WorkoutExportDialog(
                 // Code Preview Box
                 val vScrollState = rememberScrollState()
                 val hScrollState = rememberScrollState()
-                Card(
+                AppFrame(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp),
                     shape = RoundedCornerShape(AppSpacing.xs),
-                    colors = CardDefaults.cardColors(containerColor = colorScheme.background)
+                    containerColor = colorScheme.background
                 ) {
                     Box(
                         modifier = Modifier
@@ -159,7 +139,7 @@ internal fun WorkoutExportDialog(
                             .verticalScroll(vScrollState)
                             .horizontalScroll(hScrollState)
                     ) {
-                        Text(
+                        AppText(
                             text = currentContent.ifEmpty { "Žádná data k exportu" },
                             fontSize = 11.sp,
                             fontFamily = FontFamily.Monospace,
@@ -170,31 +150,25 @@ internal fun WorkoutExportDialog(
             }
         },
         confirmButton = {
-            Button(
+            AppButton(
                 onClick = {
                     onCopyToClipboard(currentContent, selectedFormat == ExportFormat.JSON)
                     copiedFeedback = true
                 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (copiedFeedback) colorScheme.statusSynced else colorScheme.primary,
-                    contentColor = if (copiedFeedback) Color.White else colorScheme.onPrimary
-                ),
-                shape = RoundedCornerShape(AppSpacing.sm),
                 modifier = Modifier.height(AppSpacing.minInteractiveTouchTarget)
             ) {
-                Text(
+                AppText(
                     text = if (copiedFeedback) "✓ Zkopírováno!" else "📋 Zkopírovat",
                     fontWeight = FontWeight.Bold
                 )
             }
         },
         dismissButton = {
-            OutlinedButton(
+            AppButton(
                 onClick = onDismiss,
-                shape = RoundedCornerShape(AppSpacing.sm),
                 modifier = Modifier.height(AppSpacing.minInteractiveTouchTarget)
             ) {
-                Text("Zavřít", color = colorScheme.onSurfaceVariant)
+                AppText("Zavřít", color = colorScheme.onSurfaceVariant)
             }
         }
     )

@@ -1,5 +1,8 @@
 package app.navigation
 
+import ui.designsystem.atoms.*
+import ui.designsystem.organisms.*
+
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -64,7 +67,7 @@ internal data object AppGraphRoute
         Column(modifier.fillMaxSize()) {
             NavHost(nav, graph = graph, modifier = Modifier.weight(1f))
             // Editors keep the same durable draft when switching tabs. System/toolbar Back offers discard.
-            AppTabs(listOf(AppTabItem("Tréninky", "◉"), AppTabItem("Rutiny", "≡"), AppTabItem("Plány", "↻")), selected) { index ->
+            AppTabs(listOf(AppTabItem({ AppText("Tréninky") }, { AppText("◉") }), AppTabItem({ AppText("Rutiny") }, { AppText("≡") }), AppTabItem({ AppText("Plány") }, { AppText("↻") })), selected) { index ->
                 val route: Any = when(index) { 1 -> RoutineListRoute; 2 -> PlanListRoute; else -> WorkoutHistoryRoute }
                 if(index != selected || editor) nav.navigate(route) {
                     popUpTo<WorkoutHistoryRoute> { saveState = true }

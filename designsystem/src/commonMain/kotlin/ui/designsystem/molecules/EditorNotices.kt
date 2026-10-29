@@ -1,9 +1,8 @@
 package ui.designsystem.molecules
-
 import androidx.compose.runtime.Composable
-import ui.designsystem.nucleus.*
-
-@Composable fun EditorNotice(message: String, onRetry: () -> Unit) {
-    AppCard { AppText(message); AppAction("Zkusit znovu", onClick = onRetry) }
+import androidx.compose.ui.Modifier
+import ui.designsystem.atoms.*
+@Composable fun EditorNotice(message: String, modifier: Modifier = Modifier, onRetry: () -> Unit) {
+    AppCard(modifier) { AppText(message); AppAction("Zkusit znovu", onClick = onRetry) }
 }
-@Composable fun EmptyLibrary(message: String) { AppCard { AppText(message) } }
+@Composable fun EmptyLibrary(message: String, modifier: Modifier = Modifier) { AppCard(modifier) { AppText(message) } }

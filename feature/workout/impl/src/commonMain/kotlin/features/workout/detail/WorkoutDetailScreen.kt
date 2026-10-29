@@ -1,10 +1,17 @@
 package features.workout.detail
 
+import features.workout.ui.components.prGold
+import features.workout.ui.components.prGoldContainer
+import features.workout.ui.components.prGoldBorder
+import ui.designsystem.atoms.*
+import ui.designsystem.organisms.*
+import ui.designsystem.templates.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,17 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,16 +40,9 @@ import core.common.formatCompactDecimal
 import features.workout.domain.WorkoutSetType
 import features.workout.ui.components.toBadgeVisuals
 import ui.designsystem.nucleus.AppSpacing
-import ui.designsystem.nucleus.isLight
-import ui.designsystem.nucleus.prGold
-import ui.designsystem.nucleus.prGoldBorder
-import ui.designsystem.nucleus.prGoldContainer
-import ui.designsystem.nucleus.statusSynced
-import ui.designsystem.nucleus.statusSyncedContainer
 import ui.designsystem.atoms.feedback.ErrorNotice
 import ui.designsystem.templates.UniversalScreenTemplate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WorkoutDetailScreen(
     state: WorkoutDetailContract.State,
@@ -61,40 +50,39 @@ internal fun WorkoutDetailScreen(
     modifier: Modifier = Modifier,
     snackbarHost: @Composable () -> Unit = {}
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
     val session = state.session
 
     UniversalScreenTemplate(
         snackbarHost = snackbarHost,
         modifier = modifier,
         topBar = {
-            TopAppBar(
+            AppTopBar(
                 title = {
                     Column {
-                        Text(
+                        AppText(
                             text = session?.title ?: "Detail tréninku",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = AppStyle.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onBackground
                         )
-                        Text(
+                        AppText(
                             text = session?.let { if(it.sourcePlan != null) "🗓️ Z plánu · revize ${it.sourcePlan?.planRevision}" else if(it.sourceRoutineId != null) "📋 Z rutiny · revize ${it.sourceRoutineRevision}" else "🏋️ Samostatný trénink" } ?: "Souhrn výkonu & sérií",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = AppStyle.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 navigationIcon = {
-                    Box(
-                        modifier = Modifier
-                            .minimumInteractiveComponentSize()
-                            .size(AppSpacing.minInteractiveTouchTarget)
-                            .clickable(role = Role.Button) {
+                    AppSurfaceAction(onClick = {
                                 onIntent(WorkoutDetailContract.Intent.BackClicked)
-                            },
+                            }, enabled = true, label = "Zpět",
+                        modifier = Modifier
+                            .size(AppSpacing.minInteractiveTouchTarget)
+                            ,
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
+                        AppText(
                             text = "←",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
@@ -103,27 +91,22 @@ internal fun WorkoutDetailScreen(
                     }
                 },
                 actions = {
-                    Box(
+                    AppSurfaceAction(onClick = { onIntent(WorkoutDetailContract.Intent.CreateRoutine) }, enabled = !state.isCreatingRoutine,
                         modifier = Modifier
-                            .minimumInteractiveComponentSize()
                             .padding(end = AppSpacing.sm)
                             .clip(RoundedCornerShape(8.dp))
                             .background(colorScheme.surfaceVariant)
-                            .clickable(enabled = !state.isCreatingRoutine, role = Role.Button) { onIntent(WorkoutDetailContract.Intent.CreateRoutine) }
                             .padding(horizontal = AppSpacing.sm, vertical = 6.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
+                        AppText(
                             text = "📋 Vytvořit rutinu",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = AppStyle.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorScheme.background
-                )
             )
         },
         content = { contentPadding ->
@@ -141,7 +124,7 @@ internal fun WorkoutDetailScreen(
                     item { ErrorNotice(error.asString(), onRetry = { onIntent(WorkoutDetailContract.Intent.LoadDetail(state.requestedSessionId ?: return@ErrorNotice)) }) }
                 }
                 if (state.exercisesWithSets.any { group -> group.sets.any { it.orderReconstructed } }) {
-                    item { Text("Pořadí cviků bylo obnoveno ze staršího záznamu.", style = MaterialTheme.typography.bodySmall) }
+                    item { AppText("Pořadí cviků bylo obnoveno ze staršího záznamu.", style = AppStyle.typography.bodySmall) }
                 }
                 // 1. Karta souhrnu (Objem, Čas)
                 item {
@@ -157,15 +140,15 @@ internal fun WorkoutDetailScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             val volumeFormatted = (session?.totalVolumeKg ?: 0.0).formatCompactDecimal()
-                            Text(
+                            AppText(
                                 text = "$volumeFormatted kg",
                                 fontSize = 26.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = colorScheme.primary
                             )
-                            Text(
+                            AppText(
                                 text = "Celkový objem",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = AppStyle.typography.labelSmall,
                                 color = colorScheme.onSurfaceVariant
                             )
                         }
@@ -185,15 +168,15 @@ internal fun WorkoutDetailScreen(
                         }
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
+                            AppText(
                                 text = durationMinutes,
                                 fontSize = 26.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = colorScheme.onSurface
                             )
-                            Text(
+                            AppText(
                                 text = "Délka cvičení",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = AppStyle.typography.labelSmall,
                                 color = colorScheme.onSurfaceVariant
                             )
                         }
@@ -219,22 +202,22 @@ internal fun WorkoutDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                             ) {
-                                Text(
+                                AppText(
                                     text = "🏆",
                                     fontSize = 18.sp
                                 )
-                                Text(
+                                AppText(
                                     text = "Nové osobní rekordy v tomto tréninku!",
-                                    style = MaterialTheme.typography.titleSmall,
+                                    style = AppStyle.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = colorScheme.prGold
                                 )
                             }
                             allPrSets.forEach { (exercise, set) ->
                                 val weightStr = set.weightKg.formatCompactDecimal()
-                                Text(
+                                AppText(
                                     text = "• ${exercise.name}: $weightStr kg × ${set.reps} opakování",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = AppStyle.typography.bodySmall,
                                     color = colorScheme.onSurface
                                 )
                             }
@@ -244,9 +227,9 @@ internal fun WorkoutDetailScreen(
 
                 // 2. Seznam cviků a sérií
                 item {
-                    Text(
+                    AppText(
                         text = "PŘEDPIS A SKUTEČNOST",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = AppStyle.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurfaceVariant
                     )
@@ -263,9 +246,9 @@ internal fun WorkoutDetailScreen(
                                 .padding(AppSpacing.lg),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
+                            AppText(
                                 text = "Žádné zaznamenané cviky",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = AppStyle.typography.bodyMedium,
                                 color = colorScheme.onSurfaceVariant
                             )
                         }
@@ -290,17 +273,9 @@ private fun DetailExerciseCard(
     group: WorkoutDetailContract.ExerciseWithSets,
     modifier: Modifier = Modifier
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(colorScheme.surface)
-            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
-            .padding(AppSpacing.md),
-        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
-    ) {
+    AppCard(modifier) {
         // Hlavička cviku
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -308,9 +283,9 @@ private fun DetailExerciseCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
+                AppText(
                     text = group.exercise.name,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = AppStyle.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface
                 )
@@ -321,9 +296,9 @@ private fun DetailExerciseCard(
                         .background(colorScheme.primaryContainer.copy(alpha = 0.5f))
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-                    Text(
+                    AppText(
                         text = group.exercise.muscleGroup.displayName,
-                        style = MaterialTheme.typography.labelSmall,
+                        style = AppStyle.typography.labelSmall,
                         color = colorScheme.primary,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -331,9 +306,9 @@ private fun DetailExerciseCard(
             }
 
             val completedSetsCount = group.sets.count { it.isCompleted }
-            Text(
+            AppText(
                 text = "Skutečnost: $completedSetsCount / ${group.sets.size} sérií",
-                style = MaterialTheme.typography.labelMedium,
+                style = AppStyle.typography.labelMedium,
                 color = colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
             )
@@ -342,23 +317,23 @@ private fun DetailExerciseCard(
         Spacer(modifier = Modifier.height(AppSpacing.xs))
 
         if (group.prescriptions.isNotEmpty()) {
-            Text("Původní předpis · pauza ${group.prescriptions.first().restSeconds} s", style = MaterialTheme.typography.titleSmall)
+            AppText("Původní předpis · pauza ${group.prescriptions.first().restSeconds} s", style = AppStyle.typography.titleSmall)
             group.prescriptions.forEach { target ->
                 val actual = group.sets.firstOrNull { it.id == target.id }
-                Text("${target.setNumber}. ${target.weightKg.formatCompactDecimal()} kg × ${target.reps} · ${target.setType.displayName} · " +
+                AppText("${target.setNumber}. ${target.weightKg.formatCompactDecimal()} kg × ${target.reps} · ${target.setType.displayName} · " +
                     if (actual == null) "Vynecháno — bez skutečného výkonu" else "Skutečná série ${actual.setNumber}",
-                    style = MaterialTheme.typography.bodySmall, color = colorScheme.onSurfaceVariant)
+                    style = AppStyle.typography.bodySmall, color = colorScheme.onSurfaceVariant)
             }
-            if (group.sets.isNotEmpty()) Text("Skutečnost", style = MaterialTheme.typography.titleSmall)
+            if (group.sets.isNotEmpty()) AppText("Skutečnost", style = AppStyle.typography.titleSmall)
         }
         // Seznam skutečných sérií; původní cíle nevstupují do počtů, objemu ani PR.
         Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
             group.sets.forEach { set ->
-                if (group.prescriptions.isEmpty()) Text(
+                if (group.prescriptions.isEmpty()) AppText(
                     text = if (set.prescribedWeightKg != null && set.prescribedReps != null)
                         "Předpis: ${set.prescribedWeightKg} kg × ${set.prescribedReps} · ${set.prescribedSetType?.displayName ?: "—"}"
                         else "Předpis nebyl zaznamenán",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = AppStyle.typography.labelSmall,
                     color = colorScheme.onSurfaceVariant
                 )
                 val weightStr = set.weightKg.formatCompactDecimal()
@@ -390,17 +365,17 @@ private fun DetailExerciseCard(
                                 .background(badgeVisuals.backgroundColor),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
+                            AppText(
                                 text = badgeVisuals.label,
-                                style = MaterialTheme.typography.labelSmall,
+                                style = AppStyle.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = badgeVisuals.contentColor
                             )
                         }
 
-                        Text(
+                        AppText(
                             text = "$weightStr kg × ${set.reps} reps$rpeStr",
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = AppStyle.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = colorScheme.onSurface
                         )
@@ -419,9 +394,9 @@ private fun DetailExerciseCard(
                                         .border(1.dp, colorScheme.prGoldBorder, RoundedCornerShape(6.dp))
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
-                                    Text(
+                                    AppText(
                                         text = "🏆 PR",
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = AppStyle.typography.labelSmall,
                                         color = colorScheme.prGold,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp
@@ -431,13 +406,13 @@ private fun DetailExerciseCard(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(colorScheme.statusSyncedContainer)
+                                    .background(colorScheme.success.container)
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
-                                Text(
+                                AppText(
                                     text = "✓ Hotovo",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = colorScheme.statusSynced,
+                                    style = AppStyle.typography.labelSmall,
+                                    color = colorScheme.success.content,
                                     fontWeight = FontWeight.Bold
                                 )
                             }

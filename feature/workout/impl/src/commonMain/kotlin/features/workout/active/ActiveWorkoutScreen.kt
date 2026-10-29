@@ -1,9 +1,13 @@
 package features.workout.active
 
+import ui.designsystem.atoms.*
+import ui.designsystem.organisms.*
+import ui.designsystem.templates.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,12 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +42,6 @@ import ui.designsystem.nucleus.AppSpacing
 import ui.designsystem.atoms.feedback.ErrorNotice
 import ui.designsystem.templates.UniversalScreenTemplate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ActiveWorkoutScreen(
     state: ActiveWorkoutContract.State,
@@ -52,7 +49,7 @@ internal fun ActiveWorkoutScreen(
     modifier: Modifier = Modifier,
     snackbarHost: @Composable () -> Unit = {}
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
     var isPlateCalculatorOpen by remember { mutableStateOf(false) }
     var selectedSetForCalculator by remember { mutableStateOf<WorkoutSet?>(null) }
 
@@ -64,18 +61,18 @@ internal fun ActiveWorkoutScreen(
         snackbarHost = snackbarHost,
         modifier = modifier,
         topBar = {
-            TopAppBar(
+            AppTopBar(
                 title = {
                     Column {
-                        Text(
+                        AppText(
                             text = state.session?.title ?: "Trénink",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = AppStyle.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.onBackground
                         )
-                        Text(
+                        AppText(
                             text = state.session?.let { if(it.sourcePlan != null) "🗓️ Trénink z plánu · revize ${it.sourcePlan?.planRevision}" else if(it.sourceRoutineId != null) "📋 Samostatná rutina · revize ${it.sourceRoutineRevision}" else "🏋️ Samostatný trénink" } ?: "Trénink",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = AppStyle.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant
                         )
                     }
@@ -87,21 +84,19 @@ internal fun ActiveWorkoutScreen(
                         modifier = Modifier.padding(end = AppSpacing.sm)
                     ) {
                         // Tlačítko kalkulátoru kotoučů
-                        Box(
-                            modifier = Modifier
-                                .minimumInteractiveComponentSize()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(colorScheme.surfaceVariant)
-                                .clickable(role = Role.Button) {
+                        AppSurfaceAction(onClick = {
                                     selectedSetForCalculator = null
                                     isPlateCalculatorOpen = true
-                                }
+                                }, enabled = true,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(colorScheme.surfaceVariant)
                                 .padding(horizontal = AppSpacing.sm, vertical = 6.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
+                            AppText(
                                 text = "🏋️ Kotouče",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = AppStyle.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = colorScheme.onSurface
                             )
@@ -114,18 +109,15 @@ internal fun ActiveWorkoutScreen(
                                 .background(colorScheme.surfaceVariant)
                                 .padding(horizontal = AppSpacing.md, vertical = 6.dp)
                         ) {
-                            Text(
+                            AppText(
                                 text = "⏱ $timerText",
-                                style = MaterialTheme.typography.labelLarge,
+                                style = AppStyle.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = colorScheme.primary
                             )
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorScheme.background
-                )
             )
         },
         timerBar = {
@@ -160,7 +152,7 @@ internal fun ActiveWorkoutScreen(
                     item { ErrorNotice(error.asString(), onRetry = { onIntent(ActiveWorkoutContract.Intent.LoadWorkout) }) }
                 }
                 if (state.workoutExercises.any { it.orderReconstructed }) {
-                    item { Text("Pořadí cviků bylo obnoveno ze staršího záznamu.", style = MaterialTheme.typography.bodySmall) }
+                    item { AppText("Pořadí cviků bylo obnoveno ze staršího záznamu.", style = AppStyle.typography.bodySmall) }
                 }
                 if (state.workoutExercises.isEmpty()) {
                     item {
@@ -177,19 +169,19 @@ internal fun ActiveWorkoutScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                             ) {
-                                Text(
+                                AppText(
                                     text = "🏋️",
                                     fontSize = 40.sp
                                 )
-                                Text(
+                                AppText(
                                     text = "Žádné cviky v tréninku",
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = AppStyle.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = colorScheme.onSurface
                                 )
-                                Text(
+                                AppText(
                                     text = "Klikněte na '+ Přidat cvik' níže a začněte cvičit.",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = AppStyle.typography.bodySmall,
                                     color = colorScheme.onSurfaceVariant
                                 )
                             }

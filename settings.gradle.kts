@@ -30,3 +30,6 @@ include(":core:storage", ":core:presentation", ":feature:exercises:api", ":featu
 include(":feature:routines:api", ":feature:routines:impl")
 
 include(":feature:trainingplans:api", ":feature:trainingplans:impl")
+
+// Compile-only external consumer: deliberately has no domain or Material dependency.
+include(":verification:designsystem-consumer")

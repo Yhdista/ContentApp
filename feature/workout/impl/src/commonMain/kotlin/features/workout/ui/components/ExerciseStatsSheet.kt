@@ -1,5 +1,9 @@
 package features.workout.ui.components
 
+import ui.designsystem.atoms.*
+import ui.designsystem.molecules.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,15 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,10 +28,7 @@ import androidx.compose.ui.unit.sp
 import features.exercises.api.Exercise
 import features.workout.domain.ExerciseStats
 import ui.designsystem.nucleus.AppSpacing
-import ui.designsystem.nucleus.prGold
-import ui.designsystem.nucleus.prGoldContainer
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ExerciseStatsSheet(
     exercise: Exercise,
@@ -44,13 +36,10 @@ internal fun ExerciseStatsSheet(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val colorScheme = AppStyle.colors
 
-    ModalBottomSheet(
+    AppSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = colorScheme.surface,
         modifier = modifier
     ) {
         Column(
@@ -71,7 +60,7 @@ internal fun ExerciseStatsSheet(
                             .background(colorScheme.primaryContainer, RoundedCornerShape(AppSpacing.xs))
                             .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xxs)
                     ) {
-                        Text(
+                        AppText(
                             text = exercise.muscleGroup.displayName,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
@@ -79,7 +68,7 @@ internal fun ExerciseStatsSheet(
                         )
                     }
                     Spacer(modifier = Modifier.height(AppSpacing.xs))
-                    Text(
+                    AppText(
                         text = exercise.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
@@ -87,11 +76,12 @@ internal fun ExerciseStatsSheet(
                     )
                 }
 
-                IconButton(
+                AppIconAction(
+                    label = "Zavřít statistiky",
                     onClick = onDismiss,
                     modifier = Modifier.size(AppSpacing.minInteractiveTouchTarget)
                 ) {
-                    Text(
+                    AppText(
                         text = "✕",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
@@ -109,7 +99,7 @@ internal fun ExerciseStatsSheet(
                         .height(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = colorScheme.primary)
+                    AppLoading(color = colorScheme.primary)
                 }
             } else {
                 LazyColumn(
@@ -171,7 +161,7 @@ internal fun ExerciseStatsSheet(
 
                     // History breakdown header
                     item {
-                        Text(
+                        AppText(
                             text = "HISTORIE VÝKONŮ",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
@@ -189,7 +179,7 @@ internal fun ExerciseStatsSheet(
                                     .padding(vertical = AppSpacing.lg),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
+                                AppText(
                                     text = "Zatím žádná historie pro tento cvik",
                                     fontSize = 13.sp,
                                     color = colorScheme.onSurfaceVariant
@@ -198,10 +188,10 @@ internal fun ExerciseStatsSheet(
                         }
                     } else {
                         items(stats.sessionsHistory) { entry ->
-                            Card(
+                            AppFrame(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(AppSpacing.sm),
-                                colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)
+                                containerColor = colorScheme.surfaceVariant
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -213,13 +203,13 @@ internal fun ExerciseStatsSheet(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
+                                        AppText(
                                             text = entry.sessionTitle,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = colorScheme.onSurface
                                         )
-                                        Text(
+                                        AppText(
                                             text = "Max 1RM: ${((entry.max1RMKg * 10).toInt() / 10.0)} kg",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.SemiBold,
@@ -231,7 +221,7 @@ internal fun ExerciseStatsSheet(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Text(
+                                        AppText(
                                             text = "${entry.sets.size} sérií • ${entry.totalVolumeKg.toInt()} kg objem",
                                             fontSize = 11.sp,
                                             color = colorScheme.onSurfaceVariant
@@ -245,7 +235,7 @@ internal fun ExerciseStatsSheet(
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Text(
+                                                AppText(
                                                     text = "Série ${s.setNumber}: ${s.weightKg} kg × ${s.reps} op.",
                                                     fontSize = 12.sp,
                                                     color = colorScheme.onSurface
@@ -260,7 +250,7 @@ internal fun ExerciseStatsSheet(
                                                                 )
                                                                 .padding(horizontal = 4.dp, vertical = 2.dp)
                                                         ) {
-                                                            Text(
+                                                            AppText(
                                                                 text = "🏆 PR",
                                                                 fontSize = 10.sp,
                                                                 fontWeight = FontWeight.Bold,
@@ -270,7 +260,7 @@ internal fun ExerciseStatsSheet(
                                                         Spacer(modifier = Modifier.width(AppSpacing.xs))
                                                     }
                                                     if (s.rpe != null) {
-                                                        Text(
+                                                        AppText(
                                                             text = "@${s.rpe}",
                                                             fontSize = 11.sp,
                                                             color = colorScheme.onSurfaceVariant
@@ -298,11 +288,11 @@ private fun StatHighlightCard(
     subtext: String,
     modifier: Modifier = Modifier
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    Card(
+    val colorScheme = AppStyle.colors
+    AppFrame(
         modifier = modifier,
         shape = RoundedCornerShape(AppSpacing.sm),
-        colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant)
+        containerColor = colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
@@ -310,23 +300,23 @@ private fun StatHighlightCard(
                 .padding(AppSpacing.sm)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = icon, fontSize = 13.sp)
+                AppText(text = icon, fontSize = 13.sp)
                 Spacer(modifier = Modifier.width(AppSpacing.xs))
-                Text(
+                AppText(
                     text = label,
                     fontSize = 11.sp,
                     color = colorScheme.onSurfaceVariant
                 )
             }
             Spacer(modifier = Modifier.height(AppSpacing.xxs))
-            Text(
+            AppText(
                 text = value,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onSurface
             )
             if (subtext.isNotEmpty()) {
-                Text(
+                AppText(
                     text = subtext,
                     fontSize = 10.sp,
                     color = colorScheme.onSurfaceVariant

@@ -34,8 +34,8 @@ internal fun WorkoutSetType.toBadgeVisuals(
     )
     WorkoutSetType.WARMUP -> SetTypeBadgeVisuals(
         label = "W",
-        backgroundColor = if (isLight) AppColors.LightPrGoldBg else Color(0xFFF59E0B).copy(alpha = 0.2f),
-        contentColor = if (isLight) AppColors.LightPrGold else Color(0xFFF59E0B)
+        backgroundColor = if (isLight) Color(0xFFFEF3C7) else Color(0xFFF59E0B).copy(alpha = 0.2f),
+        contentColor = if (isLight) Color(0xFF854D0E) else Color(0xFFF59E0B)
     )
     WorkoutSetType.DROPSET -> SetTypeBadgeVisuals(
         label = "D",
@@ -44,7 +44,7 @@ internal fun WorkoutSetType.toBadgeVisuals(
     )
     WorkoutSetType.FAILURE -> SetTypeBadgeVisuals(
         label = "F",
-        backgroundColor = if (isLight) AppColors.LightOnStatusError else Color(0xFFEF4444).copy(alpha = 0.2f),
-        contentColor = if (isLight) AppColors.LightStatusError else Color(0xFFEF4444)
+        backgroundColor = if (isLight) AppColors.LightOnStatusError else Color(0xFFFCA5A5).copy(alpha = 0.2f),
+        contentColor = if (isLight) AppColors.LightStatusError else Color(0xFFFCA5A5)
     )
 }

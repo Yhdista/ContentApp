@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.sp
  * což umožňuje dynamické načítání fontů z KMP resources.
  */
 @Composable
-fun rememberAppTypography(): Typography {
+internal fun rememberAppTypography(): Typography {
     return remember {
         Typography(
             headlineLarge = TextStyle(

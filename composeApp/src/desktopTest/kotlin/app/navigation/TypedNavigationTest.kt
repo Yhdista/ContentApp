@@ -1,5 +1,7 @@
 package app.navigation
 
+import ui.designsystem.atoms.AppText
+
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.*
 import androidx.compose.ui.test.*

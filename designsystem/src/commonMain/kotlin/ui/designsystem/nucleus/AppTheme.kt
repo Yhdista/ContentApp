@@ -1,7 +1,8 @@
 package ui.designsystem.nucleus
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -47,46 +48,6 @@ private val LightColorScheme = lightColorScheme(
     onErrorContainer = AppColors.LightStatusError
 )
 
-// =============================================================================
-// 🎨 Sémantická rozšíření ColorScheme pro fitness / gym doménu
-// =============================================================================
-
-val ColorScheme.isLight: Boolean
-    get() = background.luminance() > 0.5f
-
-val ColorScheme.statusSynced: Color
-    get() = if (isLight) AppColors.LightStatusSynced else AppColors.DarkStatusSynced
-
-val ColorScheme.onStatusSynced: Color
-    get() = if (isLight) Color.White else AppColors.DarkOnStatusSynced
-
-val ColorScheme.statusSyncedContainer: Color
-    get() = if (isLight) AppColors.LightOnStatusSynced else Color(0xFF064E3B)
-
-val ColorScheme.statusPending: Color
-    get() = if (isLight) AppColors.LightStatusPending else AppColors.DarkStatusPending
-
-val ColorScheme.onStatusPending: Color
-    get() = if (isLight) Color.White else AppColors.DarkOnStatusPending
-
-val ColorScheme.statusPendingContainer: Color
-    get() = if (isLight) AppColors.LightOnStatusPending else Color(0xFF451A03)
-
-val ColorScheme.statusErrorCustom: Color
-    get() = if (isLight) AppColors.LightStatusError else AppColors.DarkStatusError
-
-val ColorScheme.statusErrorContainerCustom: Color
-    get() = if (isLight) AppColors.LightOnStatusError else Color(0xFF450A0A)
-
-val ColorScheme.prGold: Color
-    get() = if (isLight) AppColors.LightPrGold else AppColors.DarkPrGold
-
-val ColorScheme.prGoldContainer: Color
-    get() = if (isLight) AppColors.LightPrGoldBg else AppColors.DarkPrGoldBg
-
-val ColorScheme.prGoldBorder: Color
-    get() = if (isLight) AppColors.LightPrGoldBorder else AppColors.DarkPrGoldBorder
-
 /**
  * Nucleus Theme – vstup do Material 3 pro Dark i Light mode.
  * Všechny komponenty čerpají barvy a typografii odsud.
@@ -102,6 +63,6 @@ fun AppTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = typography,
-        content = content
+        content = { CompositionLocalProvider(LocalContentColor provides colorScheme.onBackground, content = content) }
     )
 }

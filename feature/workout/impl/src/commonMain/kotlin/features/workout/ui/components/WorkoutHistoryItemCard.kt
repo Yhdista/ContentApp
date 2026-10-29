@@ -1,5 +1,8 @@
 package features.workout.ui.components
 
+import ui.designsystem.atoms.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,9 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,8 +24,6 @@ import androidx.compose.ui.unit.sp
 import core.common.formatCompactDecimal
 import features.workout.domain.WorkoutSession
 import ui.designsystem.nucleus.AppSpacing
-import ui.designsystem.nucleus.statusSynced
-import ui.designsystem.nucleus.statusSyncedContainer
 
 @Composable
 internal fun WorkoutHistoryItemCard(
@@ -34,28 +32,18 @@ internal fun WorkoutHistoryItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
     val volumeFormatted = session.totalVolumeKg.formatCompactDecimal()
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .minimumInteractiveComponentSize()
-            .clip(RoundedCornerShape(14.dp))
-            .background(colorScheme.surface)
-            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(14.dp))
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(AppSpacing.md),
-        verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
-    ) {
+    AppCard(modifier, onClick = onClick) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
+            AppText(
                 text = session.title,
-                style = MaterialTheme.typography.titleMedium,
+                style = AppStyle.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onSurface
             )
@@ -63,13 +51,13 @@ internal fun WorkoutHistoryItemCard(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .background(colorScheme.statusSyncedContainer)
+                    .background(colorScheme.success.container)
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
-                Text(
+                AppText(
                     text = "Dokončeno",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colorScheme.statusSynced,
+                    style = AppStyle.typography.labelSmall,
+                    color = colorScheme.success.content,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -80,9 +68,9 @@ internal fun WorkoutHistoryItemCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
+            AppText(
                 text = "Objem: $volumeFormatted kg",
-                style = MaterialTheme.typography.bodyMedium,
+                style = AppStyle.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = colorScheme.primary
             )
@@ -95,9 +83,9 @@ internal fun WorkoutHistoryItemCard(
                 "—"
             }
 
-            Text(
+            AppText(
                 text = "Délka: $durationMinutes",
-                style = MaterialTheme.typography.labelSmall,
+                style = AppStyle.typography.labelSmall,
                 color = colorScheme.onSurfaceVariant
             )
         }
@@ -118,18 +106,18 @@ internal fun WorkoutHistoryItemCard(
                             .background(colorScheme.surfaceVariant)
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text(
+                        AppText(
                             text = name,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = AppStyle.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant,
                             fontSize = 10.sp
                         )
                     }
                 }
                 if (exerciseNames.size > 3) {
-                    Text(
+                    AppText(
                         text = "+${exerciseNames.size - 3}",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = AppStyle.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant,
                         fontSize = 10.sp
                     )

@@ -1,5 +1,9 @@
 package features.trainingplans.presentation
 
+import ui.designsystem.atoms.*
+import ui.designsystem.molecules.*
+import ui.designsystem.templates.*
+
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
@@ -8,7 +12,6 @@ import core.viewmodel.*
 import org.koin.core.parameter.parametersOf
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import ui.designsystem.nucleus.*
-import ui.designsystem.molecules.*
 import features.trainingplans.api.*
 import features.workout.domain.WorkoutSetType
 
@@ -37,7 +40,7 @@ import features.workout.domain.WorkoutSetType
         } }
         state.draft?.let { draft ->
             item { AppInput("Název", draft.name, enabled) { value -> edit { it.copy(name = value) } } }
-            item { AppInput("Poznámka", draft.notes, enabled) { value -> edit { it.copy(notes = value) } } }
+            item { AppInput("Poznámka", draft.notes, enabled, singleLine = false) { value -> edit { it.copy(notes = value) } } }
 
             item { AppChoice("Přidat slot s rutinou", state.choices.filter { !it.archived }.map { it.id to it.name }, enabled && draft.slots.size < 31) { id ->
                 edit { it.copy(slots = it.slots + PlanSlot(newId(), "Den ${it.slots.size + 1}", id)) }
@@ -49,26 +52,17 @@ import features.workout.domain.WorkoutSetType
                     AppText((selected?.name ?: "Chybějící rutina") + if(selected?.archived == true) " · archivováno" else "", true)
                     AppInput("Označení slotu", slot.label, enabled) { value -> change { it.copy(label = value) } }
                     AppChoice("Nahradit rutinu", state.choices.filter { !it.archived }.map { it.id to it.name }, enabled) { value -> change { it.copy(routineId = value) } }
-                    RowActions(enabled, { edit { it.copy(slots = it.slots.moved(it.slots.firstOrNull { s -> s.id == slot.id } ?: slot, -1)) } },
+                    ReorderActions(enabled, { edit { it.copy(slots = it.slots.moved(it.slots.firstOrNull { s -> s.id == slot.id } ?: slot, -1)) } },
                         { edit { it.copy(slots = it.slots.moved(it.slots.firstOrNull { s -> s.id == slot.id } ?: slot, 1)) } },
                         { edit { current -> current.copy(slots = current.slots.filterNot { it.id == slot.id }) } })
                 }
             }
 
-            item { AppAction(if(state.isSaving) "Ukládání…" else "Uložit", enabled) { onIntent(PlanEditorContract.Intent.Save) } }
+            item { AppAction(if(state.isSaving) "Ukládání…" else "Uložit", enabled, variant = ActionVariant.Primary) { onIntent(PlanEditorContract.Intent.Save) } }
         }
     }
-    if(state.confirmExit) AppConfirm("Návrh není publikován", "Pokračujte v úpravách, nebo návrh zahoďte. Uložená definice plánu se nezmění.", "Zahodit návrh",
-        { onIntent(PlanEditorContract.Intent.Discard) }, { onIntent(PlanEditorContract.Intent.Continue) }, enabled)
-}
-private fun <T> List<T>.moved(item: T, delta: Int): List<T> {
-    val from = indexOf(item); val to = from + delta
-    if(from < 0 || to !in indices) return this
-    return toMutableList().apply { removeAt(from); add(to, item) }
-}
-@Composable private fun RowActions(enabled: Boolean, up: () -> Unit, down: () -> Unit, remove: () -> Unit) {
-    // Wrap naturally on narrow displays and at large font sizes.
-    Column { AppAction("Posunout výše", enabled, up); AppAction("Posunout níže", enabled, down); AppAction("Odebrat", enabled, remove) }
+    if(state.confirmExit) AppConfirm("Návrh není publikován", "Pokračujte v úpravách, nebo návrh zahoďte. Uložená definice plánu se nezmění.", "Zahodit návrh", "Pokračovat v úpravách",
+        { onIntent(PlanEditorContract.Intent.Discard) }, { onIntent(PlanEditorContract.Intent.Continue) }, enabled, confirmVariant = ActionVariant.Destructive)
 }
 @Preview @Composable private fun PlanEditorLightPreview() { AppTheme(darkTheme = false) { PlanEditorScreen(PlanEditorContract.State(draft = PlanDraft(name = "Síla A"), isLoading = false)) {} } }
 @Preview @Composable private fun PlanEditorDarkPreview() { AppTheme(darkTheme = true) { PlanEditorScreen(PlanEditorContract.State(draft = PlanDraft(name = "Síla A"), isLoading = false)) {} } }

@@ -1,5 +1,8 @@
 package features.workout.ui.components
 
+import ui.designsystem.atoms.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -11,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,27 +24,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import features.workout.domain.WeeklyActivitySummary
 import ui.designsystem.nucleus.AppSpacing
-import ui.designsystem.nucleus.prGold
-import ui.designsystem.nucleus.prGoldBorder
-import ui.designsystem.nucleus.prGoldContainer
-import ui.designsystem.nucleus.statusSynced
 
 @Composable
 internal fun WeeklyStreakCard(
     summary: WeeklyActivitySummary,
     modifier: Modifier = Modifier
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(colorScheme.surface)
-            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
-            .padding(AppSpacing.md),
-        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
-    ) {
+    AppCard(modifier) {
         // Hlavička karty
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -54,17 +43,17 @@ internal fun WeeklyStreakCard(
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("🔥", fontSize = 18.sp)
+                AppText("🔥", fontSize = 18.sp)
                 Column {
-                    Text(
+                    AppText(
                         text = "Aktivita tento týden",
-                        style = MaterialTheme.typography.titleSmall,
+                        style = AppStyle.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface
                     )
-                    Text(
+                    AppText(
                         text = "Přehled tréninkových dnů",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = AppStyle.typography.labelSmall,
                         color = colorScheme.onSurfaceVariant
                     )
                 }
@@ -86,9 +75,9 @@ internal fun WeeklyStreakCard(
                     .border(1.dp, colorScheme.prGoldBorder, RoundedCornerShape(8.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                Text(
+                AppText(
                     text = badgeText,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = AppStyle.typography.labelSmall,
                     color = colorScheme.prGold,
                     fontWeight = FontWeight.Bold
                 )
@@ -108,9 +97,9 @@ internal fun WeeklyStreakCard(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
+                    AppText(
                         text = day.dayOfWeekName,
-                        style = MaterialTheme.typography.labelSmall,
+                        style = AppStyle.typography.labelSmall,
                         fontWeight = if (day.isToday) FontWeight.Bold else FontWeight.Normal,
                         color = if (day.isToday) colorScheme.primary else colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
@@ -122,12 +111,12 @@ internal fun WeeklyStreakCard(
 
                     if (day.hasWorkout) {
                         Box(
-                            modifier = circleModifier.background(colorScheme.statusSynced),
+                            modifier = circleModifier.background(colorScheme.success.accent),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
+                            AppText(
                                 text = "✓",
-                                color = Color.White,
+                                color = colorScheme.success.onAccent,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 14.sp
                             )
@@ -151,9 +140,9 @@ internal fun WeeklyStreakCard(
                             modifier = circleModifier.background(colorScheme.surfaceVariant.copy(alpha = 0.7f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
+                            AppText(
                                 text = "•",
-                                color = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                color = colorScheme.onSurfaceVariant,
                                 fontSize = 14.sp
                             )
                         }

@@ -1,5 +1,8 @@
 package features.workout.ui.components
 
+import ui.designsystem.atoms.*
+import ui.designsystem.nucleus.AppStyle
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -7,9 +10,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,10 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +39,7 @@ internal fun RestTimerBar(
     onSkip: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colorScheme = MaterialTheme.colorScheme
+    val colorScheme = AppStyle.colors
 
     AnimatedVisibility(
         visible = isVisible && remainingSeconds > 0,
@@ -72,15 +70,15 @@ internal fun RestTimerBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
-                    Text(
+                    AppText(
                         text = "⏱ PAUZA MEZI SÉRIEMI",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = AppStyle.typography.labelSmall,
                         color = colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                Text(
+                AppText(
                     text = formattedTime,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -89,8 +87,8 @@ internal fun RestTimerBar(
             }
 
             // Progress bar
-            LinearProgressIndicator(
-                progress = { progress },
+            AppProgress(
+                progress = progress,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(6.dp)
@@ -106,18 +104,16 @@ internal fun RestTimerBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // -15s
-                Box(
+                AppSurfaceAction(onClick = { onAddSeconds(-15) }, enabled = true,
                     modifier = Modifier
-                        .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(8.dp))
                         .background(colorScheme.surfaceVariant)
-                        .clickable(role = Role.Button) { onAddSeconds(-15) }
                         .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
+                    AppText(
                         text = "-15s",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = AppStyle.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface
                     )
@@ -126,18 +122,16 @@ internal fun RestTimerBar(
                 Spacer(modifier = Modifier.width(AppSpacing.sm))
 
                 // +30s
-                Box(
+                AppSurfaceAction(onClick = { onAddSeconds(30) }, enabled = true,
                     modifier = Modifier
-                        .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(8.dp))
                         .background(colorScheme.surfaceVariant)
-                        .clickable(role = Role.Button) { onAddSeconds(30) }
                         .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
+                    AppText(
                         text = "+30s",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = AppStyle.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.primary
                     )
@@ -146,18 +140,16 @@ internal fun RestTimerBar(
                 Spacer(modifier = Modifier.width(AppSpacing.sm))
 
                 // Přeskočit
-                Box(
+                AppSurfaceAction(onClick = onSkip, enabled = true,
                     modifier = Modifier
-                        .minimumInteractiveComponentSize()
                         .clip(RoundedCornerShape(8.dp))
                         .background(colorScheme.surfaceVariant)
-                        .clickable(role = Role.Button, onClick = onSkip)
                         .padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
+                    AppText(
                         text = "Přeskočit",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = AppStyle.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.error
                     )
