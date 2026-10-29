@@ -44,6 +44,7 @@ class LibrarySmokeTest {
         }
         val host = AppUiTestHost(this, owner, resources)
         host.run(afterClear = listOf({ app.koin.get<ApplicationScope>().cancel() }, { stopKoin() }, { db.close() })) {
+            initializeProductionCatalogue(app)
             setContent { host.Content(app) { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                 Box(Modifier.requiredSize(460.dp,760.dp)) { AppNavHost() }
@@ -52,7 +53,10 @@ class LibrarySmokeTest {
             onNodeWithText("Nový nebo rozepsaný návrh rutiny").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Název").performTextInput("Ranní síla")
-            onNodeWithText("Přidat cvik").performClick()
+            waitUntil(timeoutMillis = 5000) {
+                onAllNodes(hasText("Přidat cvik") and isEnabled()).fetchSemanticsNodes().isNotEmpty()
+            }
+            onNodeWithText("Přidat cvik").assertIsEnabled().performClick()
             try {
                 onNodeWithText("Bench press").performClick()
             } catch (failure: Throwable) {
@@ -126,6 +130,7 @@ class LibrarySmokeTest {
         }
         val host = AppUiTestHost(this, owner, resources)
         host.run(afterClear = listOf({ app.koin.get<ApplicationScope>().cancel() }, { stopKoin() }, { db.close() })) {
+            initializeProductionCatalogue(app)
             setContent { host.Content(app) { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                 Box(Modifier.requiredSize(460.dp,760.dp)) { AppNavHost() }
@@ -139,7 +144,10 @@ class LibrarySmokeTest {
             onNodeWithText("Nový nebo rozepsaný návrh rutiny").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Název").performTextInput("Created while plan open")
-            onNodeWithText("Přidat cvik").performClick()
+            waitUntil(timeoutMillis = 5000) {
+                onAllNodes(hasText("Přidat cvik") and isEnabled()).fetchSemanticsNodes().isNotEmpty()
+            }
+            onNodeWithText("Přidat cvik").assertIsEnabled().performClick()
             try {
                 onNodeWithText("Bench press").performClick()
             } catch (failure: Throwable) {
@@ -199,6 +207,14 @@ class LibrarySmokeTest {
             onAllNodes(hasText("✓ Hotovo")).assertCountEquals(0)
         }
     } }
+    /** startKoin alone does not run the app's catalogue bootstrap; use its real public startup command. */
+    private fun initializeProductionCatalogue(application: org.koin.core.KoinApplication) = kotlinx.coroutines.runBlocking {
+        application.koin.get<features.exercises.api.ExerciseCatalogImport>().ensureDefaults()
+        kotlin.test.assertTrue(application.koin.get<features.exercises.api.ExerciseCatalog>().getAllExercises().any {
+            it.name == "Bench press" && !it.archived
+        }, "Production startup must persist the selectable Bench press in this fixture's Room database")
+    }
+
     /** Capture all popup/window roots before the host/DI cleanup; preserve the original assertion. */
     private fun ComposeUiTest.captureFailure(name: String, failure: Throwable) {
         runCatching {
