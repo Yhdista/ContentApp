@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -128,7 +129,124 @@ class ActiveWorkoutViewModelTest {
             vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout); testScheduler.runCurrent()
             assertEquals(1, finishCalls)
             finish.complete(Unit); testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
+            testScheduler.runCurrent()
+            assertEquals(1, finishCalls, "Successful Finish remains terminal even when the observer has stopped")
+        } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
+    }
+
+    @Test fun successfulFinishIgnoresLaterTerminalIntentsBeforeEffectConsumption() = runTest(testDispatcher) {
+        val session = fakeRepository.startWorkout("Buffered Finish")
+        var finishes = 0
+        var cancellations = 0
+        val repository = object : WorkoutRepository by fakeRepository {
+            override fun getActiveSession() = kotlinx.coroutines.flow.flowOf(session)
+            override suspend fun cancelWorkout(sessionId: String) { cancellations++ }
+        }
+        val vm = testActiveWorkoutViewModel(repository, fakeClock, completion = features.workout.domain.CompleteWorkout {
+            finishes++
+            core.result.Result.Success(features.workout.domain.CompletionOutcome(session.copy(isCompleted = true), finishes == 1))
+        })
+        try {
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            testScheduler.runCurrent()
+            // No effect collector yet: navigation has not consumed the first successful result.
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
+            vm.onIntent(ActiveWorkoutContract.Intent.OpenExercisePicker(true))
+            testScheduler.runCurrent()
+            assertEquals(1, finishes)
+            assertEquals(0, cancellations)
+            assertFalse(vm.uiState.value.isPickerVisible)
+            val effects = mutableListOf<ActiveWorkoutContract.Effect>()
+            val collector = backgroundScope.launch { vm.effect.collect { effects += it } }
+            testScheduler.runCurrent()
+            collector.cancel()
+            assertEquals(listOf(ActiveWorkoutContract.Effect.WorkoutFinished), effects)
+        } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
+    }
+
+    @Test fun successfulCancelIgnoresLaterTerminalIntentsBeforeEffectConsumption() = runTest(testDispatcher) {
+        val session = fakeRepository.startWorkout("Buffered Cancel")
+        var finishes = 0
+        var cancellations = 0
+        val repository = object : WorkoutRepository by fakeRepository {
+            override fun getActiveSession() = kotlinx.coroutines.flow.flowOf(session)
+            override suspend fun cancelWorkout(sessionId: String) { cancellations++ }
+        }
+        val vm = testActiveWorkoutViewModel(repository, fakeClock, completion = features.workout.domain.CompleteWorkout {
+            finishes++
+            core.result.Result.Success(features.workout.domain.CompletionOutcome(session, true))
+        })
+        try {
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            testScheduler.runCurrent()
+            assertEquals(1, cancellations)
+            assertEquals(0, finishes)
+            val effects = mutableListOf<ActiveWorkoutContract.Effect>()
+            val collector = backgroundScope.launch { vm.effect.collect { effects += it } }
+            testScheduler.runCurrent()
+            collector.cancel()
+            assertEquals(listOf(ActiveWorkoutContract.Effect.WorkoutCancelled), effects)
+        } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
+    }
+
+    @Test fun failedFinishAllowsRetryUntilFirstSuccess() = runTest(testDispatcher) {
+        val session = fakeRepository.startWorkout("Retry Finish")
+        var calls = 0
+        val vm = testActiveWorkoutViewModel(fakeRepository, fakeClock, completion = features.workout.domain.CompleteWorkout {
+            calls++
+            if (calls == 1) core.result.Result.Error(features.workout.domain.WorkoutError.STORAGE)
+            else core.result.Result.Success(features.workout.domain.CompletionOutcome(session.copy(isCompleted = true), true))
+        })
+        try {
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            testScheduler.runCurrent()
+            assertEquals(1, calls)
             assertFalse(vm.uiState.value.isSaving)
+            assertNotNull(vm.uiState.value.error)
+            assertNotNull(vm.uiState.value.session)
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            testScheduler.runCurrent()
+            assertEquals(2, calls)
+            vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
+            testScheduler.runCurrent()
+            assertEquals(2, calls)
+        } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
+    }
+
+    @Test fun failedCancelAllowsRetryUntilFirstSuccess() = runTest(testDispatcher) {
+        val session = fakeRepository.startWorkout("Retry Cancel")
+        var calls = 0
+        val repository = object : WorkoutRepository by fakeRepository {
+            override fun getActiveSession() = kotlinx.coroutines.flow.flowOf(session)
+            override suspend fun cancelWorkout(sessionId: String) {
+                calls++
+                if (calls == 1) error("Storage unavailable")
+            }
+        }
+        val vm = testActiveWorkoutViewModel(repository, fakeClock)
+        try {
+            testScheduler.runCurrent()
+            vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
+            testScheduler.runCurrent()
+            assertEquals(1, calls)
+            assertFalse(vm.uiState.value.isSaving)
+            assertNotNull(vm.uiState.value.error)
+            assertNotNull(vm.uiState.value.session)
+            vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
+            testScheduler.runCurrent()
+            assertEquals(2, calls)
+            vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
+            testScheduler.runCurrent()
+            assertEquals(2, calls)
         } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
     }
 

@@ -93,4 +93,43 @@ class ExerciseStatsCalculatorTest {
         assertEquals("Push 1", stats.sessionsHistory[1].sessionTitle)
         assertEquals(80.0, stats.sessionsHistory[1].maxWeightKg)
     }
+    @Test fun activeAndUnmatchedSetsNeverEnterHistoricalStats() {
+        val historical = WorkoutSession("old", "Completed history", 100L, isCompleted = true)
+        val active = WorkoutSession("active", "Current workout", 300L, isCompleted = false)
+        val included = WorkoutSet("old-set", "old", benchExercise.id, 1, 40.0, 5, isCompleted = true)
+        val stats = ExerciseStatsCalculator.calculate(benchExercise, listOf(historical, active), listOf(
+            included,
+            WorkoutSet("active-set", "active", benchExercise.id, 1, 200.0, 10, isCompleted = true),
+            WorkoutSet("unmatched-set", "not-yet-observed", benchExercise.id, 1, 1000.0, 10, isCompleted = true),
+            WorkoutSet("unchecked-set", "old", benchExercise.id, 2, 500.0, 5),
+            WorkoutSet("other-exercise", "old", squatExercise.id, 1, 400.0, 10, isCompleted = true)
+        ))
+        assertEquals(40.0, stats.personalBestWeightKg)
+        assertEquals(5, stats.personalBestReps)
+        assertEquals(200.0, stats.totalVolumeKg)
+        assertEquals(1, stats.totalCompletedSets)
+        assertEquals(listOf("old"), stats.sessionsHistory.map { it.sessionId })
+        assertEquals(100L, stats.sessionsHistory.single().dateEpochMs)
+        assertEquals("Completed history", stats.sessionsHistory.single().sessionTitle)
+        assertEquals(listOf(included), stats.sessionsHistory.single().sets)
+    }
+
+    @Test fun setsWaitForCompletedSessionMetadataWithoutEpochFallback() {
+        val set = WorkoutSet("new-set", "new", benchExercise.id, 1, 80.0, 5, isCompleted = true)
+        val active = WorkoutSession("new", "Actual title", 300L)
+        for (sessions in listOf(emptyList(), listOf(active))) {
+            val stats = ExerciseStatsCalculator.calculate(benchExercise, sessions, listOf(set))
+            assertEquals(0.0, stats.personalBestWeightKg)
+            assertEquals(0.0, stats.estimated1RMKg)
+            assertEquals(0.0, stats.totalVolumeKg)
+            assertEquals(0, stats.totalCompletedSets)
+            assertTrue(stats.sessionsHistory.isEmpty(), "Missing or active session metadata cannot fabricate epoch-zero history")
+        }
+        val completed = ExerciseStatsCalculator.calculate(benchExercise, listOf(active.copy(isCompleted = true)), listOf(set))
+        assertEquals(400.0, completed.totalVolumeKg)
+        assertEquals(1, completed.totalCompletedSets)
+        assertEquals(300L, completed.sessionsHistory.single().dateEpochMs)
+        assertEquals("Actual title", completed.sessionsHistory.single().sessionTitle)
+    }
+
 }

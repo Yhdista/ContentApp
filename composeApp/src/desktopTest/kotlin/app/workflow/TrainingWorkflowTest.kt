@@ -52,6 +52,69 @@ class TrainingWorkflowTest {
             "Completion must only be offered through the app-owned CompleteWorkout action")
     }
 
+    @Test fun exerciseStatsExcludeActiveCheckedSetsUntilWorkflowFinish() = runTest {
+        val f = fixture()
+        try {
+            f.seed()
+            f.db.workoutDao().insertSession(features.workout.data.entity.WorkoutSessionEntity(
+                "old", "Historical workout", 100L, 200L, true, 200.0))
+            f.db.workoutDao().insertOrUpdateSet(features.workout.data.entity.WorkoutSetEntity(
+                "old-set", "old", "bench", 1, 40.0, 5, null, true, null))
+            val active = f.workouts.startWorkout("Current checked workout")
+            val entry = f.workouts.addExerciseWithInitialSet(active.id, "bench", 80.0, 5)
+            val set = f.workouts.getSetsForSession(active.id).first().single { it.workoutExerciseId == entry.id }
+            f.workouts.updateSet(set.id) { it.copy(isCompleted = true) }
+
+            val beforeFinish = f.workouts.getExerciseStats("bench").first()!!
+            assertEquals(1, beforeFinish.totalCompletedSets)
+            assertEquals(200.0, beforeFinish.totalVolumeKg)
+            assertEquals(40.0, beforeFinish.personalBestWeightKg)
+            assertEquals(listOf("old"), beforeFinish.sessionsHistory.map { it.sessionId })
+            assertEquals(listOf(100L), beforeFinish.sessionsHistory.map { it.dateEpochMs })
+
+            assertTrue(ok(f.workflow.complete(active.id)).firstCompletion)
+            val afterFinish = f.workouts.getExerciseStats("bench").first()!!
+            assertEquals(2, afterFinish.totalCompletedSets)
+            assertEquals(600.0, afterFinish.totalVolumeKg)
+            assertEquals(80.0, afterFinish.personalBestWeightKg)
+            assertEquals(listOf(active.id, "old"), afterFinish.sessionsHistory.map { it.sessionId })
+            assertEquals(listOf(active.startTimeEpochMs, 100L), afterFinish.sessionsHistory.map { it.dateEpochMs })
+            assertEquals(listOf("Current checked workout", "Historical workout"), afterFinish.sessionsHistory.map { it.sessionTitle })
+            assertEquals(set.id, afterFinish.sessionsHistory.first().sets.single().id)
+        } finally { f.db.close() }
+    }
+
+    @Test fun repositoryExposesOnlyEntryStrictSetAndRemovalCommands() {
+        val names = WorkoutRepository::class.java.methods.map { it.name }
+        assertFalse("addSet" in names, "Legacy catalog-ID addSet must not be a public workout command")
+        assertFalse("removeExerciseFromWorkout" in names, "Removal requires an explicit occurrence ID")
+        assertTrue("addSetToEntry" in names)
+        assertTrue("removeWorkoutExercise" in names)
+    }
+
+    @Test fun entryCommandsRejectCatalogueIdsWithoutMutatingRepeatedOccurrences() = runTest {
+        val f = fixture()
+        try {
+            f.seed()
+            val id = ok(f.workflow.startRoutine("routine")).sessionId
+            val entries = f.workouts.getWorkoutExercises(id).first()
+            val sets = f.workouts.getSetsForSession(id).first()
+            val mutations = f.db.mutationDao().getPendingMutations().first()
+            assertEquals(2, entries.size)
+            assertFails { f.workouts.addSetToEntry(id, "bench", 50.0, 5) }
+            assertFails { f.workouts.removeWorkoutExercise(id, "bench") }
+            assertEquals(entries, f.workouts.getWorkoutExercises(id).first())
+            assertEquals(sets, f.workouts.getSetsForSession(id).first())
+            assertEquals(mutations, f.db.mutationDao().getPendingMutations().first())
+            val added = f.workouts.addSetToEntry(id, entries[1].id, 50.0, 5)
+            assertEquals(entries[1].id, added.workoutExerciseId)
+            f.workouts.removeWorkoutExercise(id, entries[0].id)
+            assertEquals(listOf(entries[1]), f.workouts.getWorkoutExercises(id).first())
+            assertEquals(sets.filter { it.workoutExerciseId == entries[1].id }.map { it.id }.toSet() + added.id,
+                f.workouts.getSetsForSession(id).first().map { it.id }.toSet())
+        } finally { f.db.close() }
+    }
+
     @Test fun omittedAllActualRowsExportAndConvertAsNoPerformance() = runTest {
         val f = fixture()
         try {
