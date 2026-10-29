@@ -53,7 +53,12 @@ class LibrarySmokeTest {
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Název").performTextInput("Ranní síla")
             onNodeWithText("Přidat cvik").performClick()
-            onNodeWithText("Bench press").performClick()
+            try {
+                onNodeWithText("Bench press").performClick()
+            } catch (failure: Throwable) {
+                captureFailure("create-routine-add-exercise", failure)
+                throw failure
+            }
             onNodeWithText("Zpět").performClick()
             onNodeWithText("Návrh není publikován").assertIsDisplayed()
             onNodeWithText("Pokračovat v úpravách").performClick()
@@ -135,7 +140,12 @@ class LibrarySmokeTest {
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Název").performTextInput("Created while plan open")
             onNodeWithText("Přidat cvik").performClick()
-            onNodeWithText("Bench press").performClick()
+            try {
+                onNodeWithText("Bench press").performClick()
+            } catch (failure: Throwable) {
+                captureFailure("retained-plan-add-exercise", failure)
+                throw failure
+            }
             onNode(hasScrollAction()).performScrollToNode(hasText("Uložit"))
             onNodeWithText("Uložit").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Spustit rutinu")).fetchSemanticsNodes().isNotEmpty() }
@@ -189,6 +199,24 @@ class LibrarySmokeTest {
             onAllNodes(hasText("✓ Hotovo")).assertCountEquals(0)
         }
     } }
+    /** Capture all popup/window roots before the host/DI cleanup; preserve the original assertion. */
+    private fun ComposeUiTest.captureFailure(name: String, failure: Throwable) {
+        runCatching {
+            val directory = File("build/g-ui-fix/$name").apply { mkdirs() }
+            File(directory, "failure.txt").writeText(failure.stackTraceToString())
+            runWithoutImplicitWait {
+                val roots = onAllNodes(isRoot(), useUnmergedTree = true)
+                val count = roots.fetchSemanticsNodes().size
+                File(directory, "roots.txt").writeText("roots=$count clock=${mainClock.currentTime} autoAdvance=${mainClock.autoAdvance}")
+                repeat(count) { index ->
+                    File(directory, "root-$index-semantics.txt").writeText(roots[index].printToString())
+                    val capture = roots[index].captureToImage()
+                    File(directory, "root-$index.png").writeBytes(Image.makeFromBitmap(capture.asSkiaBitmap()).encodeToData()!!.bytes)
+                }
+            }
+        }.onFailure { failure.addSuppressed(it) }
+    }
+
     private fun ComposeUiTest.screenshot(name: String) {
         mainClock.advanceTimeBy(1000)
         waitForIdle()
