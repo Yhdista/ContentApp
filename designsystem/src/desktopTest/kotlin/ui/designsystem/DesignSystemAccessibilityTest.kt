@@ -78,16 +78,36 @@ class DesignSystemAccessibilityTest {
             onNodeWithTag("toggle").performClick().assertIsOn()
             onNodeWithTag("selection").assertIsSelected()
             onNodeWithText("Obrazovka").assertIsDisplayed()
+            // Preserve visual and measured evidence even when a following assertion fails.
+            val file = File("build/task3-visual/controls-${if(dark) "dark" else "light"}-320-font2.png")
+            file.parentFile.mkdirs()
+            file.writeBytes(Image.makeFromBitmap(onRoot().captureToImage().asSkiaBitmap()).encodeToData()!!.bytes)
             // Actual text layout must retain whole labels; bounds alone allowed character columns.
             val labels = listOf("Tréninky", "Rutiny", "Plány")
-            val choices = labels.map { label ->
+            val navigationLayouts = labels.associateWith { label ->
                 val layouts = mutableListOf<TextLayoutResult>()
                 onNodeWithText(label, useUnmergedTree = true).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { getLayout ->
                     assertTrue(getLayout(layouts), "Text layout is available for $label")
                 }
-                val layout = layouts.single { it.layoutInput.text.text == label }
-                assertEquals(1, layout.lineCount, "$label must remain a whole single-line label at fontScale2")
-                assertTrue(!layout.didOverflowWidth && !layout.didOverflowHeight, "$label must fit its measured text bounds")
+                layouts.single { it.layoutInput.text.text == label }
+            }
+            val metrics = navigationLayouts.mapValues { (label, layout) ->
+                "$label dark=$dark size=${layout.size} constraints=${layout.layoutInput.constraints} " +
+                    "paragraph=${layout.multiParagraph.width}x${layout.multiParagraph.height} " +
+                    "lines=${layout.lineCount} line0=[${layout.getLineLeft(0)},${layout.getLineTop(0)},${layout.getLineRight(0)},${layout.getLineBottom(0)}] " +
+                    "overflowWidth=${layout.didOverflowWidth} overflowHeight=${layout.didOverflowHeight} " +
+                    "density=${layout.layoutInput.density.density} fontScale=${layout.layoutInput.density.fontScale} " +
+                    "fontSize=${layout.layoutInput.style.fontSize} lineHeight=${layout.layoutInput.style.lineHeight} " +
+                    "textBounds=${onNodeWithText(label, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot} " +
+                    "choiceBounds=${onNodeWithText(label).fetchSemanticsNode().boundsInRoot}"
+            }
+            File(file.parentFile, "navigation-text-layout-${if(dark) "dark" else "light"}-320-font2.txt")
+                .writeText(metrics.values.joinToString("\n"))
+            metrics.values.forEach { println("NAVIGATION_TEXT_LAYOUT $it") }
+            val choices = labels.map { label ->
+                val layout = navigationLayouts.getValue(label)
+                assertEquals(1, layout.lineCount, "$label must remain a whole single-line label at fontScale2; ${metrics[label]}")
+                assertTrue(!layout.didOverflowWidth && !layout.didOverflowHeight, "$label must fit its measured text bounds; ${metrics[label]}")
                 onNodeWithText(label).fetchSemanticsNode().boundsInRoot.also { bounds ->
                     assertTrue(bounds.width >= 280f && bounds.height >= 48f, "$label must have a full-width choice: $bounds")
                 }
@@ -97,9 +117,6 @@ class DesignSystemAccessibilityTest {
             }
             onNodeWithText("Plány").performClick().assertIsSelected()
             runOnIdle { assertEquals(1, clicks) }
-            val file = File("build/task3-visual/controls-${if(dark) "dark" else "light"}-320-font2.png")
-            file.parentFile.mkdirs()
-            file.writeBytes(Image.makeFromBitmap(onRoot().captureToImage().asSkiaBitmap()).encodeToData()!!.bytes)
         }
     }
 }
