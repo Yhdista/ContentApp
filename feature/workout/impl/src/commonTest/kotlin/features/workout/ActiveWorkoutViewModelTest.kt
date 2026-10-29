@@ -164,7 +164,7 @@ class ActiveWorkoutViewModelTest {
             val collector = backgroundScope.launch { vm.effect.collect { effects += it } }
             testScheduler.runCurrent()
             collector.cancel()
-            assertEquals(listOf(ActiveWorkoutContract.Effect.WorkoutFinished), effects)
+            assertEquals(listOf<ActiveWorkoutContract.Effect>(ActiveWorkoutContract.Effect.WorkoutFinished), effects)
         } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
     }
 
@@ -193,7 +193,7 @@ class ActiveWorkoutViewModelTest {
             val collector = backgroundScope.launch { vm.effect.collect { effects += it } }
             testScheduler.runCurrent()
             collector.cancel()
-            assertEquals(listOf(ActiveWorkoutContract.Effect.WorkoutCancelled), effects)
+            assertEquals(listOf<ActiveWorkoutContract.Effect>(ActiveWorkoutContract.Effect.WorkoutCancelled), effects)
         } finally { vm.viewModelScope.cancel(); viewModel.cancelTimers() }
     }
 
