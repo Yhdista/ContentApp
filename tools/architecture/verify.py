@@ -133,6 +133,8 @@ def scan(root: Path, inventory: list[dict] | None = None) -> list[str]:
             for target in (packages.get(imported[:-2], set()) if imported.endswith('.*') else symbols.get(imported, set())):
                 if feature(module) and feature(target) and feature(module) != feature(target) and target.endswith(':impl'):
                     reject(path, 'foreign-feature-implementation-import', imported + ' owned by ' + target)
+                if module == ':foundation' and target != ':foundation':
+                    reject(path, 'foundation-purity', imported + ' owned by ' + target)
             if module == ':foundation' and re.match(r'(androidx\.|org\.jetbrains\.compose\.|org\.koin\.|io\.ktor\.|features\.|ui\.|app\.|core\.(storage|viewmodel|presentation)\.)', imported):
                 reject(path, 'foundation-purity', imported)
             if module == ':designsystem' and re.match(r'(features\.|core\.|app\.|androidx\.room\.|io\.ktor\.)', imported):

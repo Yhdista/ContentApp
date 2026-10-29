@@ -58,10 +58,12 @@ výslovnou volbu uživatele při modernizaci knihoven. iOS host aplikace zde nen
 
 ## ▶️ Lokální příkazy
 
-Minimum je funkční JDK17, doporučený Gradle/CI runtime JDK21. Kompilační
+Minimum je funkční JDK17; CI jej explicitně instaluje, místní Gradle může běžet
+na doporučeném JDK21. Kompilační
 toolchain a JVM bytecode jsou17, bez osobních absolutních JDK cest v repozitáři.
 Android potřebuje `compileSdk37`, `minSdk27`, `targetSdk35`; SDK cestu nastavte
 lokálně do `local.properties` nebo `ANDROID_HOME`.
+SDK Manager používá balíky `platforms;android-37.0` a `build-tools;37.0.0`.
 
 ```sh
 ./gradlew compileCommonMainKotlinMetadata compileKotlinDesktop compileTestKotlinDesktop \
@@ -72,13 +74,15 @@ lokálně do `local.properties` nebo `ANDROID_HOME`.
 ./gradlew verifyArchitecture testArchitectureGuard
 ./gradlew :verification:designsystem-consumer:compileKotlinDesktop
 ./gradlew :androidApp:assembleDebug
-./gradlew :androidApp:lintDebug
+./gradlew lintAndroidMain :androidApp:lintDebug
 ./gradlew :composeApp:run
 ```
 
 V řízené agentní vlně nahrazuje přímý wrapper `yhdi-dev/scripts/gw`; dodržuje
 jeden strojový gate a místní resource budget. Linux desktop UI testy potřebují
-display, v CI se používá `xvfb-run`. `allTests` není přenosná zkratka: může
+display, v CI se explicitně instalují Xvfb, OpenGL/EGL, font a X11 knihovny
+a používá `xvfb-run`. Workflow je předpis prostředí; jeho skutečný GitHub běh
+je samostatný důkaz. `allTests` není přenosná zkratka: může
 vyžadovat nativní cíle nedostupné na daném stroji.
 
 ## 🧱 Senzory a CI
@@ -92,6 +96,8 @@ Architektonická pravidla a pozitivní/negativní fixtures popisuje
 a jeho fixtures; module `check` také závisí na scanneru. Plnou testovou a
 platformní matici definují výslovné CI/acceptance příkazy.
 
-Nav restore helper a explicitní Room invalidace zůstávají kompatibilitními
-opatřeními, dokud není prokázána stejná regrese bez nich. Kompilace simulatoru
+Nav restore helper byl odstraněn po průchodu přesné regrese
+`TypedNavigationTest.entryOwnershipRestorationAndWorkoutReturnsToSource` na
+Navigation2.10.0 bez dekorace grafu. Explicitní Room invalidace zůstává:
+její odstranění nebylo samostatně prokázáno. Kompilace simulatoru
 neprokazuje iOS runtime a instrumented source compile nenahrazuje device test.

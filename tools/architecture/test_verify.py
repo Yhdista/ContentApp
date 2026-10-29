@@ -45,6 +45,11 @@ class ArchitectureFixtures(unittest.TestCase):
             with self.subTest(imported=imported):
                 self.check_fixture(self.kotlin('foundation', 'Leak.kt', 'package core\nimport ' + imported), 'foundation-purity')
 
+    def test_foundation_cannot_import_storage_through_neutral_package(self):
+        files = self.kotlin('core/storage', 'MutationDao.kt', 'package core.database\ninterface MutationDao')
+        files.update(self.kotlin('foundation', 'Leak.kt', 'package core\nimport core.database.MutationDao'))
+        self.check_fixture(files, 'foundation-purity')
+
     def test_designsystem_domain_and_storage(self):
         for imported in ('features.exercises.api.Exercise', 'core.result.DataError', 'core.storage.DraftStore'):
             with self.subTest(imported=imported):
