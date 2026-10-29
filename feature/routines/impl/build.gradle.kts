@@ -1,18 +1,11 @@
 plugins {
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kmp)
-    alias(libs.plugins.android.library)
+    id("contentapp.compose")
+    id("contentapp.multiplatform")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
 kotlin {
-    androidTarget()
-    jvm("desktop")
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    applyDefaultHierarchyTemplate()
+    android { namespace = "com.yhdista.feature.routines.impl" }
 
     sourceSets {
         commonMain.dependencies {
@@ -20,9 +13,9 @@ kotlin {
             implementation(project(":core:storage"))
             implementation(project(":core:presentation"))
             implementation(project(":designsystem"))
-            implementation(compose.foundation)
-            implementation(compose.components.uiToolingPreview)
-            implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.ui.tooling.preview)
+            implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.koin.compose)
             implementation(project(":feature:exercises:api"))
             implementation(libs.kotlinx.serialization.json)
@@ -30,14 +23,8 @@ kotlin {
             api(libs.koin.core)
         }
         commonTest.dependencies {
-            implementation(kotlin("test"))
+            implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
     }
-}
-
-android {
-    namespace = "com.yhdista.feature.routines.impl"
-    compileSdk = 37
-    defaultConfig { minSdk = 27 }
 }

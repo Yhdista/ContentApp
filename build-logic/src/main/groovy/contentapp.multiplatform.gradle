@@ -1,0 +1,24 @@
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    id 'org.jetbrains.kotlin.multiplatform'
+    id 'com.android.kotlin.multiplatform.library'
+}
+
+// Shared platform policy only. Each module owns its namespace and dependency surface.
+kotlin {
+    jvmToolchain(17)
+    android {
+        compileSdk = 37
+        minSdk = 27
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+        withHostTest { }
+    }
+    jvm('desktop') { compilerOptions.jvmTarget.set(JvmTarget.JVM_17) }
+    iosArm64()
+    iosSimulatorArm64()
+    applyDefaultHierarchyTemplate()
+}
+
+tasks.withType(Test).configureEach { maxParallelForks = 1 }

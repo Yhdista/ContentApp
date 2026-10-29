@@ -1,16 +1,10 @@
 plugins {
-    alias(libs.plugins.kmp)
-    alias(libs.plugins.android.library)
+    id("contentapp.multiplatform")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
 kotlin {
-    androidTarget()
-    jvm("desktop")
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    applyDefaultHierarchyTemplate()
+    android { namespace = "com.yhdista.feature.workout.api" }
 
     sourceSets {
         commonMain.dependencies {
@@ -20,14 +14,8 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
-            implementation(kotlin("test"))
+            implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
     }
-}
-
-android {
-    namespace = "com.yhdista.feature.workout.api"
-    compileSdk = 37
-    defaultConfig { minSdk = 27 }
 }

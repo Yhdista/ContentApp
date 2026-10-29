@@ -1,9 +1,7 @@
 plugins {
-    alias(libs.plugins.kmp)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.kotlin.compose)
+    id("contentapp.desktop-consumer")
+    id("contentapp.compose")
 }
 kotlin {
-    jvm("desktop")
     sourceSets.commonMain.dependencies { implementation(project(":designsystem")) }
 }

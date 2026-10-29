@@ -1,16 +1,10 @@
 plugins {
-    alias(libs.plugins.kmp)
-    alias(libs.plugins.android.library)
+    id("contentapp.multiplatform")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
 kotlin {
-    androidTarget()
-    jvm("desktop")
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    applyDefaultHierarchyTemplate()
+    android { namespace = "com.yhdista.feature.routines.api" }
 
     sourceSets {
         commonMain.dependencies {
@@ -19,14 +13,8 @@ kotlin {
             api(libs.kotlinx.serialization.core)
         }
         commonTest.dependencies {
-            implementation(kotlin("test"))
+            implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
     }
-}
-
-android {
-    namespace = "com.yhdista.feature.routines.api"
-    compileSdk = 37
-    defaultConfig { minSdk = 27 }
 }

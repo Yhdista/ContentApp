@@ -1,22 +1,15 @@
 plugins {
-    alias(libs.plugins.kmp)
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.kotlin.compose)
+    id("contentapp.multiplatform")
+    id("contentapp.compose")
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
 kotlin {
-    androidTarget()
+    android { namespace = "com.yhdista.shared" }
     
-    jvm("desktop")
     
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
     
-    applyDefaultHierarchyTemplate()
     
     sourceSets {
         commonMain.dependencies {
@@ -33,18 +26,15 @@ kotlin {
             implementation(project(":feature:trainingplans:api"))
             implementation(project(":feature:trainingplans:impl"))
             implementation(libs.jetbrains.navigation.compose)
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.resources)
+            implementation(libs.compose.ui.tooling.preview)
             
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.core)
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
+
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.napier)
@@ -57,55 +47,39 @@ kotlin {
         }
         
         androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
             implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.ktor.client.okhttp)
+
             implementation(libs.koin.android)
             
-            implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             
-            implementation(libs.androidx.compose.ui.tooling.preview)
-            implementation(libs.androidx.compose.ui.tooling)
-            implementation(libs.material)
+            implementation(libs.compose.ui.tooling.preview)
+            implementation(libs.compose.ui.tooling)
 
         }
         
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
-        }
 
         val desktopMain by getting {
             dependencies {
-                implementation(compose.desktop.currentOs)
+                implementation(libs.compose.desktop)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.androidx.sqlite.bundled)
-                implementation(libs.ktor.client.okhttp)
+
             }
         }
 
-        val desktopTest by getting { dependencies { implementation(compose.desktop.uiTestJUnit4) } }
+        val desktopTest by getting { dependencies { implementation(libs.compose.ui.test.junit4) } }
 
         commonTest.dependencies {
-            implementation(kotlin("test"))
+            implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
 
-        androidUnitTest.dependencies {
+        getByName("androidHostTest").dependencies {
             implementation(libs.junit)
             implementation(libs.kotlinx.coroutines.test)
         }
-    }
-}
-
-android {
-    namespace = "com.yhdista.contentapp"
-    compileSdk = 37
-    defaultConfig {
-        applicationId = "com.yhdista.contentapp"
-        minSdk = 27
-        targetSdk = 35
     }
 }
 
@@ -125,7 +99,6 @@ dependencies {
     "kspDesktop"(libs.androidx.room.compiler)
     "kspIosSimulatorArm64"(libs.androidx.room.compiler)
     "kspIosArm64"(libs.androidx.room.compiler)
-    "kspIosX64"(libs.androidx.room.compiler)
 }
 
 // Versioned schemas are reviewable artifacts; missing migrations must never erase local data.

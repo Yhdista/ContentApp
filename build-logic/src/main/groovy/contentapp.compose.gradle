@@ -1,0 +1,20 @@
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
+plugins {
+    id 'org.jetbrains.compose'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+// Explicit coordinates replace the deprecated Compose dependency aliases.
+// Desktop's native runtime is selected for the executing host, never hardcoded to macOS.
+def catalog = extensions.getByType(VersionCatalogsExtension).named('libs')
+def platform = System.getProperty('os.name').toLowerCase().contains('mac') ? 'macos' :
+    (System.getProperty('os.name').toLowerCase().contains('win') ? 'windows' : 'linux')
+def arch = System.getProperty('os.arch') in ['aarch64', 'arm64'] ? 'arm64' : 'x64'
+def runtime = "org.jetbrains.compose.desktop:desktop-jvm-${platform}-${arch}:${catalog.findVersion('compose-multiplatform').get().requiredVersion}"
+pluginManager.withPlugin('org.jetbrains.kotlin.multiplatform') {
+    dependencies.add('desktopMainRuntimeOnly', runtime)
+    kotlin.targets.matching { it.name == 'android' }.configureEach {
+        androidResources { enable = true }
+    }
+}

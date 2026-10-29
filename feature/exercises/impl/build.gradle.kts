@@ -1,15 +1,9 @@
 plugins {
-    alias(libs.plugins.kmp)
-    alias(libs.plugins.android.library)
+    id("contentapp.multiplatform")
 }
 
 kotlin {
-    androidTarget()
-    jvm("desktop")
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    applyDefaultHierarchyTemplate()
+    android { namespace = "com.yhdista.feature.exercises.impl" }
 
     sourceSets {
         commonMain.dependencies {
@@ -20,14 +14,8 @@ kotlin {
             api(libs.koin.core)
         }
         commonTest.dependencies {
-            implementation(kotlin("test"))
+            implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
     }
-}
-
-android {
-    namespace = "com.yhdista.feature.exercises.impl"
-    compileSdk = 37
-    defaultConfig { minSdk = 27 }
 }

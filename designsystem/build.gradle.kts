@@ -1,32 +1,19 @@
 plugins {
-    alias(libs.plugins.kmp)
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.kotlin.compose)
+    id("contentapp.multiplatform")
+    id("contentapp.compose")
 }
 
 kotlin {
-    androidTarget()
-    jvm("desktop")
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    applyDefaultHierarchyTemplate()
+    android { namespace = "com.yhdista.designsystem" }
 
     sourceSets {
         commonMain.dependencies {
-            api(compose.runtime)
-            api(compose.foundation)
-            implementation(compose.material3)
-            api(compose.ui)
-            implementation(compose.components.uiToolingPreview)
+            api(libs.compose.runtime)
+            api(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            api(libs.compose.ui)
+            implementation(libs.compose.ui.tooling.preview)
         }
-        val desktopTest by getting { dependencies { implementation(compose.desktop.uiTestJUnit4); implementation(kotlin("test")); implementation(compose.desktop.currentOs) } }
+        val desktopTest by getting { dependencies { implementation(libs.compose.ui.test.junit4); implementation(libs.kotlin.test); implementation(libs.compose.desktop) } }
     }
-}
-
-android {
-    namespace = "com.yhdista.designsystem"
-    compileSdk = 37
-    defaultConfig { minSdk = 27 }
 }

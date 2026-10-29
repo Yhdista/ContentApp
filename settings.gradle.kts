@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -23,7 +24,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ContentApp"
-include(":composeApp", ":foundation", ":designsystem")
+include(":androidApp", ":composeApp", ":foundation", ":designsystem")
 
 include(":core:storage", ":core:presentation", ":feature:exercises:api", ":feature:exercises:impl", ":feature:workout:api", ":feature:workout:impl")
 

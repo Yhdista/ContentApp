@@ -1,18 +1,11 @@
 plugins {
-    alias(libs.plugins.kmp)
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.kotlin.compose)
+    id("contentapp.multiplatform")
+    id("contentapp.compose")
     alias(libs.plugins.jetbrains.kotlin.plugin.serialization)
 }
 
 kotlin {
-    androidTarget()
-    jvm("desktop")
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    applyDefaultHierarchyTemplate()
+    android { namespace = "com.yhdista.feature.workout.impl" }
 
     sourceSets {
         commonMain.dependencies {
@@ -21,11 +14,11 @@ kotlin {
             implementation(project(":core:storage"))
             implementation(project(":core:presentation"))
             implementation(project(":designsystem"))
-            api(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.components.uiToolingPreview)
-            implementation("org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
-            api(compose.ui)
+            api(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.ui.tooling.preview)
+            implementation(libs.androidx.lifecycle.runtime.compose)
+            api(libs.compose.ui)
             api(libs.androidx.room.runtime)
             api(libs.koin.core)
             implementation(libs.koin.compose)
@@ -33,16 +26,10 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.androidx.lifecycle.viewmodel)
         }
-        val desktopTest by getting { dependencies { implementation(compose.desktop.uiTestJUnit4); implementation(kotlin("test")); implementation(compose.desktop.currentOs) } }
+        val desktopTest by getting { dependencies { implementation(libs.compose.ui.test.junit4); implementation(libs.kotlin.test); implementation(libs.compose.desktop) } }
         commonTest.dependencies {
-            implementation(kotlin("test"))
+            implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
         }
     }
-}
-
-android {
-    namespace = "com.yhdista.feature.workout.impl"
-    compileSdk = 37
-    defaultConfig { minSdk = 27 }
 }
