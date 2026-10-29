@@ -3,7 +3,7 @@ package app.database
 import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.execSQL
-import androidx.sqlite.use
+import kotlin.use
 
 /** ♻️ Room owns the migration transaction. No destructive fallback; v6 stays intact on failure. */
 val MIGRATION_6_7 = object : Migration(6, 7) {

@@ -4,7 +4,7 @@ import features.workout.domain.*
 import features.workout.data.entity.WorkoutSetEntity
 import features.workout.data.entity.WorkoutExerciseEntity
 import kotlin.test.assertTrue
-import androidx.sqlite.use
+import kotlin.use
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import core.storage.CommandCoordinator

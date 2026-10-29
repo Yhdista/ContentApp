@@ -62,7 +62,7 @@ internal data object AppGraphRoute
                     onRoutine = { nav.navigate(RoutineDetailRoute(it)) }) }
                 composable<PlanEditorRoute> { backStack -> PlanEditorRoot(backStack.toRoute<PlanEditorRoute>().draftId,
                     onSaved = { nav.popBackStack(); nav.navigate(PlanDetailRoute(it)) { launchSingleTop = true } }, onBack = { nav.popBackStack() }) }
-            }.withRestorableEntries()
+            }
         }
         Column(modifier.fillMaxSize()) {
             NavHost(nav, graph = graph, modifier = Modifier.weight(1f))

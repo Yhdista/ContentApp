@@ -62,7 +62,7 @@ class TypedNavigationTest {
                         }
                         composable<RoutineEditorRoute> { entry -> draftArgument = entry.toRoute<RoutineEditorRoute>().draftId; AppText(draftArgument) }
                         composable<ActiveWorkoutRoute> { AppText("Workout") }
-                    }.withRestorableEntries() }
+                    } }
                     NavHost(nav,graph)
                     }
                 }

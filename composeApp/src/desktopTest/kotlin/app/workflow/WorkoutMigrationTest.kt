@@ -2,7 +2,7 @@ package app.workflow
 
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import androidx.sqlite.use
+import kotlin.use
 import app.database.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.*

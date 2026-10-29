@@ -60,7 +60,7 @@ class DelayedWorkoutNavigationTest {
                         composable<WorkoutHistoryRoute> { AppText("History source") }
                         composable<RoutineListRoute> { AppText("Other tab") }
                         composable<ActiveWorkoutRoute> { ActiveWorkoutRoot(onNavigateBack = { returns++; nav.popBackStack() }) }
-                    }.withRestorableEntries() }
+                    } }
                     NavHost(nav, graph)
                 }
             } }

@@ -75,7 +75,7 @@ class RetainedEditorLeaseTest {
                                 onSaved = { savedId = it; nav.popBackStack() }, onBack = { nav.popBackStack() }) }
                             composable<PlanEditorRoute> { entry -> PlanEditorRoot(entry.toRoute<PlanEditorRoute>().draftId,
                                 onSaved = { savedId = it; nav.popBackStack() }, onBack = { nav.popBackStack() }) }
-                        }.withRestorableEntries() }
+                        } }
                         NavHost(nav, graph)
                     }
                 }

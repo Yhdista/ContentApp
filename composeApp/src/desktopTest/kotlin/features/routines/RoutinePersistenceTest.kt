@@ -2,7 +2,7 @@ package features.routines
 
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import androidx.sqlite.use
+import kotlin.use
 import app.database.AppDatabase
 import app.database.AppDatabaseConstructor
 import app.database.configureAppDatabase
