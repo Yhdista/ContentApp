@@ -36,7 +36,7 @@ class TypedNavigationTest {
     class EntryModel : ViewModel() { var clears = 0; override fun onCleared() { clears++ } }
 
     @OptIn(ExperimentalTestApi::class)
-    @Test fun entryOwnershipRestorationAndWorkoutReturnsToSource() = runComposeUiTest {
+    @Test fun entryOwnershipRestorationAndWorkoutReturnsToSource() = runComposeUiTest(testTimeout = appUiTestTimeout) {
         val ui = this
         val owner = object : ViewModelStoreOwner, LifecycleOwner {
             override val viewModelStore = ViewModelStore()
@@ -47,7 +47,9 @@ class TypedNavigationTest {
         lateinit var nav: NavHostController
         val models = mutableMapOf<String,EntryModel>()
         var draftArgument = ""
-        ui.setContent {
+        val host = AppUiTestHost(ui, owner)
+        host.run {
+        ui.setContent { host.Content {
             KoinApplication(application = { modules(module { factory { EntryModel() } }) }) {
                 CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner, LocalSaveableStateRegistry provides registry) {
                     if(visible) {
@@ -67,7 +69,7 @@ class TypedNavigationTest {
                     }
                 }
             }
-        }
+        } }
         ui.runOnIdle { nav.navigate(RoutineDetailRoute("source")) }
         ui.waitForIdle()
         val source = models.getValue("source")
@@ -92,6 +94,6 @@ class TypedNavigationTest {
         ui.runOnIdle { assertTrue(nav.popBackStack()) }
         ui.waitForIdle(); assertEquals(1,source.clears)
         ui.runOnIdle { assertFalse(nav.popBackStack()) }
-        owner.viewModelStore.clear()
+        }
     }
 }

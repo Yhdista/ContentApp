@@ -35,18 +35,19 @@ import java.io.File
 class LibrarySmokeTest {
     @Before fun mainDispatcher() { Dispatchers.setMain(Dispatchers.Unconfined) }
     @After fun resetDispatcher() { Dispatchers.resetMain() }
-    @Test fun createRoutineRawDraftBackAndPlanThroughRealScreens() = runDesktopComposeUiTest(width = 460, height = 760) {
+    @Test fun createRoutineRawDraftBackAndPlanThroughRealScreens() = runDesktopComposeUiTest(width = 460, height = 760, testTimeout = appUiTestTimeout) {
         val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
         val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
         val owner = object : ViewModelStoreOwner, LifecycleOwner {
             override val viewModelStore = ViewModelStore()
             override val lifecycle = LifecycleRegistry.createUnsafe(this).apply { currentState = Lifecycle.State.RESUMED }
         }
-        try {
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+        val host = AppUiTestHost(this, owner)
+        host.run(afterClear = listOf({ app.koin.get<ApplicationScope>().cancel() }, { stopKoin() }, { db.close() })) {
+            setContent { host.Content { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                 Box(Modifier.requiredSize(460.dp,760.dp)) { AppNavHost() }
-            } }
+            } } }
             onNodeWithText("Rutiny", useUnmergedTree = true).performClick()
             onNodeWithText("Nový nebo rozepsaný návrh rutiny").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
@@ -109,24 +110,21 @@ class LibrarySmokeTest {
             onNodeWithText("🌙").performClick()
             onNodeWithText("Plány", useUnmergedTree = true).performClick()
             screenshot("plan-detail-dark")
-        } finally {
-            runOnIdle { owner.viewModelStore.clear() }
-            app.koin.get<ApplicationScope>().cancel()
-            stopKoin()
         }
     }
-    @Test fun retainedPlanReceivesRoutineCreatedThroughAnotherTab() = runDesktopComposeUiTest(width = 460, height = 760) {
+    @Test fun retainedPlanReceivesRoutineCreatedThroughAnotherTab() = runDesktopComposeUiTest(width = 460, height = 760, testTimeout = appUiTestTimeout) {
         val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
         val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
         val owner = object : ViewModelStoreOwner, LifecycleOwner {
             override val viewModelStore = ViewModelStore()
             override val lifecycle = LifecycleRegistry.createUnsafe(this).apply { currentState = Lifecycle.State.RESUMED }
         }
-        try {
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+        val host = AppUiTestHost(this, owner)
+        host.run(afterClear = listOf({ app.koin.get<ApplicationScope>().cancel() }, { stopKoin() }, { db.close() })) {
+            setContent { host.Content { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                 Box(Modifier.requiredSize(460.dp,760.dp)) { AppNavHost() }
-            } }
+            } } }
             onNodeWithText("Plány", useUnmergedTree = true).performClick()
             onNodeWithText("Nový nebo rozepsaný plán").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
@@ -150,20 +148,17 @@ class LibrarySmokeTest {
             onNodeWithText("Uložit").performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Spustit příští den")).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Retained plan").assertIsDisplayed()
-        } finally {
-            runOnIdle { owner.viewModelStore.clear() }
-            app.koin.get<ApplicationScope>().cancel()
-            stopKoin()
         }
     }
-    @Test fun historyRendersOriginalTargetsWhenAllActualOccurrencesWereRemoved() = runDesktopComposeUiTest(width = 460, height = 760) {
+    @Test fun historyRendersOriginalTargetsWhenAllActualOccurrencesWereRemoved() = runDesktopComposeUiTest(width = 460, height = 760, testTimeout = appUiTestTimeout) {
         val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
         val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
         val owner = object : ViewModelStoreOwner, LifecycleOwner {
             override val viewModelStore = ViewModelStore()
             override val lifecycle = LifecycleRegistry.createUnsafe(this).apply { currentState = Lifecycle.State.RESUMED }
         }
-        try {
+        val host = AppUiTestHost(this, owner)
+        host.run(afterClear = listOf({ app.koin.get<ApplicationScope>().cancel() }, { stopKoin() }, { db.close() })) {
             val id = kotlinx.coroutines.runBlocking {
                 val store = app.koin.get<features.workout.domain.WorkoutStore>()
                 val repo = app.koin.get<features.workout.domain.WorkoutRepository>()
@@ -176,11 +171,11 @@ class LibrarySmokeTest {
                 store.completeOnce(sessionId)
                 sessionId
             }
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner) {
+            setContent { host.Content { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner) {
                 ui.designsystem.nucleus.AppTheme {
                     features.workout.detail.WorkoutDetailRoot(id, {}, {}, Modifier.requiredSize(460.dp, 760.dp))
                 }
-            } }
+            } } }
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Původní předpis", substring = true)).fetchSemanticsNodes().isNotEmpty() }
             for (weight in 20..23) {
                 val originalNumber = if (weight % 2 == 0) 1 else 2
@@ -192,10 +187,6 @@ class LibrarySmokeTest {
             screenshot("history-all-targets-omitted")
             onAllNodes(hasText("Skutečnost", substring = false)).assertCountEquals(0)
             onAllNodes(hasText("✓ Hotovo")).assertCountEquals(0)
-        } finally {
-            runOnIdle { owner.viewModelStore.clear() }
-            app.koin.get<ApplicationScope>().cancel()
-            stopKoin()
         }
     }
     private fun ComposeUiTest.screenshot(name: String) {

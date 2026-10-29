@@ -34,7 +34,7 @@ import kotlin.test.*
 class DelayedWorkoutNavigationTest {
     @Before fun mainDispatcher() { Dispatchers.setMain(Dispatchers.Unconfined) }
     @After fun resetDispatcher() { Dispatchers.resetMain() }
-    @Test fun acceptedCompletionWaitsForItsRetainedEntryAndNavigatesExactlyOnce() = runDesktopComposeUiTest(width = 460, height = 760) {
+    @Test fun acceptedCompletionWaitsForItsRetainedEntryAndNavigatesExactlyOnce() = runDesktopComposeUiTest(width = 460, height = 760, testTimeout = appUiTestTimeout) {
         val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
         val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
         val owner = object : ViewModelStoreOwner, LifecycleOwner {
@@ -44,7 +44,10 @@ class DelayedWorkoutNavigationTest {
         val accepted = CompletableDeferred<Unit>(); val release = CompletableDeferred<Unit>(); val committed = CompletableDeferred<Unit>()
         lateinit var nav: NavHostController
         var returns = 0
-        try {
+        val host = AppUiTestHost(this, owner)
+        host.run(beforeClear = { release.complete(Unit) }, afterClear = listOf(
+            { app.koin.get<ApplicationScope>().cancel() }, { app.koin.loadModules(listOf(commonModule)) }, { stopKoin() }, { db.close() }
+        )) {
             val repository = app.koin.get<WorkoutRepository>()
             val session = runBlocking { repository.startWorkout("Delayed completion") }
             val complete = app.koin.get<CompleteWorkout>()
@@ -52,7 +55,7 @@ class DelayedWorkoutNavigationTest {
                 accepted.complete(Unit); release.await()
                 complete.complete(id).also { committed.complete(Unit) }
             } } }))
-            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+            setContent { host.Content { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                 LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                 AppTheme(darkTheme = false) {
                     nav = rememberNavController()
@@ -63,7 +66,7 @@ class DelayedWorkoutNavigationTest {
                     } }
                     NavHost(nav, graph)
                 }
-            } }
+            } } }
             runOnIdle { nav.navigate(ActiveWorkoutRoute) }
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Ukončit trénink ✓")).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Ukončit trénink ✓").performClick()
@@ -85,9 +88,6 @@ class DelayedWorkoutNavigationTest {
             mainClock.advanceTimeBy(1000); waitForIdle()
             assertTrue(nav.currentDestination!!.hasRoute<WorkoutHistoryRoute>())
             assertEquals(1, returns)
-        } finally {
-            release.complete(Unit); runOnIdle { owner.viewModelStore.clear() }
-            app.koin.get<ApplicationScope>().cancel(); app.koin.loadModules(listOf(commonModule)); stopKoin(); db.close()
         }
     }
 }
