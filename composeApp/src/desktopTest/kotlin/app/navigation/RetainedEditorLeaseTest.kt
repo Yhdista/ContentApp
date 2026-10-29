@@ -45,7 +45,7 @@ class RetainedEditorLeaseTest {
     @Test fun routineEntryRetainsLeaseThenSavesAndReopensForDiscard() = exerciseRetainedEditor(plan = false)
     @Test fun planEntryRetainsLeaseThenSavesAndReopensForDiscard() = exerciseRetainedEditor(plan = true)
 
-    private fun exerciseRetainedEditor(plan: Boolean) = runDesktopComposeUiTest(width = 460, height = 760, testTimeout = appUiTestTimeout) {
+    private fun exerciseRetainedEditor(plan: Boolean) = withAppUiTestResources { resources -> runDesktopComposeUiTest(width = 460, height = 760, testTimeout = appUiTestTimeout) {
         val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
         val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
         val owner = object : ViewModelStoreOwner, LifecycleOwner {
@@ -55,7 +55,7 @@ class RetainedEditorLeaseTest {
         lateinit var nav: NavHostController
         var savedId: String? = null
         val route: Any = if (plan) PlanEditorRoute("edit:plan") else RoutineEditorRoute("edit:routine")
-        val host = AppUiTestHost(this, owner)
+        val host = AppUiTestHost(this, owner, resources)
         host.run(afterClear = listOf({ app.koin.get<ApplicationScope>().cancel() }, { stopKoin() }, { db.close() })) {
             runBlocking {
                 app.koin.get<features.exercises.api.ExerciseCatalogImport>().importExercises(listOf(Exercise("bench", "Bench", MuscleGroup.CHEST)))
@@ -64,7 +64,7 @@ class RetainedEditorLeaseTest {
                 assertIs<Result.Success<TrainingPlan>>(app.koin.get<TrainingPlanRepository>().save(
                     TrainingPlan("plan", "Original", slots = listOf(PlanSlot("slot", "Day", "routine"))), null))
             }
-            setContent { host.Content {
+            setContent {
                 CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
                     LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) {
                     AppTheme(darkTheme = false) {
@@ -80,7 +80,7 @@ class RetainedEditorLeaseTest {
                         NavHost(nav, graph)
                     }
                 }
-            } }
+             }
             runOnIdle { nav.navigate(route) }
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
             val originalEntry = nav.currentBackStackEntry!!
@@ -119,5 +119,5 @@ class RetainedEditorLeaseTest {
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Source")).fetchSemanticsNodes().isNotEmpty() }
             runBlocking { assertNull(db.editorDraftDao().get(if (plan) "trainingplans" else "routines", if (plan) "edit:plan" else "edit:routine")) }
         }
-    }
+    } }
 }

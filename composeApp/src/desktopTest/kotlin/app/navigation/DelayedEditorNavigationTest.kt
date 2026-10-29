@@ -33,7 +33,7 @@ class DelayedEditorNavigationTest {
     @Test fun planPublishWhileLeavingKeepsOtherTab() = exerciseDelayedPublish(true)
 
     // Modern Skiko idle waits inherit this deadline; their default is infinite.
-    private fun exerciseDelayedPublish(plan: Boolean) = runDesktopComposeUiTest(width = 460, height = 760, testTimeout = appUiTestTimeout) {
+    private fun exerciseDelayedPublish(plan: Boolean) = withAppUiTestResources { resources -> runDesktopComposeUiTest(width = 460, height = 760, testTimeout = appUiTestTimeout) {
         val db = Room.inMemoryDatabaseBuilder<AppDatabase> { AppDatabaseConstructor.initialize() }.configureAppDatabase().build()
         val app = startKoin { modules(commonModule, platformModule, module { single<AppDatabase> { db } }) }
         val owner = object : ViewModelStoreOwner, LifecycleOwner {
@@ -43,7 +43,7 @@ class DelayedEditorNavigationTest {
         val accepted = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
         val committed = CompletableDeferred<Unit>()
-        val host = AppUiTestHost(this, owner)
+        val host = AppUiTestHost(this, owner, resources)
         host.run(beforeClear = { release.complete(Unit) }, afterClear = listOf(
             { app.koin.get<ApplicationScope>().cancel() },
             // Restore overridden definitions so Koin closes their original singleton instances too.
@@ -72,8 +72,8 @@ class DelayedEditorNavigationTest {
                     }
                 } }
             }))
-            setContent { host.Content { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
-                LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) { AppNavHost() } } }
+            setContent { CompositionLocalProvider(LocalLifecycleOwner provides owner, LocalViewModelStoreOwner provides owner,
+                LocalSaveableStateRegistry provides remember { SaveableStateRegistry(null) { true } }) { AppNavHost() }  }
             onNodeWithText(if (plan) "Plány" else "Rutiny", useUnmergedTree = true).performClick()
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Otevřít")).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText("Otevřít").performClick()
@@ -105,5 +105,5 @@ class DelayedEditorNavigationTest {
             waitUntil(timeoutMillis = 5000) { onAllNodes(hasText("Committed while leaving")).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText(if (plan) "Spustit příští den" else "Spustit rutinu").assertIsDisplayed()
         }
-    }
+    } }
 }
