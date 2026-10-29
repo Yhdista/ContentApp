@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -128,57 +129,47 @@ internal fun WorkoutDetailScreen(
                 }
                 // 1. Karta souhrnu (Objem, Čas)
                 item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
+                    BoxWithConstraints(
+                        Modifier.fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
                             .background(colorScheme.surface)
                             .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
-                            .padding(AppSpacing.lg),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(AppSpacing.lg)
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            val volumeFormatted = (session?.totalVolumeKg ?: 0.0).formatCompactDecimal()
-                            AppText(
-                                text = "$volumeFormatted kg",
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = colorScheme.primary
-                            )
-                            AppText(
-                                text = "Celkový objem",
-                                style = AppStyle.typography.labelSmall,
-                                color = colorScheme.onSurfaceVariant
-                            )
+                        val volume: @Composable () -> Unit = {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                val volumeFormatted = (session?.totalVolumeKg ?: 0.0).formatCompactDecimal()
+                                AppText("$volumeFormatted kg", fontSize = 26.sp,
+                                    fontWeight = FontWeight.ExtraBold, color = colorScheme.primary)
+                                AppText("Celkový objem", style = AppStyle.typography.labelSmall,
+                                    color = colorScheme.onSurfaceVariant)
+                            }
                         }
-
-                        Box(
-                            modifier = Modifier
-                                .height(44.dp)
-                                .border(0.5.dp, colorScheme.outlineVariant, RoundedCornerShape(1.dp))
-                        )
-
-                        val endTimeEpochMs = session?.endTimeEpochMs
-                        val durationMinutes = if (session != null && endTimeEpochMs != null) {
-                            val durationSec = (endTimeEpochMs - session.startTimeEpochMs) / 1000
-                            "${durationSec / 60} min"
+                        val duration: @Composable () -> Unit = {
+                            val endTimeEpochMs = session?.endTimeEpochMs
+                            val durationMinutes = if (session != null && endTimeEpochMs != null) {
+                                "${(endTimeEpochMs - session.startTimeEpochMs) / 1000 / 60} min"
+                            } else "—"
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                AppText(durationMinutes, fontSize = 26.sp,
+                                    fontWeight = FontWeight.Bold, color = colorScheme.onSurface)
+                                AppText("Délka cvičení", style = AppStyle.typography.labelSmall,
+                                    color = colorScheme.onSurfaceVariant)
+                            }
+                        }
+                        if (LocalDensity.current.fontScale > 1.3f || maxWidth < 240.dp) {
+                            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                                horizontalAlignment = Alignment.CenterHorizontally) {
+                                volume()
+                                duration()
+                            }
                         } else {
-                            "—"
-                        }
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            AppText(
-                                text = durationMinutes,
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colorScheme.onSurface
-                            )
-                            AppText(
-                                text = "Délka cvičení",
-                                style = AppStyle.typography.labelSmall,
-                                color = colorScheme.onSurfaceVariant
-                            )
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically) {
+                                volume()
+                                Box(Modifier.height(44.dp).border(0.5.dp, colorScheme.outlineVariant, RoundedCornerShape(1.dp)))
+                                duration()
+                            }
                         }
                     }
                 }
@@ -276,42 +267,38 @@ private fun DetailExerciseCard(
     val colorScheme = AppStyle.colors
 
     AppCard(modifier) {
-        // Hlavička cviku
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                AppText(
-                    text = group.exercise.name,
-                    style = AppStyle.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface
-                )
-
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
+        // Both labels retain the card width when the effective text space is narrow.
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val exercise: @Composable () -> Unit = {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    AppText(group.exercise.name, style = AppStyle.typography.titleMedium,
+                        fontWeight = FontWeight.Bold, color = colorScheme.onSurface)
+                    Box(Modifier.clip(RoundedCornerShape(4.dp))
                         .background(colorScheme.primaryContainer.copy(alpha = 0.5f))
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    AppText(
-                        text = group.exercise.muscleGroup.displayName,
-                        style = AppStyle.typography.labelSmall,
-                        color = colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                        .padding(horizontal = 6.dp, vertical = 2.dp)) {
+                        AppText(group.exercise.muscleGroup.displayName, style = AppStyle.typography.labelSmall,
+                            color = colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
-
-            val completedSetsCount = group.sets.count { it.isCompleted }
-            AppText(
-                text = "Skutečnost: $completedSetsCount / ${group.sets.size} sérií",
-                style = AppStyle.typography.labelMedium,
-                color = colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold
-            )
+            val completion: @Composable () -> Unit = {
+                val completedSetsCount = group.sets.count { it.isCompleted }
+                AppText("Skutečnost: $completedSetsCount / ${group.sets.size} sérií",
+                    style = AppStyle.typography.labelMedium, color = colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold)
+            }
+            if (LocalDensity.current.fontScale > 1.3f || maxWidth < 240.dp) {
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+                    exercise()
+                    completion()
+                }
+            } else {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    exercise()
+                    completion()
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(AppSpacing.xs))
@@ -360,7 +347,7 @@ private fun DetailExerciseCard(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(24.dp)
+                                .sizeIn(minWidth = 24.dp, minHeight = 24.dp)
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(badgeVisuals.backgroundColor),
                             contentAlignment = Alignment.Center

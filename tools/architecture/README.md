@@ -14,7 +14,13 @@ Comments, ordinary strings, raw strings and test sources do not create violation
 The policies protect feature API/implementation separation, foundation purity,
 design system domain/storage separation, platform source sets, Material3 ownership
 in `designsystem/nucleus`, and storage/workflow ownership in `*Screen.kt`,
-`*Root.kt`, and `*ViewModel.kt`. A ViewModel cannot own `DraftStore` or
+`*Root.kt`, and `*ViewModel.kt`. `WorkoutStore` may be referenced only by
+`:feature:workout:api`, `:feature:workout:impl`, and `:composeApp`;
+`ExerciseCatalogImport` has the analogous exercises api/impl and composeApp
+owners. This physical-module rule covers ordinary data/use-case files, imports,
+aliases, fully qualified references and wildcard imports followed by participant
+use. The Screen/Root/ViewModel prohibition also applies inside the owning impl.
+A wildcard import alone is not participant use. A ViewModel cannot own `DraftStore` or
 `CommandCoordinator` publish sequencing. Component tests in the design system
 and workout desktop test sources run in the ordinary desktop CI test selection.
 

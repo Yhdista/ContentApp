@@ -38,7 +38,7 @@ jobs:
           path: |
             **/build/reports/tests/
             androidApp/build/outputs/apk/debug/*.apk
-  ios-simulator:
+  ios-arm:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,5 +50,5 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Install Android SDK for multiplatform configuration
         run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
-      - name: Apple Silicon simulator compile
-        run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64
+      - name: iOS device and Apple Silicon simulator compile
+        run: ./gradlew :composeApp:compileKotlinIosArm64 :composeApp:compileKotlinIosSimulatorArm64

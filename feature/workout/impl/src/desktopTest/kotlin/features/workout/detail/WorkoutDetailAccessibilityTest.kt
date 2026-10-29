@@ -76,6 +76,30 @@ class WorkoutDetailAccessibilityTest {
             }
             assertTrue(bounds.left >= 0 && bounds.right <= 320 && bounds.height >= layout.multiParagraph.height,
                 "Rendered badge must fit actual screen bounds: $metrics")
+            // The same actual detail capture exposed squeezed summary/header
+            // siblings. Natural word wraps are allowed; character columns are not.
+            for (label in listOf("Celkový objem", "Délka cvičení", "Bench", "Skutečnost: 0 / 1 sérií")) {
+                val node = onNodeWithText(label, useUnmergedTree = true).performScrollTo()
+                val results = mutableListOf<TextLayoutResult>()
+                node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { assertTrue(it(results)) }
+                val result = results.single { it.layoutInput.text.text == label }
+                val actualBounds = node.fetchSemanticsNode().boundsInRoot
+                val detail = "$label size=${result.size} bounds=$actualBounds lines=${result.lineCount}"
+                File(file.parentFile, "detail-${if (dark) "dark" else "light"}-layout.txt").appendText("\n$detail")
+                assertTrue(!result.didOverflowHeight && actualBounds.left >= 0 && actualBounds.right <= 320,
+                    "Detail heading must fit its actual bounds: $detail")
+                repeat(result.lineCount) { line ->
+                    assertTrue(result.getLineLeft(line) >= 0 && result.getLineRight(line) <= result.size.width &&
+                        result.getLineTop(line) >= 0 && result.getLineBottom(line) <= result.size.height,
+                        "Rendered heading line must fit: $detail")
+                    if (line < result.lineCount - 1) {
+                        val end = result.getLineEnd(line, visibleEnd = true)
+                        assertTrue(end > 0 && end < label.length &&
+                            (label[end - 1].isWhitespace() || label[end].isWhitespace()),
+                            "Detail heading must wrap between words, never inside a word: end=$end $detail")
+                    }
+                }
+            }
         }
     }
 }

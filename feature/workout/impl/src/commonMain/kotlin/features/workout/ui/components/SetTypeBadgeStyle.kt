@@ -40,7 +40,7 @@ internal fun WorkoutSetType.toBadgeVisuals(
     WorkoutSetType.DROPSET -> SetTypeBadgeVisuals(
         label = "D",
         backgroundColor = if (isLight) Color(0xFFEEF2FF) else Color(0xFF6366F1).copy(alpha = 0.2f),
-        contentColor = if (isLight) Color(0xFF4F46E5) else Color(0xFF818CF8)
+        contentColor = if (isLight) Color(0xFF4F46E5) else Color(0xFFA5B4FC)
     )
     WorkoutSetType.FAILURE -> SetTypeBadgeVisuals(
         label = "F",

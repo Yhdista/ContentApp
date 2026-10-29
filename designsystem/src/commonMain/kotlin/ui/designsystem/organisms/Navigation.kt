@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import ui.designsystem.atoms.*
 import ui.designsystem.nucleus.AppStyle
@@ -36,7 +37,7 @@ data class AppTabItem(val content: @Composable () -> Unit, val icon: @Composable
                 items.forEachIndexed { index, item ->
                     AppSelection(selected == index, {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            item.icon()
+                            Box(Modifier.clearAndSetSemantics {}) { item.icon() }
                             Box(Modifier.weight(1f)) { item.content() }
                         }
                     }, { onSelect(index) }, Modifier.fillMaxWidth())
@@ -46,7 +47,10 @@ data class AppTabItem(val content: @Composable () -> Unit, val icon: @Composable
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 items.forEachIndexed { index, item ->
                     AppSelection(selected == index, {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) { item.icon(); item.content() }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(Modifier.clearAndSetSemantics {}) { item.icon() }
+                            item.content()
+                        }
                     }, { onSelect(index) }, Modifier.weight(1f))
                 }
             }

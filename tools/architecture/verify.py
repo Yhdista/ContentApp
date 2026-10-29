@@ -184,6 +184,14 @@ def scan(root: Path, inventory: list[dict] | None = None) -> list[str]:
                     if ATOMIC_LAYERS[target] > ATOMIC_LAYERS[layer]:
                         reject(path, 'atomic-layer-direction', f'{layer} -> {target} via {reference}')
         ui = path.name.endswith(('Screen.kt', 'Root.kt', 'ViewModel.kt'))
+        # These public interfaces are participants in app-owned workflows, not
+        # general feature commands. Physical module ownership applies to every
+        # production filename, including ordinary data/use-case classes.
+        for participant, implementing_feature in (('WorkoutStore', 'workout'), ('ExerciseCatalogImport', 'exercises')):
+            if re.search(r'\b' + participant + r'\b', expanded):
+                allowed = {':composeApp', f':feature:{implementing_feature}:api', f':feature:{implementing_feature}:impl'}
+                if module not in allowed:
+                    reject(path, 'workflow-module-ownership', participant + ' is owned by ' + implementing_feature + ' api/impl and composeApp')
         if ui:
             for imported, _ in imports:
                 if re.match(r'(androidx\.room\.|io\.ktor\.|okhttp3\.|retrofit2\.|core\.network\.)', imported) or re.search(r'(?:\.dao\.|\.\w*(?:Dao|DAO)$)', imported):

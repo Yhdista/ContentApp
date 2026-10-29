@@ -69,7 +69,8 @@ SDK Manager používá balíky `platforms;android-37.0` a `build-tools;37.0.0`.
 ./gradlew compileCommonMainKotlinMetadata compileKotlinDesktop compileTestKotlinDesktop \
   compileAndroidMain compileAndroidHostTest \
   :androidApp:compileDebugKotlin :androidApp:compileDebugUnitTestKotlin \
-  :androidApp:compileDebugAndroidTestKotlin :composeApp:compileKotlinIosSimulatorArm64
+  :androidApp:compileDebugAndroidTestKotlin \
+  :composeApp:compileKotlinIosArm64 :composeApp:compileKotlinIosSimulatorArm64
 ./gradlew desktopTest testAndroidHostTest :androidApp:testDebugUnitTest
 ./gradlew verifyArchitecture testArchitectureGuard
 ./gradlew :verification:designsystem-consumer:compileKotlinDesktop
@@ -89,7 +90,7 @@ vyžadovat nativní cíle nedostupné na daném stroji.
 
 [GitHub workflow](../.github/workflows/verify.yml) odděluje Linux desktop/Android
 testy, public design system consumer, architekturu, APK a Android lint od macOS
-iOS simulator compile. Nevyžaduje secrets ani deployment.
+iOS device a Apple Silicon simulator compile. Nevyžaduje secrets ani deployment.
 
 Architektonická pravidla a pozitivní/negativní fixtures popisuje
 [guard README](../tools/architecture/README.md). Root `check` obsahuje scanner
@@ -99,5 +100,5 @@ platformní matici definují výslovné CI/acceptance příkazy.
 Nav restore helper byl odstraněn po průchodu přesné regrese
 `TypedNavigationTest.entryOwnershipRestorationAndWorkoutReturnsToSource` na
 Navigation2.10.0 bez dekorace grafu. Explicitní Room invalidace zůstává:
-její odstranění nebylo samostatně prokázáno. Kompilace simulatoru
-neprokazuje iOS runtime a instrumented source compile nenahrazuje device test.
+její odstranění nebylo samostatně prokázáno. Kompilace obou ARM cílů
+neprokazuje iOS runtime, link frameworku ani existenci iOS host aplikace a instrumented source compile nenahrazuje device test.
