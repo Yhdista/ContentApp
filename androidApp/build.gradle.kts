@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.napier)
     implementation(libs.material)
+    debugImplementation(libs.compose.ui.tooling)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.junit)

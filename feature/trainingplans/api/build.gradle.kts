@@ -12,9 +12,5 @@ kotlin {
             api(project(":feature:workout:api"))
             api(libs.kotlinx.serialization.core)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(libs.kotlinx.coroutines.test)
-        }
     }
 }

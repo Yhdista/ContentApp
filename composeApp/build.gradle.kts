@@ -55,7 +55,6 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel.compose)
             
             implementation(libs.compose.ui.tooling.preview)
-            implementation(libs.compose.ui.tooling)
 
         }
         
@@ -71,10 +70,6 @@ kotlin {
 
         val desktopTest by getting { dependencies { implementation(libs.compose.ui.test.junit4) } }
 
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(libs.kotlinx.coroutines.test)
-        }
 
         getByName("androidHostTest").dependencies {
             implementation(libs.junit)

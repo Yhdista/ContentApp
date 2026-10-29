@@ -13,9 +13,5 @@ kotlin {
             implementation(libs.napier)
             implementation(libs.kotlinx.serialization.core)
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(libs.kotlinx.coroutines.test)
-        }
     }
 }

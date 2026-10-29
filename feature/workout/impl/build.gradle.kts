@@ -27,9 +27,5 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
         }
         val desktopTest by getting { dependencies { implementation(libs.compose.ui.test.junit4); implementation(libs.kotlin.test); implementation(libs.compose.desktop) } }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(libs.kotlinx.coroutines.test)
-        }
     }
 }
