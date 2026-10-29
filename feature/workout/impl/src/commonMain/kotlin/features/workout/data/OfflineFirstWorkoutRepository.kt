@@ -118,19 +118,9 @@ internal class OfflineFirstWorkoutRepository(
         entry
     }
 
-    override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?): WorkoutSet = writes.write {
-        check(localDataSource.getWorkoutExercises(sessionId).any { it.id == workoutExerciseId }) { "Workout entry not found" }
-        addSet(sessionId, workoutExerciseId, weightKg, reps, rpe)
-    }
-
-    override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = writes.write {
-        check(localDataSource.getWorkoutExercises(sessionId).any { it.id == workoutExerciseId }) { "Workout entry not found" }
-        removeExerciseFromWorkout(sessionId, workoutExerciseId)
-    }
-
-    override suspend fun addSet(
+    override suspend fun addSetToEntry(
         sessionId: String,
-        exerciseId: String,
+        workoutExerciseId: String,
         weightKg: Double,
         reps: Int,
         rpe: Double?
@@ -141,9 +131,7 @@ internal class OfflineFirstWorkoutRepository(
         check(!session.isCompleted) { "Cannot edit a completed workout" }
         val currentSets = localDataSource.getSetsForSessionSnapshot(sessionId)
         val entries = localDataSource.getWorkoutExercises(sessionId)
-        val entry = entries.firstOrNull { it.id == exerciseId }
-            ?: entries.firstOrNull { it.exerciseId == exerciseId }
-            ?: addExerciseEntry(sessionId, exerciseId)
+        val entry = checkNotNull(entries.firstOrNull { it.id == workoutExerciseId }) { "Workout entry not found" }
         val exerciseSets = currentSets.filter { it.workoutExerciseId == entry.id }
         val nextSetNumber = (exerciseSets.maxOfOrNull { it.setNumber } ?: 0) + 1
         val lastPerformance = getLastPerformance(entry.exerciseId)
@@ -294,11 +282,11 @@ internal class OfflineFirstWorkoutRepository(
             }
     }
 
-    override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) = writes.write {
+    override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = writes.write {
         val session = localDataSource.getSessionById(sessionId) ?: throw NoSuchElementException("Session not found")
         check(!session.isCompleted) { "Cannot edit a completed workout" }
         val entries = localDataSource.getWorkoutExercises(sessionId)
-        val entry = entries.firstOrNull { it.id == exerciseId } ?: entries.firstOrNull { it.exerciseId == exerciseId } ?: return@write
+        val entry = checkNotNull(entries.firstOrNull { it.id == workoutExerciseId }) { "Workout entry not found" }
         localDataSource.getSetsForSessionSnapshot(sessionId).filter { it.workoutExerciseId == entry.id }.forEach { deleteSet(it.id) }
         localDataSource.deleteWorkoutExercise(entry.id)
         mutationDao.insertMutation(SyncMutationEntity(Uuid.random().toString(),"workout_exercise",entry.id,"DELETE","{}",clock.nowMillis()))

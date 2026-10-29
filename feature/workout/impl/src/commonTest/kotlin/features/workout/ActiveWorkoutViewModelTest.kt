@@ -152,6 +152,8 @@ class ActiveWorkoutViewModelTest {
             testScheduler.runCurrent()
             vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
             testScheduler.runCurrent()
+            assertTrue(vm.uiState.value.isTerminated)
+            assertFalse(vm.uiState.value.isSaving, "Committed terminal state is separate from an in-flight save")
             // No effect collector yet: navigation has not consumed the first successful result.
             vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
             vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
@@ -184,6 +186,8 @@ class ActiveWorkoutViewModelTest {
             testScheduler.runCurrent()
             vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
             testScheduler.runCurrent()
+            assertTrue(vm.uiState.value.isTerminated)
+            assertFalse(vm.uiState.value.isSaving)
             vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
             vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
             testScheduler.runCurrent()
@@ -210,6 +214,7 @@ class ActiveWorkoutViewModelTest {
             vm.onIntent(ActiveWorkoutContract.Intent.FinishWorkout)
             testScheduler.runCurrent()
             assertEquals(1, calls)
+            assertFalse(vm.uiState.value.isTerminated)
             assertFalse(vm.uiState.value.isSaving)
             assertNotNull(vm.uiState.value.error)
             assertNotNull(vm.uiState.value.session)
@@ -238,6 +243,7 @@ class ActiveWorkoutViewModelTest {
             vm.onIntent(ActiveWorkoutContract.Intent.CancelWorkout)
             testScheduler.runCurrent()
             assertEquals(1, calls)
+            assertFalse(vm.uiState.value.isTerminated)
             assertFalse(vm.uiState.value.isSaving)
             assertNotNull(vm.uiState.value.error)
             assertNotNull(vm.uiState.value.session)
@@ -292,7 +298,7 @@ class ActiveWorkoutViewModelTest {
     @Test
     fun mutatingIntentsAreIgnoredWhileFinishIsPending() = runTest(testDispatcher) {
         val session = fakeRepository.startWorkout("Finish in progress")
-        val set = fakeRepository.addSet(session.id, fakeRepository.benchExercise.id, 60.0, 10)
+        val set = fakeRepository.seedSet(session.id, fakeRepository.benchExercise.id, 60.0, 10)
         val release = kotlinx.coroutines.CompletableDeferred<Unit>()
         val vm = testActiveWorkoutViewModel(fakeRepository, fakeClock,
             completion = features.workout.domain.CompleteWorkout { sessionId ->
@@ -319,7 +325,7 @@ class ActiveWorkoutViewModelTest {
     @Test
     fun editsFromSameUiSnapshotPreserveBothFields() = runTest(testDispatcher) {
         val session = fakeRepository.startWorkout("Concurrent edits")
-        val set = fakeRepository.addSet(session.id, fakeRepository.benchExercise.id, 60.0, 10)
+        val set = fakeRepository.seedSet(session.id, fakeRepository.benchExercise.id, 60.0, 10)
         viewModel.onIntent(ActiveWorkoutContract.Intent.LoadWorkout)
         testScheduler.runCurrent()
         viewModel.onIntent(ActiveWorkoutContract.Intent.UpdateWeight(set, 65.0))
@@ -532,7 +538,7 @@ class ActiveWorkoutViewModelTest {
     @Test
     fun testChangeSetTypeUpdatesWorkoutSet() = runTest(testDispatcher) {
         fakeRepository.startWorkout()
-        val set = fakeRepository.addSet("sess-1", "ex_bench", 100.0, 5)
+        val set = fakeRepository.seedSet("sess-1", "ex_bench", 100.0, 5)
         testScheduler.runCurrent()
 
         assertEquals(WorkoutSetType.NORMAL, fakeRepository.getSetsList().first().setType)
@@ -629,18 +635,17 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
 
     override fun getPrescriptionForSession(sessionId: String) = kotlinx.coroutines.flow.flowOf(emptyList<features.workout.domain.WorkoutPrescriptionSet>())
     override fun getWorkoutExercises(sessionId: String) = fakeWorkoutEntries(this,sessionId)
-    override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?) = addSet(sessionId,workoutExerciseId,weightKg,reps,rpe)
-    override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = removeExerciseFromWorkout(sessionId,workoutExerciseId)
+    override suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double?) = seedSet(sessionId,workoutExerciseId,weightKg,reps,rpe)
     override suspend fun addExerciseWithInitialSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int): features.workout.domain.WorkoutExercise {
-        addSet(sessionId, exerciseId, weightKg, reps)
+        seedSet(sessionId, exerciseId, weightKg, reps)
         return features.workout.domain.WorkoutExercise(exerciseId, sessionId, exerciseId, exerciseId, MuscleGroup.CHEST, 90, 0)
     }
-    override suspend fun addSet(
+    suspend fun seedSet(
         sessionId: String,
         exerciseId: String,
         weightKg: Double,
         reps: Int,
-        rpe: Double?
+        rpe: Double? = null
     ): WorkoutSet {
         val currentSets = sets.value.filter { it.sessionId == sessionId && it.exerciseId == exerciseId }
         val nextNumber = currentSets.size + 1
@@ -664,8 +669,8 @@ private class FakeWorkoutRepository(private val clock: AppClock) : WorkoutReposi
         return updated
     }
 
-    override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) {
-        sets.value = sets.value.filterNot { it.sessionId == sessionId && it.exerciseId == exerciseId }
+    override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) {
+        sets.value = sets.value.filterNot { it.sessionId == sessionId && it.exerciseId == workoutExerciseId }
     }
 
     override suspend fun deleteSet(setId: String) {

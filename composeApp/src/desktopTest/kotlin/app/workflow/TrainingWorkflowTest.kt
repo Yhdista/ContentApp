@@ -251,7 +251,8 @@ class TrainingWorkflowTest {
         val f=fixture(); try {
             f.seed()
             val previous=f.workouts.startWorkout("Earlier")
-            val set=f.workouts.addSet(previous.id,"bench",75.0,6)
+            val entry=f.workouts.addExerciseWithInitialSet(previous.id,"bench",75.0,6)
+            val set=f.workouts.getSetsForSession(previous.id).first().single { it.workoutExerciseId == entry.id }
             f.workouts.updateSet(set.id) { it.copy(isCompleted=true) }
             ok(f.workflow.complete(previous.id))
             val next=ok(f.workflow.startRoutine("routine")).sessionId
@@ -430,7 +431,7 @@ class TrainingWorkflowTest {
             val entry=f.workouts.addExerciseWithInitialSet(session.id,"bench",60.0,10)
             f.workouts.getSetsForSession(session.id).first().forEach { f.workouts.deleteSet(it.id) }
             ok(f.workflow.complete(session.id))
-            assertFailsWith<IllegalStateException> { f.workouts.removeExerciseFromWorkout(session.id,entry.id) }
+            assertFailsWith<IllegalStateException> { f.workouts.removeWorkoutExercise(session.id,entry.id) }
             assertFailsWith<IllegalStateException> { f.workouts.cancelWorkout(session.id) }
             assertEquals(listOf(entry),f.workouts.getWorkoutExercises(session.id).first())
             assertTrue(f.workouts.getSessionById(session.id)!!.isCompleted)

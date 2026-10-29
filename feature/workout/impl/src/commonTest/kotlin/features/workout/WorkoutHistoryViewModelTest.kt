@@ -257,9 +257,7 @@ private class HistoryFakeWorkoutRepository : WorkoutRepository, WorkoutDataExpor
     override suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String) = removeExerciseFromWorkout(sessionId,workoutExerciseId)
     override suspend fun addExerciseWithInitialSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int) = features.workout.domain.WorkoutExercise(
         exerciseId,sessionId,exerciseId,exerciseId,features.exercises.api.MuscleGroup.CHEST,90,0)
-    override suspend fun addSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int, rpe: Double?): WorkoutSet = error("Not needed")
     override suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet = error("Not used")
-    override suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String) {}
 
     override suspend fun deleteSet(setId: String) {}
     override suspend fun cancelWorkout(sessionId: String) {}

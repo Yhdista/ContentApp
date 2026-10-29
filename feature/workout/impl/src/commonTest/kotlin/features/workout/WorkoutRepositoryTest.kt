@@ -47,6 +47,11 @@ class WorkoutRepositoryTest {
         )
     }
 
+    private suspend fun initialActualSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int): features.workout.domain.WorkoutSet {
+        val entry = repository.addExerciseWithInitialSet(sessionId, exerciseId, weightKg, reps)
+        return repository.getSetsForSession(sessionId).first().single { it.workoutExerciseId == entry.id }
+    }
+
     private suspend fun complete(sessionId: String) =
         (features.workout.data.RoomWorkoutStore(fakeDao, directWrites, fakeMutationDao, fakeClock).completeOnce(sessionId)
             as core.result.Result.Success).data.session
@@ -84,8 +89,8 @@ class WorkoutRepositoryTest {
     @Test
     fun testAddAndCompleteSetCalculatesVolumeAndLogsMutation() = runTest {
         val session = repository.startWorkout("Leg Day")
-        val set1 = repository.addSet(sessionId = session.id, exerciseId = "ex_squat", weightKg = 100.0, reps = 5)
-        val set2 = repository.addSet(sessionId = session.id, exerciseId = "ex_squat", weightKg = 100.0, reps = 5)
+        val set1 = initialActualSet(sessionId = session.id, exerciseId = "ex_squat", weightKg = 100.0, reps = 5)
+        val set2 = repository.addSetToEntry(session.id, set1.workoutExerciseId!!, 100.0, 5)
 
         repository.updateSet(set1.id) { it.copy(isCompleted = true) }
         repository.updateSet(set2.id) { it.copy(isCompleted = true) }
@@ -104,13 +109,13 @@ class WorkoutRepositoryTest {
     fun testUpdateSetDetectsPersonalRecord() = runTest {
         // Sezení 1: Bench 80 kg × 8 reps (~101.3 kg 1RM)
         val session1 = repository.startWorkout("Bench Day 1")
-        val set1 = repository.addSet(session1.id, "ex_bench", 80.0, 8)
+        val set1 = initialActualSet(session1.id, "ex_bench", 80.0, 8)
         repository.updateSet(set1.id) { it.copy(isCompleted = true) }
         complete(session1.id)
 
         // Sezení 2: Bench 90 kg × 8 reps (~114 kg 1RM) -> Překonává sezení 1 -> PR!
         val session2 = repository.startWorkout("Bench Day 2")
-        val set2 = repository.addSet(session2.id, "ex_bench", 90.0, 8)
+        val set2 = initialActualSet(session2.id, "ex_bench", 90.0, 8)
         repository.updateSet(set2.id) { it.copy(isCompleted = true) }
 
         val setsSess2 = repository.getSetsForSession(session2.id).first()
@@ -119,7 +124,7 @@ class WorkoutRepositoryTest {
 
         // Sezení 3: Bench 70 kg × 5 reps (~81.6 kg 1RM) -> Menší než minulé výkony -> Není PR
         val session3 = repository.startWorkout("Bench Day 3")
-        val set3 = repository.addSet(session3.id, "ex_bench", 70.0, 5)
+        val set3 = repository.addSetToEntry(session3.id, set2.workoutExerciseId!!, 70.0, 5)
         repository.updateSet(set3.id) { it.copy(isCompleted = true) }
 
         val setsSess3 = repository.getSetsForSession(session3.id).first()
@@ -130,7 +135,7 @@ class WorkoutRepositoryTest {
     @Test
     fun testWarmupSetNeverMarkedAsPersonalRecord() = runTest {
         val session = repository.startWorkout("Bench Day")
-        val set = repository.addSet(session.id, "ex_bench", 150.0, 10)
+        val set = initialActualSet(session.id, "ex_bench", 150.0, 10)
         repository.updateSet(set.id) { it.copy(isCompleted = true, setType = WorkoutSetType.WARMUP) }
 
         val sets = repository.getSetsForSession(session.id).first()
@@ -142,11 +147,11 @@ class WorkoutRepositoryTest {
     fun testHeavyWarmupSetDoesNotBlockSubsequentWorkingSetPersonalRecord() = runTest {
         // Sezení 1: Těžký zahřívací set (150 kg × 10 = 200 kg 1RM), který nesmí zablokovat pracovní PR!
         val session1 = repository.startWorkout("Session 1")
-        val warmupSet = repository.addSet(session1.id, "ex_bench", 150.0, 10)
+        val warmupSet = initialActualSet(session1.id, "ex_bench", 150.0, 10)
         repository.updateSet(warmupSet.id) { it.copy(isCompleted = true, setType = WorkoutSetType.WARMUP) }
 
         // Následný pracovní set ve stejném sezení (100 kg × 5 = ~116.7 kg 1RM) -> Musí být uznán jako PR!
-        val workingSet1 = repository.addSet(session1.id, "ex_bench", 100.0, 5)
+        val workingSet1 = repository.addSetToEntry(session1.id, warmupSet.workoutExerciseId!!, 100.0, 5)
         repository.updateSet(workingSet1.id) { it.copy(isCompleted = true, setType = WorkoutSetType.NORMAL) }
 
         val setsSess1 = repository.getSetsForSession(session1.id).first()
@@ -155,7 +160,7 @@ class WorkoutRepositoryTest {
 
         // Sezení 2: Pracovní set (105 kg × 5 = 122.5 kg 1RM) překonává předchozí pracovní 100×5, ačkoliv je nižší než starý warmup 150×10
         val session2 = repository.startWorkout("Session 2")
-        val workingSet2 = repository.addSet(session2.id, "ex_bench", 105.0, 5)
+        val workingSet2 = initialActualSet(session2.id, "ex_bench", 105.0, 5)
         repository.updateSet(workingSet2.id) { it.copy(isCompleted = true, setType = WorkoutSetType.NORMAL) }
 
         val setsSess2 = repository.getSetsForSession(session2.id).first()

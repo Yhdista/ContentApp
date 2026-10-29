@@ -27,12 +27,9 @@ interface WorkoutRepository {
     /** Entry-specific commands reject stale IDs instead of treating them as catalogue IDs. */
     suspend fun addSetToEntry(sessionId: String, workoutExerciseId: String, weightKg: Double, reps: Int, rpe: Double? = null): WorkoutSet
     suspend fun removeWorkoutExercise(sessionId: String, workoutExerciseId: String)
-    /** Legacy catalogue command. Prefer addSetToEntry for existing entries. */
-    suspend fun addSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int, rpe: Double? = null): WorkoutSet
     /** Applies an edit to the latest persisted value in the command transaction. */
     suspend fun updateSet(setId: String, update: (WorkoutSet) -> WorkoutSet): WorkoutSet
     suspend fun deleteSet(setId: String)
-    suspend fun removeExerciseFromWorkout(sessionId: String, exerciseId: String)
     suspend fun cancelWorkout(sessionId: String)
     /** Last completed set in the latest completed session, ordered by session time and occurrence/set order. */
     suspend fun getLastPerformance(exerciseId: String): String?

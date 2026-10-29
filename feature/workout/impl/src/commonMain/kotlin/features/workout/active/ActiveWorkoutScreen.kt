@@ -131,7 +131,7 @@ internal fun ActiveWorkoutScreen(
         },
         thumbActionZone = {
             WorkoutThumbBar(
-                enabled = !state.isSaving,
+                enabled = !state.isSaving && !state.isTerminated,
                 onAddExercise = { onIntent(ActiveWorkoutContract.Intent.OpenExercisePicker(true)) },
                 onFinishWorkout = { onIntent(ActiveWorkoutContract.Intent.FinishWorkout) },
                 onCancelWorkout = { onIntent(ActiveWorkoutContract.Intent.CancelWorkout) }

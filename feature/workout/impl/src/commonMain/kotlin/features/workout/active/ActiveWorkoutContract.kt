@@ -27,6 +27,8 @@ internal class ActiveWorkoutContract {
         val exerciseStats: features.workout.domain.ExerciseStats? = null,
         val isLoading: Boolean = false,
         val isSaving: Boolean = false,
+        /** A committed Finish/Cancel closes this screen instance, even before its effect is consumed. */
+        val isTerminated: Boolean = false,
         val error: UiText? = null
     ) : UiState
 

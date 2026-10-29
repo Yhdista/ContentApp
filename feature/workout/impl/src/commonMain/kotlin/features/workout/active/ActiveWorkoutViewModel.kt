@@ -44,7 +44,7 @@ internal class ActiveWorkoutViewModel(
     }
 
     override fun handleIntent(intent: ActiveWorkoutContract.Intent) {
-        if (uiState.value.isSaving) return
+        if (uiState.value.isSaving || uiState.value.isTerminated) return
         when (intent) {
             is ActiveWorkoutContract.Intent.LoadWorkout -> loadWorkout()
             is ActiveWorkoutContract.Intent.OpenExercisePicker -> updateState { copy(isPickerVisible = intent.isOpen) }
@@ -285,6 +285,7 @@ internal class ActiveWorkoutViewModel(
         terminalCommand {
             when (completeWorkout.complete(session.id)) {
                 is core.result.Result.Success -> {
+                    updateState { copy(isTerminated = true) }
                     cancelTimers()
                     sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)
                 }
@@ -297,13 +298,14 @@ internal class ActiveWorkoutViewModel(
         val session = uiState.value.session ?: return
         terminalCommand {
             workoutRepository.cancelWorkout(session.id)
+            updateState { copy(isTerminated = true) }
             cancelTimers()
             sendEffect(ActiveWorkoutContract.Effect.WorkoutCancelled)
         }
     }
 
     private fun terminalCommand(block: suspend () -> Unit) {
-        if (uiState.value.isSaving) return
+        if (uiState.value.isSaving || uiState.value.isTerminated) return
         updateState { copy(isSaving = true, error = null) }
         launchOperation {
             // Only this accepted command owns the lock; observation failures cannot release it.

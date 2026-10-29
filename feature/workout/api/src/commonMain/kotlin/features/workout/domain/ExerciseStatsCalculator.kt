@@ -8,7 +8,12 @@ object ExerciseStatsCalculator {
         sessions: List<WorkoutSession>,
         sets: List<WorkoutSet>
     ): ExerciseStats {
-        val completedSets = sets.filter { it.isCompleted && it.exerciseId == exercise.id }
+        // Streams may invalidate at different times. Historical stats require matching completed
+        // session metadata before a checked actual set contributes to any total or history entry.
+        val sessionMap = sessions.filter { it.isCompleted }.associateBy { it.id }
+        val completedSets = sets.filter {
+            it.isCompleted && it.exerciseId == exercise.id && it.sessionId in sessionMap
+        }
         if (completedSets.isEmpty()) {
             return ExerciseStats(
                 exercise = exercise,
@@ -21,15 +26,11 @@ object ExerciseStatsCalculator {
             )
         }
 
-        val sessionMap = sessions.associateBy { it.id }
-
         // Group sets by sessionId
         val groupedSets = completedSets.groupBy { it.sessionId }
 
         val sessionEntries = groupedSets.map { (sessionId, sessionSets) ->
-            val session = sessionMap[sessionId]
-            val date = session?.startTimeEpochMs ?: 0L
-            val title = session?.title ?: "Trénink"
+            val session = sessionMap.getValue(sessionId)
             val sortedSets = sessionSets.sortedBy { it.setNumber }
 
             val maxWeightSet = sortedSets.maxByOrNull { it.weightKg }
@@ -43,8 +44,8 @@ object ExerciseStatsCalculator {
 
             ExerciseHistorySessionEntry(
                 sessionId = sessionId,
-                sessionTitle = title,
-                dateEpochMs = date,
+                sessionTitle = session.title,
+                dateEpochMs = session.startTimeEpochMs,
                 sets = sortedSets,
                 maxWeightKg = maxWeight,
                 max1RMKg = max1RM,

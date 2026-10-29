@@ -70,6 +70,11 @@ class WorkoutPersistenceTest {
         return application.koin.get<WorkoutRepository>().also { application.close() }
     }
 
+    private suspend fun WorkoutRepository.initialActualSet(sessionId: String, exerciseId: String, weightKg: Double, reps: Int): WorkoutSet {
+        val entry = addExerciseWithInitialSet(sessionId, exerciseId, weightKg, reps)
+        return getSetsForSession(sessionId).first().single { it.workoutExerciseId == entry.id }
+    }
+
     @Test fun addingExerciseRollsBackEntryWhenInitialSetOutboxFails() = runTest {
         val db = database()
         try {
@@ -285,7 +290,7 @@ class WorkoutPersistenceTest {
         try {
             val repository = repository(db, writes(db))
             val session = repository.startWorkout("Edits")
-            val set = repository.addSet(session.id, "bench", 60.0, 10)
+            val set = repository.initialActualSet(session.id, "bench", 60.0, 10)
             val weight = async(start = CoroutineStart.UNDISPATCHED) {
                 repository.updateSet(set.id) { it.copy(weightKg = 65.0) }
             }
@@ -363,7 +368,7 @@ class WorkoutPersistenceTest {
         try {
             val repository = repository(db, writes(db))
             val session = repository.startWorkout("Finalized")
-            val set = repository.addSet(session.id, "bench", 60.0, 10)
+            val set = repository.initialActualSet(session.id, "bench", 60.0, 10)
             repository.updateSet(set.id) { it.copy(isCompleted = true) }
             // Arrange a finalized stored record; app workflow completion is covered by TrainingWorkflowTest.
             db.workoutDao().completeSession(session.id, 1000L, 600.0)
@@ -382,9 +387,9 @@ class WorkoutPersistenceTest {
         try {
             val repository = repository(db, writes(db))
             val session = repository.startWorkout("Delete")
-            val first = repository.addSet(session.id, "bench", 60.0, 10)
-            repository.addSet(session.id, "bench", 65.0, 10)
-            repository.addSet(session.id, "bench", 70.0, 10)
+            val first = repository.initialActualSet(session.id, "bench", 60.0, 10)
+            repository.addSetToEntry(session.id, first.workoutExerciseId!!, 65.0, 10)
+            repository.addSetToEntry(session.id, first.workoutExerciseId!!, 70.0, 10)
             repository.deleteSet(first.id)
             val remaining = db.workoutDao().getSetsForSessionSnapshot(session.id)
             assertEquals(listOf(1, 2), remaining.map { it.setNumber })
@@ -406,11 +411,11 @@ class WorkoutPersistenceTest {
             }
             val repository = repository(db, writes(db), outbox)
             val session = repository.startWorkout("Remove exercise")
-            repository.addSet(session.id, "bench", 60.0, 10)
-            repository.addSet(session.id, "bench", 65.0, 10)
+            val first = repository.initialActualSet(session.id, "bench", 60.0, 10)
+            repository.addSetToEntry(session.id, first.workoutExerciseId!!, 65.0, 10)
             val outboxBefore = db.mutationDao().getUnsentMutationsCount().first()
             rejectDeletes = true
-            assertFailsWith<IllegalStateException> { repository.removeExerciseFromWorkout(session.id, "bench") }
+            assertFailsWith<IllegalStateException> { repository.removeWorkoutExercise(session.id, first.workoutExerciseId!!) }
             assertEquals(2, db.workoutDao().getSetsForSessionSnapshot(session.id).size)
             assertEquals(outboxBefore, db.mutationDao().getUnsentMutationsCount().first())
         } finally { db.close() }
