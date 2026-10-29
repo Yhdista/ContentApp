@@ -1,0 +1,85 @@
+{
+  "note": "RED1 also had VM test compilation inference errors; fixed tests-only before actual RED2. No source fix before RED2.",
+  "cases": [
+    {
+      "phase": "red",
+      "revision": "e23089a",
+      "suite": "ExerciseStatsCalculatorTest[desktop]",
+      "name": "activeAndUnmatchedSetsNeverEnterHistoricalStats[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: expected:<40.0> but was:<1000.0>"
+    },
+    {
+      "phase": "red",
+      "revision": "e23089a",
+      "suite": "ExerciseStatsCalculatorTest[desktop]",
+      "name": "setsWaitForCompletedSessionMetadataWithoutEpochFallback[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: expected:<0.0> but was:<80.0>"
+    },
+    {
+      "phase": "red",
+      "revision": "e23089a",
+      "suite": "TrainingWorkflowTest[desktop]",
+      "name": "repositoryExposesOnlyEntryStrictSetAndRemovalCommands[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: Legacy catalog-ID addSet must not be a public workout command"
+    },
+    {
+      "phase": "red",
+      "revision": "e23089a",
+      "suite": "TrainingWorkflowTest[desktop]",
+      "name": "exerciseStatsExcludeActiveCheckedSetsUntilWorkflowFinish[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: expected:<1> but was:<2>"
+    },
+    {
+      "phase": "red",
+      "revision": "e23089a",
+      "suite": "TrainingWorkflowTest[desktop]",
+      "name": "entryCommandsRejectCatalogueIdsWithoutMutatingRepeatedOccurrences[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "red2",
+      "revision": "5fe9c34",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "failedCancelAllowsRetryUntilFirstSuccess[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: expected:<2> but was:<3>"
+    },
+    {
+      "phase": "red2",
+      "revision": "5fe9c34",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "observerFailureCannotUnlockPendingFinish[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: Successful Finish remains terminal even when the observer has stopped expected:<1> but was:<2>"
+    },
+    {
+      "phase": "red2",
+      "revision": "5fe9c34",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "successfulCancelIgnoresLaterTerminalIntentsBeforeEffectConsumption[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: expected:<1> but was:<2>"
+    },
+    {
+      "phase": "red2",
+      "revision": "5fe9c34",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "failedFinishAllowsRetryUntilFirstSuccess[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: expected:<2> but was:<3>"
+    },
+    {
+      "phase": "red2",
+      "revision": "5fe9c34",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "successfulFinishIgnoresLaterTerminalIntentsBeforeEffectConsumption[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: expected:<1> but was:<2>"
+    }
+  ]
+}

@@ -68,7 +68,7 @@
 ./gradlew desktopTest testAndroidHostTest :androidApp:testDebugUnitTest \
   verifyArchitecture testArchitectureGuard lintAndroidMain :androidApp:lintDebug \
   :verification:designsystem-consumer:compileKotlinDesktop \
-  :androidApp:assembleDebug :composeApp:compileKotlinIosSimulatorArm64
+  :androidApp:assembleDebug :composeApp:compileKotlinIosArm64 :composeApp:compileKotlinIosSimulatorArm64
 
 # Skutečné Root → ViewModel → Room → NavHost interakce přes Desktop Skia:
 ./gradlew :composeApp:desktopTest --tests '*LibrarySmokeTest' --tests '*TypedNavigationTest'

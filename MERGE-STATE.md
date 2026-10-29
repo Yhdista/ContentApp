@@ -1,33 +1,29 @@
 # 🧭 Atomic architecture hardening — integrační stav
 
-📅 29.10.2026, root integrátor. Větev `refactor/atomic-foundation`, base `fb6078d`. Uživatel schválil implementaci auditu, `yhdi-dev`, oba další notebooky přes `yhdi-mesh`, moderní stack s Apple Silicon iOS simulátorem. Lokální feature commity; nový push/merge není součást této vlny.
+📅 29. 10. 2026 · větev `refactor/atomic-foundation`, base `fb6078d`. Uživatel schválil implementaci auditu, postupy yhdi-dev, zapojení obou dalších notebooků přes yhdi-mesh a moderní stack s Apple Silicon iOS simulátorem. Tato vlna má lokální commity; dřívější merge do main patří předchozí dokončené vlně rutin/plánů.
 
-## 📋 Rozsah a hotové balíky
+## ✅ Implementace a důkazy
 
-Kanonické úkoly: claude-mem `atomic-architecture-hardening`. [Plán](docs/superpowers/plans/2026-10-29-atomic-architecture-hardening.md), [audit](docs/reviews/2026-10-29-atomic-architecture-audit.md), [akceptace](docs/reviews/2026-10-29-hardening-acceptance.md).
+- Runtime/API původního auditu `0a8a6d9`; společné durable editory a katalog `32a5a78`; atomic UI `29efd04`; build/moderní KMP/Android host `caea2ad`; atomic směr a veřejné Modifier kontrakty `45e2133`.
+- Následné review opravy: statistiky dokončených sessions, terminální stav workoutu a striktní occurrence API `a460474`; UI kontrast/velké písmo/dekorativní ikony, module guard a oba iOS ARM cíle `88a5974`. Poslední změna `8b21c1e` pouze zpřesňuje dvě nové testovací assertions.
+- Finální agregace **231 desktop + 138 Android host/unit, 0 failures/errors/skips**. 217 dotčených testů v závěrečné opravné vlně + 152 zachovaných z předchozí G. Nejde o jediný nový běh všech testů.
+- K všech consumers/testů, oba iOS ARM cíle, public consumer, Gradle inventory, 19 guard fixture metod, KMP/host lint a APK ověřené. Lint 0 errors a 0 ModifierParameter warnings; 18 ostatních warnings zdokumentováno.
+- Nové runtime regrese nejprve RED → GREEN. Opravené UI assertions se znovu ověřily na původní produkci: všechny 3 chyby RED, poté obě celé UI třídy (4 testy) GREEN. Všechny původní interakční assertions zachované.
+- Room schémata 6/7 byte-identical, raw draft JSON v1 zachovaný. Nové iOS cíle jsou compile důkaz; iOS host/framework/runtime mimo rozsah.
+- Nativní Android smoke na dřívější uvedené revizi ověřil nový host, draft/Back/restart/publish/workout/finish/historii. Izolovaný QA package odinstalován; běžná data nedotčena.
 
-1. ✅ Runtime/API `0a8a6d9`: čtyři auditované chyby, RED6/GREEN17L1, K všech consumers.
-2. ✅ Editor/controller a katalog `32a5a78`: K všech13modulů,8L1 na skutečné SQLite.
-3. ✅ Atomic UI `29efd04`: nový veřejný consumer, tokeny/semantics/320dp/font2, AirK+4L1+5captures. Brzké APK494fd12 už dodáno.
-4. ✅ Build konvence/automatické hranice `caea2ad`.
-5. ✅ Moderní kompatibilní KMP stack a oddělený Android host `caea2ad`; K všech targets + skutečná Room6→7 a navrecreationL1. Schémata6/7 byteidentical, rawdraftv1 bezezměny.
-6. ⏳ Dokumentace a finální G opravy; potom triáž, cross-vendor review a uživatelem požadovaná skutečná Astra.
+📚 [Architektura](docs/architecture.md), [MVI](docs/mvi.md), [Atomic UI](docs/atomic-design.md), [Build](docs/build-toolchain.md), [akceptace](docs/reviews/2026-10-29-hardening-acceptance.md), [strojová evidence](docs/reviews/evidence/2026-10-29-hardening/review-final.json).
 
-## 🚦 Aktuální ověření
+📦 APK: `artifacts/atomic-hardening-88a5974/ContentApp-debug.apk`; běžný package `com.yhdista.contentapp`, AAPT a SHA256 v [manifestu artefaktu](docs/reviews/evidence/2026-10-29-hardening/artifact.json).
 
-- CeláG +cílené opravy:220desktop/32suites +132Androidhostunit/20suites,0fail/error/skip. Agregace zmražená vG-green-9cbdace.json; backend testy se bez změny jejich předpokladů neopakovaly.
-- Finálníproduction `45e2133`: nucleusbezvyššíchreferencí,14ModifierParameter oprav,17atomicguardfixtures. Air K všechconsumers/platform+13UI+guards/lint/APK PASS85s/753tasks (219executed). Lint0errors/0Modifierwarnings;18ostatníchwarningů přesněpopsaných.
-- ✅ NativeAndroidsmoke produkcec858837: novýhost/3tabs/draft+cvik/Back/restart/reopen/publish/startworkout/checkset/finish→routine/history1. OddělenýQApackage a důkazy v [reportu](docs/reviews/evidence/2026-10-29-hardening/native-android/README.md); nativegateuvolněný.
-- Finální běžné APK:artifacts/atomic-hardening-45e2133/ContentApp-debug.apk. DokončenéK/G nejsou tvrzením o proběhlémGitHubActions nebo iOSruntime.
-- Následuje reviewkaskáda Luna→cross-vendorOpus→uživatelemvyžádanáAstra. Zdroj zmražený pro review; případnéprokázané nálezy se opraví a ověříjen dotčenými senzory.
+## 🔍 Nezávislé review
 
-## 💻 Mesh a prostředí
+Skutečná Luna triáž → cross-vendor Claude Opus5.5/high + uživatelem vyžádaná GPT-6 Astra celého současného stromu. Původní nálezy zachované v reportech. Astra scoped rereview uzavřelo jediný nový P2 bez dalších nálezů. Opus scoped rereview dokončeno (212s,33turns): žádné nové potvrzené vady, původní opravy uzavřené; přímý celý build log doplněn k jeho iOS evidence poznámce. [Astra](docs/reviews/2026-10-29-astra-scoped-rereview.md), [Opus](docs/reviews/2026-10-29-opus-scoped-rereview.md).
 
-- Oba prepjobs hotové: Airtoolchain `...234024-3edf0c`, WindowsatomicAPI `...234024-c66e9b`. Reporty `.yhdista/mesh-{toolchain,atomic}-preparation.md`; Windows omezenýshell dokumentovaný, rootověřilconfig+Mavenartefakty.
-- Airbuildcopy `/Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build`; branchbuild/atomic45. Každá kopie vlastní CodeGraphinitializedtrue, každýintegration sync. Žádné osobníconfigs kopírované.
-- Profil2gGradle/1gKotlin/1worker/1fork, jeden strojový gate přes `yhdi-dev/scripts/gw`; root vlastníAirbuildy. Air nativeHomebrewJDK21,compiletoolchain17. Žádnýcizídaemon/IDE/emulator nebyl ukončen.
-- LokálníMac pressurewarn, aktivníswap0,DEFER0; žádná souběžná lokální kompilace. Memorycaptureclaude-mem preventivněpozastavené kvůlitýdenníkvótě, stavovézápisyfungují; workernerestartovat.
+## 💻 Mesh a reprodukovatelnost
 
-## ▶️ Obnova
+Air i Windows dokončily izolovanou přípravu. Windows podklad má výslovně popsané omezení shell čtení; není vydáván za build důkaz. Air následně skutečně sestavoval a testoval. Každá kopie měla vlastní CodeGraph; integrace vždy sync indexu. Žádné osobní konfigurace se nekopírovaly.
 
-Ověřit aktuální agentstatus,gitHEAD/WIP a reviewartefakty `.yhdista/`. PůvodníUIworker sourcehotov45e2133; rootintegruje výsledky. Každý dalšíběh zapsat srevizí/rozsahem; celouG opakovatjenpřizměnějejíchpředpokladů. Žádnýmerge/push beznovéautorizace.
+Air build copy `/Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build`, poslední HEAD `8b21c1e`, tracked source čistý. Profil 2g Gradle / 1g Kotlin / 1 worker; root vlastní Air gate. Native Homebrew JDK21 pro Gradle, JVM compile toolchain17. Žádný cizí daemon/IDE/emulator nebyl ukončen. Všechny vlastní Gradle běhy skončily; žádný čekající build.
+
+Kanonický stav: claude-mem `atomic-architecture-hardening`. Implementace, dokumentace, ověření i nezávislé kontroly dokončené. Všechny vlastní buildy a review procesy skončily. Celou G neopakovat bez změny jejích předpokladů; případnou další změnu ověřit dotčenými kontrolami. Tato vlna se nepushovala ani nemergovala do main.

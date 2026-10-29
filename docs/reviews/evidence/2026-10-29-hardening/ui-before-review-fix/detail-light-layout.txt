@@ -1,0 +1,1 @@
+size=24 x 24 constraints=Constraints(minWidth = 0, maxWidth = 24, minHeight = 0, maxHeight = 24) bounds=Rect.fromLTRB(40.0, 710.0, 64.0, 734.0) lines=2 line0=[0.0,0.0,14.8359375,28.0] overflowHeight=true

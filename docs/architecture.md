@@ -89,6 +89,8 @@ tools/architecture/                         # pravidla hranic + negativní fixtu
 
 `ExerciseCatalogImport` je oddělený integrační vstup pro bundled seed a přijaté vzdálené záznamy se stabilními ID. Tyto záznamy nejsou nové uživatelské mutace a nevracejí se do outboxu. `initKoin` spouští idempotentní inicializaci pouze prázdného katalogu v aplikačním scope; původních sedm výchozích ID i hodnot zůstává zachovaných. Selhání inicializace se zaznamená jako typová infrastrukturní chyba. Schéma se nemění.
 
+🧱 Integrační participant není běžné feature API: `ExerciseCatalogImport` smí používat pouze exercises api/impl a `composeApp`; `WorkoutStore` obdobně workout api/impl a `composeApp`. Source guard pravidlo kontroluje podle fyzického modulu i u obyčejných datových tříd a use cases. Screen/Root/ViewModel tyto participanty nesmí používat ani ve vlastní feature; dostávají veřejné uživatelské příkazy nebo úzké app workflow akce. Guard je lexikální kontrola, nikoli náhrada Kotlin typového systému.
+
 ## 💾 Příkazy a drafty
 
 🔄 Po vnějším úspěšném commitu RoomCommandCoordinator vyvolá `invalidationTracker.refreshAsync()`. Tento krok zůstává součástí integračního kontraktu i po upgradu Room; jeho odstranění nebylo prokázáno jako bezpečné. Živé Flow odběry mají vidět commit bez opětovného otevření obrazovky; savepoint ani rollback nesmí poslat necommitnutý mezistav. Regresi pokrývá skutečný dlouhodobý Room odběr i návrat na přejmenovaný detail.
@@ -120,6 +122,8 @@ tools/architecture/                         # pravidla hranic + negativní fixtu
 🗓️ Postup má oddělenou `progressRevision`. Dokončení vyžaduje shodu plan revision, slotu i progress revision; jinak zachová výkon a nastaví `needsReview`. Archivovaný plán už neposouvá. Ruční potvrzení dalšího slotu vymaže review a zvýší revizi. Výběr aktuálního plánu je lokální preference, postup ostatních plánů neresetuje.
 
 📤 Historie sjednotí entry z původních cílů a skutečných sérií: zobrazí i zcela odebraný cvik, cíle označí „Vynecháno — bez skutečného výkonu“. `getPrescriptionForSession` čte úplný předpis; `getSetsForSession` vrací pouze skutečné série. Objem, počty, PR a statistiky se počítají jen ze skutečnosti. JSON export odděluje `prescriptions` a `sets`, propojené stabilním ID; `setsCount` je počet skutečných řádků. CSV má sjednocení ID, pro vynechané cíle `Stav_Skutečnosti=OMITTED` a prázdné skutečné číselné sloupce. Původní pořadí série/cviku a source child ID mají vlastní sloupce, proto přečíslování skutečnosti nefalšuje předpis.
+
+📈 Historické statistiky cviku zahrnují pouze dokončené skutečné série patřící k dokončeným sessions. `ExerciseStatsCalculator` spojí vstupy podle session ID ještě před součty, rekordy a historií. Série aktivního workoutu ani série s dosud nedoručenými metadaty session se nezapočítá; po dokončení a doručení session získá skutečný čas a název. Oddělené Flow emise tak nemohou vytvořit falešný historický bod s datem `0`.
 
 📤 `CreateRoutineDraft` z workout API je app adaptér nad `RoutineDraftFactory`. Zkopíruje skutečné jednotlivé série podle entry/order/type/rest do návrhu. Nepublikuje rutinu ani outbox. CSV/JSON nyní exportují pouze workout data/snapshoty a katalog; definice rutin, plány, postup ani drafty nejsou zálohovány. Legacy template shim byl odstraněn.
 

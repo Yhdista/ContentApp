@@ -32,7 +32,7 @@ flowchart LR
 - 👆 Akce používá `ActionVariant` z `ui.designsystem.nucleus` a obsahový slot. `Primary`, `Secondary`, `Quiet` a `Destructive` nesou význam; konkrétní barvy volí téma.
 - ⌨️ `AppInput` přijímá raw text, `KeyboardOptions`, `singleLine`, `isError` a `supportingText`. Numerický filtr ani doménová validace se do obecného pole neschovávají.
 - 💬 Dialog přijímá texty/sloty potvrzení i zrušení. Text produktu nebo jméno ukládaného modelu vlastní consumer.
-- 🧭 `AppTabs` přijímá obsah a ikony. Routy, pořadí záložek a navigační controller vlastní aplikace.
+- 🧭 `AppTabs` přijímá obsah a ikony. Povinný obsahový slot nese srozumitelný label; `AppTabItem.icon` je dekorativní a jeho vlastní semantics se skryjí, aby čtečka neopakovala popis. Samostatný význam patří do labelu. Routy, pořadí záložek a navigační controller vlastní aplikace.
 - 🛡️ `StatusBadge(label = …, tone = …)` zná pouze UI `StatusTone`. `ItemSyncStatus` mapuje feature; design system kvůli němu nepotřebuje foundation, storage ani feature API.
 - 🎨 `AppStyle` vystavuje vlastní sadu barev a Compose `TextStyle`. Veřejný kontrakt nevyžaduje Material `ColorScheme` ani `Typography`.
 

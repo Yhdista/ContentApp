@@ -1,0 +1,17 @@
+{
+  "path": "artifacts/atomic-hardening-88a5974/ContentApp-debug.apk",
+  "production_revision": "88a5974c6ec4519c43475bf7b099299757fa5689",
+  "test_revision": "8b21c1e",
+  "package": "com.yhdista.contentapp",
+  "variant": "debug",
+  "size_bytes": 23185360,
+  "sha256": "14b45eec5f31d6a23c0b3605fd47ceb8cfbe03daad55faeb5708132a52b1251b",
+  "min_sdk": 27,
+  "target_sdk": 35,
+  "compile_sdk": 37,
+  "permissions": [
+    "android.permission.VIBRATE",
+    "com.yhdista.contentapp.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  ],
+  "verification": "AAPT dump badging; APK from successful assembleDebug task in scoped88a5974 run; test-only8b21c1e does not change APK"
+}

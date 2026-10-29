@@ -1,0 +1,304 @@
+Reusing configuration cache.
+> Task :core:presentation:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :designsystem:generateComposeResClass SKIPPED
+> Task :foundation:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:presentation:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :designsystem:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :core:storage:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:exercises:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:workout:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:presentation:generateComposeResClass SKIPPED
+> Task :designsystem:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :designsystem:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:generateComposeResClass SKIPPED
+> Task :designsystem:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :feature:workout:impl:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :core:presentation:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :foundation:desktopProcessResources NO-SOURCE
+> Task :feature:workout:api:desktopProcessResources NO-SOURCE
+> Task :core:presentation:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :core:storage:desktopProcessResources NO-SOURCE
+> Task :feature:exercises:api:desktopProcessResources NO-SOURCE
+> Task :feature:workout:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:exercises:api:processDesktopMainResources SKIPPED
+> Task :feature:workout:impl:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:workout:impl:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :foundation:processDesktopMainResources SKIPPED
+> Task :feature:workout:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:workout:api:processDesktopMainResources SKIPPED
+> Task :feature:workout:impl:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :core:storage:processDesktopMainResources SKIPPED
+> Task :feature:routines:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :designsystem:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:routines:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :feature:workout:impl:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:routines:impl:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:presentation:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:generateComposeResClass SKIPPED
+> Task :feature:routines:impl:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :feature:trainingplans:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:trainingplans:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:routines:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :core:presentation:generateResourceAccessorsForCommonMain SKIPPED
+> Task :core:presentation:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :designsystem:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :designsystem:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :feature:workout:impl:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:workout:impl:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:workout:impl:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :feature:routines:api:desktopProcessResources NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateComposeResClass SKIPPED
+> Task :feature:routines:impl:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :feature:routines:api:processDesktopMainResources SKIPPED
+> Task :feature:workout:impl:generateResourceAccessorsForCommonTest SKIPPED
+> Task :feature:workout:impl:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :feature:trainingplans:api:desktopProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:processDesktopMainResources SKIPPED
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForDesktopTest SKIPPED
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :core:presentation:assembleDesktopMainResources UP-TO-DATE
+> Task :feature:workout:impl:assembleDesktopMainResources UP-TO-DATE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :composeApp:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :designsystem:assembleDesktopMainResources UP-TO-DATE
+> Task :feature:exercises:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:workout:impl:assembleDesktopTestResources UP-TO-DATE
+> Task :composeApp:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :feature:routines:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:routines:impl:generateResourceAccessorsForCommonTest SKIPPED
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :composeApp:generateComposeResClass UP-TO-DATE
+> Task :feature:workout:impl:desktopProcessResources UP-TO-DATE
+> Task :feature:workout:impl:processDesktopMainResources SKIPPED
+> Task :feature:routines:impl:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :feature:routines:impl:generateResourceAccessorsForDesktopTest SKIPPED
+> Task :feature:workout:impl:desktopTestProcessResources UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :core:presentation:desktopProcessResources UP-TO-DATE
+> Task :composeApp:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :core:presentation:processDesktopMainResources SKIPPED
+> Task :designsystem:desktopProcessResources UP-TO-DATE
+> Task :designsystem:processDesktopMainResources SKIPPED
+> Task :feature:routines:impl:assembleDesktopMainResources UP-TO-DATE
+> Task :feature:workout:impl:processDesktopTestResources SKIPPED
+> Task :feature:exercises:impl:desktopProcessResources NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :feature:exercises:impl:processDesktopMainResources SKIPPED
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:assembleDesktopTestResources UP-TO-DATE
+> Task :foundation:compileKotlinDesktop UP-TO-DATE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :composeApp:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForDesktopTest SKIPPED
+> Task :composeApp:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:routines:impl:desktopProcessResources UP-TO-DATE
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :feature:trainingplans:impl:assembleDesktopMainResources UP-TO-DATE
+> Task :composeApp:generateResourceAccessorsForDesktopMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonMain NO-SOURCE
+> Task :feature:routines:impl:processDesktopMainResources SKIPPED
+> Task :feature:routines:impl:desktopTestProcessResources UP-TO-DATE
+> Task :composeApp:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:desktopProcessResources UP-TO-DATE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForCommonTest SKIPPED
+> Task :feature:trainingplans:impl:assembleDesktopTestResources UP-TO-DATE
+> Task :composeApp:generateActualResourceCollectorsForDesktopMain UP-TO-DATE
+> Task :composeApp:assembleDesktopMainResources UP-TO-DATE
+> Task :feature:trainingplans:impl:processDesktopMainResources SKIPPED
+> Task :composeApp:generateResourceAccessorsForDesktopTest NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonTest NO-SOURCE
+> Task :composeApp:assembleDesktopTestResources UP-TO-DATE
+> Task :feature:routines:impl:processDesktopTestResources SKIPPED
+> Task :feature:trainingplans:impl:desktopTestProcessResources UP-TO-DATE
+> Task :feature:trainingplans:impl:processDesktopTestResources SKIPPED
+> Task :foundation:compileDesktopMainJava NO-SOURCE
+> Task :foundation:desktopMainClasses UP-TO-DATE
+> Task :foundation:desktopJar UP-TO-DATE
+> Task :feature:exercises:api:compileKotlinDesktop UP-TO-DATE
+> Task :feature:exercises:api:compileDesktopMainJava NO-SOURCE
+> Task :feature:exercises:api:desktopMainClasses UP-TO-DATE
+> Task :designsystem:compileKotlinDesktop UP-TO-DATE
+> Task :core:storage:compileKotlinDesktop UP-TO-DATE
+> Task :core:presentation:compileKotlinDesktop UP-TO-DATE
+> Task :designsystem:compileDesktopMainJava NO-SOURCE
+> Task :designsystem:desktopMainClasses UP-TO-DATE
+> Task :feature:exercises:api:desktopJar UP-TO-DATE
+> Task :core:presentation:compileDesktopMainJava NO-SOURCE
+> Task :core:storage:compileDesktopMainJava NO-SOURCE
+> Task :core:presentation:desktopMainClasses UP-TO-DATE
+> Task :designsystem:desktopJar UP-TO-DATE
+> Task :core:storage:desktopMainClasses UP-TO-DATE
+> Task :core:presentation:desktopJar UP-TO-DATE
+> Task :core:storage:desktopJar UP-TO-DATE
+> Task :feature:workout:api:compileKotlinDesktop UP-TO-DATE
+> Task :feature:workout:api:compileDesktopMainJava NO-SOURCE
+> Task :feature:workout:api:desktopMainClasses UP-TO-DATE
+> Task :feature:workout:api:desktopJar UP-TO-DATE
+> Task :feature:exercises:impl:compileKotlinDesktop UP-TO-DATE
+> Task :feature:exercises:impl:compileDesktopMainJava NO-SOURCE
+> Task :feature:exercises:impl:desktopMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:desktopJar UP-TO-DATE
+> Task :feature:routines:api:compileKotlinDesktop UP-TO-DATE
+> Task :feature:trainingplans:api:compileKotlinDesktop UP-TO-DATE
+> Task :feature:workout:impl:compileKotlinDesktop UP-TO-DATE
+> Task :feature:routines:api:compileDesktopMainJava NO-SOURCE
+> Task :feature:routines:api:desktopMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:compileDesktopMainJava NO-SOURCE
+> Task :feature:trainingplans:api:desktopMainClasses UP-TO-DATE
+> Task :feature:workout:impl:compileDesktopMainJava NO-SOURCE
+> Task :feature:workout:impl:desktopMainClasses UP-TO-DATE
+> Task :feature:routines:api:desktopJar UP-TO-DATE
+> Task :feature:trainingplans:api:desktopJar UP-TO-DATE
+> Task :feature:workout:impl:desktopJar UP-TO-DATE
+> Task :feature:trainingplans:impl:compileKotlinDesktop UP-TO-DATE
+> Task :feature:routines:impl:compileKotlinDesktop UP-TO-DATE
+> Task :feature:trainingplans:impl:compileDesktopMainJava NO-SOURCE
+> Task :feature:trainingplans:impl:desktopMainClasses UP-TO-DATE
+> Task :feature:routines:impl:compileDesktopMainJava NO-SOURCE
+> Task :feature:routines:impl:desktopMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:desktopJar UP-TO-DATE
+> Task :feature:routines:impl:desktopJar UP-TO-DATE
+> Task :feature:routines:impl:compileTestKotlinDesktop UP-TO-DATE
+> Task :feature:trainingplans:impl:compileTestKotlinDesktop UP-TO-DATE
+> Task :feature:routines:impl:compileDesktopTestJava NO-SOURCE
+> Task :feature:trainingplans:impl:compileDesktopTestJava NO-SOURCE
+> Task :feature:routines:impl:desktopTestClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:desktopTestClasses UP-TO-DATE
+> Task :composeApp:kspKotlinDesktop UP-TO-DATE
+> Task :composeApp:desktopProcessResources UP-TO-DATE
+> Task :composeApp:processDesktopMainResources SKIPPED
+> Task :composeApp:compileKotlinDesktop UP-TO-DATE
+> Task :composeApp:compileDesktopMainJava NO-SOURCE
+> Task :composeApp:desktopMainClasses UP-TO-DATE
+> Task :composeApp:kspTestKotlinDesktop SKIPPED
+> Task :composeApp:desktopTestProcessResources UP-TO-DATE
+> Task :composeApp:processDesktopTestResources SKIPPED
+> Task :composeApp:desktopJar UP-TO-DATE
+
+> Task :feature:trainingplans:impl:desktopTest FAILED
+
+PlanPresentationTest[desktop] > observerFailureCannotUnlockPendingDuplicate[desktop] FAILED
+    java.lang.AssertionError at PlanPresentationTest.kt:224
+
+23 tests completed, 1 failed
+
+> Task :feature:routines:impl:desktopTest FAILED
+
+RoutinePresentationTest[desktop] > observerFailureCannotUnlockPendingDuplicate[desktop] FAILED
+    java.lang.AssertionError at RoutinePresentationTest.kt:239
+
+18 tests completed, 1 failed
+
+> Task :feature:workout:impl:compileTestKotlinDesktop
+> Task :feature:workout:impl:compileDesktopTestJava NO-SOURCE
+> Task :feature:workout:impl:desktopTestClasses
+
+> Task :feature:workout:impl:desktopTest FAILED
+
+ActiveWorkoutViewModelTest[desktop] > observerFailureCannotUnlockPendingFinish[desktop] FAILED
+    java.lang.AssertionError at ActiveWorkoutViewModelTest.kt:73
+
+38 tests completed, 1 failed
+
+> Task :composeApp:compileTestKotlinDesktop
+> Task :composeApp:compileDesktopTestJava NO-SOURCE
+> Task :composeApp:desktopTestClasses
+
+> Task :composeApp:desktopTest FAILED
+
+TrainingWorkflowTest[desktop] > repositoryCannotBypassApplicationCompletionWorkflow[desktop] FAILED
+    java.lang.AssertionError at TrainingWorkflowTest.kt:51
+
+WorkoutPersistenceTest[desktop] > addingExerciseRollsBackEntryWhenInitialSetOutboxFails[desktop] FAILED
+    java.lang.AssertionError at WorkoutPersistenceTest.kt:76
+
+WorkoutPersistenceTest[desktop] > previousPerformanceUsesCompletedSessionChronologyInsteadOfSetId[desktop] FAILED
+    org.junit.ComparisonFailure at WorkoutPersistenceTest.kt:98
+
+33 tests completed, 3 failed
+
+FAILURE: Build completed with 4 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:trainingplans:impl:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/AndroidApps/ContentApp/feature/trainingplans/impl/build/reports/tests/desktopTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:routines:impl:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/AndroidApps/ContentApp/feature/routines/impl/build/reports/tests/desktopTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+==============================================================================
+
+3: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:workout:impl:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/AndroidApps/ContentApp/feature/workout/impl/build/reports/tests/desktopTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+==============================================================================
+
+4: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':composeApp:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/AndroidApps/ContentApp/composeApp/build/reports/tests/desktopTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+==============================================================================
+
+BUILD FAILED in 4s
+58 actionable tasks: 6 executed, 52 up-to-date
+Configuration cache entry reused.

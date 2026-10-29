@@ -2,7 +2,7 @@
 
 📅 29. 10. 2026. Výchozí produkční revize `fb6078d`; opravy navazují na [společný audit](2026-10-29-atomic-architecture-audit.md) a [nezávislý Astra audit](2026-10-29-astra-architecture-audit.md). Řídící postup je `yhdi-dev`, jedna implementační vlna s K po balících a společnou závěrečnou G.
 
-✅ **Implementace a ověření dokončené na produkčním `45e2133`; nezávislá review právě navazují.** Agregace352testů je zelená; po posledním atomic/API zásahu znovu prošlo všech13dotčených UI testů, platformní K, guard/lint/APK. Android native smoke je doložený samostatně.
+✅ **Implementace a ověření dokončené: produkce `88a5974`, testy `8b21c1e`.** Finální agregace má **231 desktopových + 138 Android host/unit testů**, bez failures/errors/skips. Prošly architektonické kontroly, 19 fixture metod, lint, Android APK a kompilace obou iOS ARM cílů. Skutečné nezávislé revize Astra a Opus i jejich navazující kontroly oprav jsou dokončené, bez nových potvrzených vad.
 
 ## 🎯 Audit → změna → důkaz
 
@@ -13,13 +13,13 @@
 | 💾 A3: přidání cviku a první série byly dva commity | `addExerciseWithInitialSet` přijímá jeden příkaz pro entry + sérii + oba outbox řádky | Skutečný rollback druhého outbox zápisu a cancellation, balík1 |
 | 🕒 A4: předchozí výkon podle UUID | Pořadí podle času dokončené session a pořadí cviku/série; aktivní session se vyloučí | Opačné ID, aktivní session, opakované zařazení cviku, balík1 |
 | 🧩 A5: skrytá veřejná dependency | `StatusBadge` přijímá UI label/tone; modul nemá foundation dependency | Samostatný consumer reprodukoval RED a po změně kompiluje, [balík3](evidence/2026-10-29-hardening/task-3.md) |
-| 🎨 A6: nejednotné atomic vrstvy | Sdílené atoms/molecules/organisms/templates, Material adaptéry v nucleus; workout používá společné prvky | K všech consumers +13UI +17guardfixtures PASS; nucleus nemá zpětné reference |
+| 🎨 A6: nejednotné atomic vrstvy | Sdílené atoms/molecules/organisms/templates, Material adaptéry v nucleus; workout používá společné prvky | K všech consumers + UI + 19 guard fixtures PASS; nucleus nemá zpětné reference |
 | 🔌 A7: příliš úzké UI API | Root Modifier, obsahové sloty, varianty akcí, vstupní konfigurace, neutrální tabs/dialog | Public consumer a UI interakce, balík3 |
 | ♿ A8: kontrast/sémantika/velké písmo | Textové tokeny, checked label série, min. plochy, pružné formuláře a záložky | Čtyři cílené testy + screenshoty 320dp/font2 obou témat; následná přesná kontrola textových bounds |
 | ♻️ A9: duplikovaný editorový protokol | `DurableEditorController` kompozicí; `Session.publish` vlastní agregát/outbox/delete draft | Čtyři controller regrese + K retained/nav consumers, [balík2](evidence/2026-10-29-hardening/task-2.md) |
 | 🏋️ A10: nejasný katalog a fitness ve foundation | Exercises vlastní create/update/archive/outbox; seed/import oddělen; obecné chyby a UiText přemístěny | Čtyři reálné SQLite katalogové testy, zachované seed IDs a JSON payloady, balík2 |
 | 📦 A11: stará matice knihoven | Stabilní Kotlin2.4.21/CMP1.12.2/Navigation2.10.0, nový Android KMP plugin a samostatný host | K všech targets + reálná migrace6→7 a nav recreation bez helperu PASS; [matice](../build-toolchain.md), G +cílené opravy PASS |
-| 🛠️ A12: ruční architektonická pravidla | Tři malé konvence, skutečný Gradle dependency inventory, source guard a pozitivní/negativní fixtures, Linux/macOS CI | Konfigurace/K +skutečný inventory/17fixtures/lint PASS |
+| 🛠️ A12: ruční architektonická pravidla | Tři malé konvence, skutečný Gradle dependency inventory, source guard a pozitivní/negativní fixtures, Linux/macOS CI | Konfigurace/K + skutečný inventory / 19 fixtures / lint PASS |
 | 🔇 A13: nepoužitý HTTP stub logoval všechno | `HttpClientFactory` a nepotřebné Ktor dependencies odstraněny | Všichni consumers kompilují bez Ktor; potřebná Json dependency testů je explicitní |
 
 ## 🧪 Co už prošlo
@@ -49,7 +49,29 @@ První celá G na `caea2ad` provedla desktop/Android host testy, architektonick�
 
 ✅ [Android smoke report](evidence/2026-10-29-hardening/native-android/README.md): nový host, tři tabs, vytvoření návrhu a cviku, systémové Zpět, obnovení po ukončení procesu, publikace rutiny, startworkout, dokončení série a workoutu, návrat ke zdroji a historie. Oddělený QA package, původní data nedotčena.
 
-🖼️ Na finálním `45e2133` znovu prošly komponentové testy a root vizuálně prohlédl všech5 nově vytvořených snímků: [světlé komponenty](evidence/2026-10-29-hardening/ui-modern/controls-light-320-font2.png), [tmavé komponenty](evidence/2026-10-29-hardening/ui-modern/controls-dark-320-font2.png), [světlá série font2](evidence/2026-10-29-hardening/ui-modern/set-row-light-320-font2.png), [tmavá série font2](evidence/2026-10-29-hardening/ui-modern/set-row-dark-320-font2.png), [kompaktní série font1](evidence/2026-10-29-hardening/ui-modern/set-row-compact-320-font1.png). Jde o skutečné captures, nikoli golden image test.
+🖼️ Na předchozím ověřeném `45e2133` znovu prošly komponentové testy a root vizuálně prohlédl všech5 nově vytvořených snímků: [světlé komponenty](evidence/2026-10-29-hardening/ui-modern/controls-light-320-font2.png), [tmavé komponenty](evidence/2026-10-29-hardening/ui-modern/controls-dark-320-font2.png), [světlá série font2](evidence/2026-10-29-hardening/ui-modern/set-row-light-320-font2.png), [tmavá série font2](evidence/2026-10-29-hardening/ui-modern/set-row-dark-320-font2.png), [kompaktní série font1](evidence/2026-10-29-hardening/ui-modern/set-row-compact-320-font1.png). Jde o skutečné captures, nikoli golden image test.
+
+## 🔍 Nezávislé review a závěrečné opravy
+
+🧠 [Skutečná Astra](2026-10-29-astra-hardening-review.md) posoudila celou současnou architekturu i mimo diff a potvrdila vyřešení původních A1–A13. Našla ještě starší P2 chybu statistické projekce. [Cross-vendor Opus 5.5](2026-10-29-opus-hardening-review.md) prošel zdroje a změny testů; jeho nálezy rozlišují potvrzené vady, hypotézy a mezery v důkazech. Oba reporty zachovávají původní verdikt před opravou. Následný [Astra rereview](2026-10-29-astra-scoped-rereview.md) uzavřel P2 jako RESOLVED; [Opus rereview](2026-10-29-opus-scoped-rereview.md) uzavřel opravy bez nových potvrzených vad. Zůstávají výslovně nepovinné testovací poznámky a známé meze lexikálního scanneru; přímý celý build log doplňuje jeho původní mezeru v iOS důkazu.
+
+| Nález | Výsledek a důkaz |
+| --- | --- |
+| 📈 Aktivní série v historických statistikách s časem `0` | Calculator zahrnuje jen dokončené série s odpovídající dokončenou session, před všemi součty a rekordy. Dvě čisté regrese a skutečný Room scénář před/po Finish prokazují členství, součty, metadata a chronologii. |
+| 🔒 Další příkaz po úspěšném Finish/Cancel | Samostatné `isTerminated` uzavírá konkrétní ViewModel před odesláním efektu. Pět VM regresí ověřuje jediný příkaz, buffered efekt, ukončený observer a retry po chybě. Dvojitý skutečný NavHost pop nebyl tvrzen ani vyžadován jako reprodukovaná chyba. |
+| 🆔 Nejednoznačné legacy workout API | Odstraněné nepoužívané veřejné `addSet/removeExerciseFromWorkout`; příkazy vyžadují konkrétní occurrence ID. Zachované rollback, cancellation, přečíslování a PR assertions i nová regrese opakovaného cviku. |
+| ♿ Kontrast a detail při velkém písmu | Skutečné Compose alpha composite naměřilo DROPSET 4,2307:1; světlejší foreground nyní prochází limitem 4,5:1. Všechny čtyři typy × checked stav × obě témata jsou testované. Fixní badge24dp opravdu ořezával `12` na `1`; minimum místo pevné velikosti a pružné dva řádky detailu zachovají čitelnost při 320dp/fontScale2. |
+| 🗣️ Dekorativní ikony záložek | Ikona nepřidává druhý popis do stromu přístupnosti; labels, výběr a callbacky jsou zachované a testované. |
+| 🧱 Únik workflow participantů | Guard omezuje `WorkoutStore` a `ExerciseCatalogImport` podle fyzického modulu i v obyčejných UseCase/data souborech. 20 negativních subcases nejprve selhalo, po opravě všech 19 fixture metod prochází. Vlastní api/impl a app jsou povolené; UI zákaz zůstává. |
+| 🍎 Chybějící device-target důkaz | Skutečně zkompilováno `iosArm64` i `iosSimulatorArm64`; stejné dvě úlohy má macOS CI. Nejde o nativní iOS host, framework link ani runtime test. |
+
+📎 [Runtime/API report](evidence/2026-10-29-hardening/review-runtime-fix.md), [UI/guard report](evidence/2026-10-29-hardening/review-ui-guard-fix.md), [10 přesných runtime regresí GREEN](evidence/2026-10-29-hardening/review-runtime-green.json), [finální agregace](evidence/2026-10-29-hardening/review-final.json), [příkaz dotčeného ověření](evidence/2026-10-29-hardening/review-final-command.sh), [celý skutečný výstup](evidence/2026-10-29-hardening/review-final-full.log).
+
+🧪 Finální dotčený běh na `88a5974` provedl **217 testů** v workout api/impl, celé composeApp desktop sadě, design systému a Android hostu; ostatních 152 převzal ze zmražené předchozí G. Současně prošlo K všech consumers, oba iOS ARM cíle, guard/inventory/consumer, lint a APK. Běh86s (793tasks,189executed) skončil pouze na dvou nepřesných nových UI assertions: unmerged strom odhaluje i potomky skryté před přístupností; záporný font leading neznamená oříznutí textu. Testy nyní kontrolují merged accessibility strom a skutečnou šířku/paragraph height/bounds. **Opravené testy se znovu spustily proti původním třem UI souborům a všechny tři regrese zůstaly RED (9s)**; na finální produkci obě celé UI třídy, 4 metody, PASS9s. Původní interakční assertions zůstaly. Není to deklarace jednoho nového plného běhu všech 369 testů na jediné revizi.
+
+🖼️ Aktuální skutečné captures po opravě: [detail světlý](evidence/2026-10-29-hardening/ui-final/detail-light-320-font2.png), [detail tmavý](evidence/2026-10-29-hardening/ui-final/detail-dark-320-font2.png), [světlé ovládání](evidence/2026-10-29-hardening/ui-final/controls-light-320-font2.png), [tmavé ovládání](evidence/2026-10-29-hardening/ui-final/controls-dark-320-font2.png). [Původní oříznutí](evidence/2026-10-29-hardening/ui-before-review-fix/detail-light-320-font2.png) zůstává pro srovnání. Nativní Android smoke výše patří k dřívější uvedené revizi; nové opravy mají zde doložené JVM/Skia/Room ověření.
+
+📦 Finální lokální APK: `artifacts/atomic-hardening-88a5974/ContentApp-debug.apk`, běžný package `com.yhdista.contentapp`, min27/target35/compile37 a VIBRATE ověřené přes AAPT. QA smoke package byl po původním testu úspěšně odinstalován. Lint stále 0 errors, 0 ModifierParameter warnings a 18 dříve popsaných ostatních warnings.
 
 ## 📦 Modernizace a zachované kontrakty
 

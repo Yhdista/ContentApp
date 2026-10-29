@@ -1,0 +1,85 @@
+{
+  "note": "All10L1PASS. Green1K20s caught4obsolete calls in read-only VM fakes; fixed tests-onlyc21e085. Green2allconsumerK+VM5PASS7s391tasks31executed.",
+  "cases": [
+    {
+      "phase": "green",
+      "revision": "a460474",
+      "suite": "ExerciseStatsCalculatorTest[desktop]",
+      "name": "activeAndUnmatchedSetsNeverEnterHistoricalStats[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green",
+      "revision": "a460474",
+      "suite": "ExerciseStatsCalculatorTest[desktop]",
+      "name": "setsWaitForCompletedSessionMetadataWithoutEpochFallback[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green",
+      "revision": "a460474",
+      "suite": "TrainingWorkflowTest[desktop]",
+      "name": "repositoryExposesOnlyEntryStrictSetAndRemovalCommands[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green",
+      "revision": "a460474",
+      "suite": "TrainingWorkflowTest[desktop]",
+      "name": "exerciseStatsExcludeActiveCheckedSetsUntilWorkflowFinish[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green",
+      "revision": "a460474",
+      "suite": "TrainingWorkflowTest[desktop]",
+      "name": "entryCommandsRejectCatalogueIdsWithoutMutatingRepeatedOccurrences[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green2",
+      "revision": "c21e085",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "failedCancelAllowsRetryUntilFirstSuccess[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green2",
+      "revision": "c21e085",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "observerFailureCannotUnlockPendingFinish[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green2",
+      "revision": "c21e085",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "successfulCancelIgnoresLaterTerminalIntentsBeforeEffectConsumption[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green2",
+      "revision": "c21e085",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "failedFinishAllowsRetryUntilFirstSuccess[desktop]",
+      "result": "PASS",
+      "message": null
+    },
+    {
+      "phase": "green2",
+      "revision": "c21e085",
+      "suite": "ActiveWorkoutViewModelTest[desktop]",
+      "name": "successfulFinishIgnoresLaterTerminalIntentsBeforeEffectConsumption[desktop]",
+      "result": "PASS",
+      "message": null
+    }
+  ]
+}

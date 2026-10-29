@@ -1,0 +1,225 @@
+..................
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='ThingUseCase.kt', reference='import features.workout.domain.WorkoutStore')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='ThingUseCase.kt', reference='import features.workout.domain.WorkoutStore as Participant\nval participant: Participant? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='ThingUseCase.kt', reference='val participant: features.workout.domain.WorkoutStore? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='ThingUseCase.kt', reference='import features.workout.domain.*\nval participant: WorkoutStore? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='ThingUseCase.kt', reference='import features.workout.domain as workflow\nval participant: workflow.WorkoutStore? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='data/Thing.kt', reference='import features.workout.domain.WorkoutStore')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='data/Thing.kt', reference='import features.workout.domain.WorkoutStore as Participant\nval participant: Participant? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='data/Thing.kt', reference='val participant: features.workout.domain.WorkoutStore? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='data/Thing.kt', reference='import features.workout.domain.*\nval participant: WorkoutStore? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='WorkoutStore', filename='data/Thing.kt', reference='import features.workout.domain as workflow\nval participant: workflow.WorkoutStore? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='ThingUseCase.kt', reference='import features.exercises.api.ExerciseCatalogImport')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='ThingUseCase.kt', reference='import features.exercises.api.ExerciseCatalogImport as Participant\nval participant: Participant? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='ThingUseCase.kt', reference='val participant: features.exercises.api.ExerciseCatalogImport? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='ThingUseCase.kt', reference='import features.exercises.api.*\nval participant: ExerciseCatalogImport? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='ThingUseCase.kt', reference='import features.exercises.api as workflow\nval participant: workflow.ExerciseCatalogImport? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='data/Thing.kt', reference='import features.exercises.api.ExerciseCatalogImport')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='data/Thing.kt', reference='import features.exercises.api.ExerciseCatalogImport as Participant\nval participant: Participant? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='data/Thing.kt', reference='val participant: features.exercises.api.ExerciseCatalogImport? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='data/Thing.kt', reference='import features.exercises.api.*\nval participant: ExerciseCatalogImport? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+======================================================================
+FAIL: test_workflow_participants_cannot_escape_to_foreign_ordinary_files (__main__.ArchitectureFixtures) (name='ExerciseCatalogImport', filename='data/Thing.kt', reference='import features.exercises.api as workflow\nval participant: workflow.ExerciseCatalogImport? = null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 160, in test_workflow_participants_cannot_escape_to_foreign_ordinary_files
+    self.check_fixture(self.kotlin('feature/a/impl', filename, 'package features.a\n' + reference), 'workflow-module-ownership')
+  File "/Users/yhdista/AndroidApps/ContentApp-worktrees/atomic-task3/tools/architecture/test_verify.py", line 25, in check_fixture
+    self.assertEqual(1 if expected else 0, result.returncode, result.stdout + result.stderr)
+AssertionError: 1 != 0 : Architecture boundaries: PASS
+
+
+----------------------------------------------------------------------
+Ran 19 tests in 1.925s
+
+FAILED (failures=20)

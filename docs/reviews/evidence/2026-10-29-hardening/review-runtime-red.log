@@ -1,0 +1,19 @@
+gw: FAIL exit=1 7s log=/Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/.gradle/yhdista-logs/gw-20261029T011712Z-3293.log
+> Task :feature:workout:api:desktopTest FAILED
+ExerciseStatsCalculatorTest[desktop] > activeAndUnmatchedSetsNeverEnterHistoricalStats[desktop] FAILED
+ExerciseStatsCalculatorTest[desktop] > setsWaitForCompletedSessionMetadataWithoutEpochFallback[desktop] FAILED
+> Task :feature:workout:impl:compileTestKotlinDesktop FAILED
+e: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/src/commonTest/kotlin/features/workout/ActiveWorkoutViewModelTest.kt:167:13 Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.
+e: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/src/commonTest/kotlin/features/workout/ActiveWorkoutViewModelTest.kt:196:13 Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.
+> Task :composeApp:desktopTest FAILED
+TrainingWorkflowTest[desktop] > repositoryExposesOnlyEntryStrictSetAndRemovalCommands[desktop] FAILED
+TrainingWorkflowTest[desktop] > exerciseStatsExcludeActiveCheckedSetsUntilWorkflowFinish[desktop] FAILED
+* What went wrong:
+Execution failed for task ':feature:workout:api:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/api/build/reports/tests/desktopTest/index.html
+Execution failed for task ':feature:workout:impl:compileTestKotlinDesktop' (registered by plugin 'contentapp.multiplatform').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler: TYPE_INFERENCE_ONLY_INPUT_TYPES_ERROR
+       Kotlin compiler error
+Execution failed for task ':composeApp:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/composeApp/build/reports/tests/desktopTest/index.html

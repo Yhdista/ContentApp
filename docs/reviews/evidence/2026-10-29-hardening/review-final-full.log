@@ -1,0 +1,1528 @@
+Calculating task graph as no cached configuration is available for tasks: compileCommonMainKotlinMetadata compileKotlinDesktop compileTestKotlinDesktop compileAndroidMain compileAndroidHostTest :androidApp:compileDebugKotlin :androidApp:compileDebugUnitTestKotlin :androidApp:compileDebugAndroidTestKotlin :composeApp:compileKotlinIosArm64 :composeApp:compileKotlinIosSimulatorArm64 :feature:workout:api:desktopTest :feature:workout:api:testAndroidHostTest :feature:workout:impl:desktopTest :feature:workout:impl:testAndroidHostTest :composeApp:desktopTest :designsystem:desktopTest :androidApp:testDebugUnitTest verifyArchitecture testArchitectureGuard :verification:designsystem-consumer:compileKotlinDesktop lintAndroidMain :androidApp:lintDebug :androidApp:assembleDebug
+> Task :build-logic:extractPluginRequests UP-TO-DATE
+> Task :build-logic:generatePluginAdapters UP-TO-DATE
+> Task :build-logic:compileJava UP-TO-DATE
+> Task :build-logic:compileGroovy NO-SOURCE
+> Task :build-logic:compileGroovyPlugins UP-TO-DATE
+> Task :build-logic:pluginDescriptors UP-TO-DATE
+> Task :build-logic:processResources UP-TO-DATE
+> Task :build-logic:classes UP-TO-DATE
+> Task :build-logic:jar UP-TO-DATE
+Invalid Java installation found at '/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home' (MacOS java_home) auto-detected. It will be re-checked in the next build. This might have performance impact if it keeps failing. Run the 'javaToolchains' task for more details.
+Invalid Java installation found at '/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home' (MacOS java_home) auto-detected. It will be re-checked in the next build. This might have performance impact if it keeps failing. Run the 'javaToolchains' task for more details.
+Invalid Java installation found at '/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home' (MacOS java_home) auto-detected. It will be re-checked in the next build. This might have performance impact if it keeps failing. Run the 'javaToolchains' task for more details.
+> Task :composeApp:kmpPartiallyResolvedDependenciesChecker
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:generateComposeResClass UP-TO-DATE
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonMain NO-SOURCE
+> Task :designsystem:kmpPartiallyResolvedDependenciesChecker
+> Task :designsystem:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :designsystem:generateComposeResClass SKIPPED
+> Task :designsystem:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :designsystem:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForCommonMain SKIPPED
+> Task :designsystem:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :designsystem:compileCommonMainKotlinMetadata
+> Task :designsystem:generateProjectStructureMetadata UP-TO-DATE
+> Task :designsystem:metadataCommonMainProcessResources NO-SOURCE
+> Task :designsystem:metadataCommonMainClasses
+> Task :designsystem:allMetadataJar UP-TO-DATE
+> Task :designsystem:commonizeNativeDistribution UP-TO-DATE
+> Task :designsystem:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForNativeMain SKIPPED
+> Task :designsystem:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :designsystem:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :designsystem:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForAppleMain SKIPPED
+> Task :designsystem:metadataNativeMainProcessResources NO-SOURCE
+> Task :designsystem:metadataNativeMainClasses UP-TO-DATE
+> Task :designsystem:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :designsystem:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :designsystem:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForIosMain SKIPPED
+> Task :designsystem:metadataAppleMainProcessResources NO-SOURCE
+> Task :designsystem:metadataAppleMainClasses UP-TO-DATE
+> Task :designsystem:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :designsystem:compileIosMainKotlinMetadata NO-SOURCE
+> Task :designsystem:metadataIosMainProcessResources NO-SOURCE
+> Task :designsystem:metadataIosMainClasses UP-TO-DATE
+> Task :designsystem:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :designsystem:iosArm64MetadataElements UP-TO-DATE
+> Task :designsystem:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :foundation:kmpPartiallyResolvedDependenciesChecker
+> Task :foundation:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :foundation:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :foundation:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :foundation:generateProjectStructureMetadata UP-TO-DATE
+> Task :foundation:metadataCommonMainProcessResources NO-SOURCE
+> Task :foundation:metadataCommonMainClasses UP-TO-DATE
+> Task :foundation:allMetadataJar UP-TO-DATE
+> Task :foundation:commonizeNativeDistribution UP-TO-DATE
+> Task :foundation:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :foundation:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :foundation:metadataNativeMainProcessResources NO-SOURCE
+> Task :foundation:metadataNativeMainClasses UP-TO-DATE
+> Task :foundation:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :foundation:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :foundation:metadataAppleMainProcessResources NO-SOURCE
+> Task :foundation:metadataAppleMainClasses UP-TO-DATE
+> Task :foundation:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :foundation:compileIosMainKotlinMetadata UP-TO-DATE
+> Task :foundation:metadataIosMainProcessResources NO-SOURCE
+> Task :foundation:metadataIosMainClasses UP-TO-DATE
+> Task :foundation:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :foundation:iosArm64MetadataElements UP-TO-DATE
+> Task :foundation:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :core:presentation:kmpPartiallyResolvedDependenciesChecker
+> Task :core:presentation:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:presentation:generateComposeResClass SKIPPED
+> Task :core:presentation:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :core:presentation:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForCommonMain SKIPPED
+> Task :core:storage:kmpPartiallyResolvedDependenciesChecker
+> Task :core:storage:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:storage:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :core:storage:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :foundation:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :core:storage:generateProjectStructureMetadata UP-TO-DATE
+> Task :core:storage:metadataCommonMainProcessResources NO-SOURCE
+> Task :core:storage:metadataCommonMainClasses UP-TO-DATE
+> Task :core:storage:allMetadataJar UP-TO-DATE
+> Task :core:storage:commonizeNativeDistribution UP-TO-DATE
+> Task :core:storage:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :core:storage:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :core:storage:metadataNativeMainProcessResources NO-SOURCE
+> Task :core:storage:metadataNativeMainClasses UP-TO-DATE
+> Task :core:storage:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :core:storage:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :core:storage:metadataAppleMainProcessResources NO-SOURCE
+> Task :core:storage:metadataAppleMainClasses UP-TO-DATE
+> Task :core:storage:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :core:storage:compileIosMainKotlinMetadata NO-SOURCE
+> Task :core:storage:metadataIosMainProcessResources NO-SOURCE
+> Task :core:storage:metadataIosMainClasses UP-TO-DATE
+> Task :core:storage:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :core:storage:iosArm64MetadataElements UP-TO-DATE
+> Task :core:storage:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :core:presentation:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :core:presentation:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :core:storage:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :core:presentation:generateProjectStructureMetadata UP-TO-DATE
+> Task :core:presentation:metadataCommonMainProcessResources NO-SOURCE
+> Task :core:presentation:metadataCommonMainClasses UP-TO-DATE
+> Task :core:presentation:allMetadataJar UP-TO-DATE
+> Task :core:presentation:commonizeNativeDistribution UP-TO-DATE
+> Task :core:presentation:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForNativeMain SKIPPED
+> Task :core:presentation:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :core:presentation:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :core:presentation:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForAppleMain SKIPPED
+> Task :core:presentation:metadataNativeMainProcessResources NO-SOURCE
+> Task :core:presentation:metadataNativeMainClasses UP-TO-DATE
+> Task :core:presentation:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :core:presentation:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :core:presentation:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForIosMain SKIPPED
+> Task :core:presentation:metadataAppleMainProcessResources NO-SOURCE
+> Task :core:presentation:metadataAppleMainClasses UP-TO-DATE
+> Task :core:presentation:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :core:presentation:compileIosMainKotlinMetadata UP-TO-DATE
+> Task :core:presentation:metadataIosMainProcessResources NO-SOURCE
+> Task :core:presentation:metadataIosMainClasses UP-TO-DATE
+> Task :core:presentation:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :core:presentation:iosArm64MetadataElements UP-TO-DATE
+> Task :core:presentation:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :feature:exercises:api:kmpPartiallyResolvedDependenciesChecker
+> Task :feature:exercises:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:exercises:api:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :feature:exercises:api:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :feature:exercises:api:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:exercises:api:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:exercises:api:metadataCommonMainClasses UP-TO-DATE
+> Task :feature:exercises:api:allMetadataJar UP-TO-DATE
+> Task :feature:exercises:api:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:exercises:api:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :feature:exercises:api:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:api:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:exercises:api:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:exercises:api:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :feature:exercises:api:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:api:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:exercises:api:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:exercises:api:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :feature:exercises:api:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:api:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:exercises:api:metadataIosMainClasses UP-TO-DATE
+> Task :feature:exercises:api:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :feature:exercises:api:iosArm64MetadataElements UP-TO-DATE
+> Task :feature:exercises:api:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :feature:exercises:impl:kmpPartiallyResolvedDependenciesChecker
+> Task :feature:exercises:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:exercises:impl:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :feature:exercises:impl:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :feature:exercises:api:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:exercises:impl:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:exercises:impl:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:exercises:impl:metadataCommonMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:allMetadataJar UP-TO-DATE
+> Task :feature:exercises:impl:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:exercises:impl:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :feature:exercises:impl:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:impl:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:exercises:impl:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :feature:exercises:impl:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:impl:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:exercises:impl:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :feature:exercises:impl:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:impl:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:exercises:impl:metadataIosMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :feature:exercises:impl:iosArm64MetadataElements UP-TO-DATE
+> Task :feature:exercises:impl:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :feature:routines:api:kmpPartiallyResolvedDependenciesChecker
+> Task :feature:routines:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:workout:api:kmpPartiallyResolvedDependenciesChecker
+> Task :feature:workout:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:workout:api:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :feature:workout:api:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :feature:workout:api:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:workout:api:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:workout:api:metadataCommonMainClasses UP-TO-DATE
+> Task :feature:workout:api:allMetadataJar UP-TO-DATE
+> Task :feature:workout:api:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:workout:api:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :feature:workout:api:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:api:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:workout:api:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:workout:api:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :feature:workout:api:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:api:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:workout:api:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:workout:api:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :feature:workout:api:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:api:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:workout:api:metadataIosMainClasses UP-TO-DATE
+> Task :feature:workout:api:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :feature:workout:api:iosArm64MetadataElements UP-TO-DATE
+> Task :feature:workout:api:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :feature:routines:api:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :feature:routines:api:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :feature:workout:api:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:routines:api:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:routines:api:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:routines:api:metadataCommonMainClasses UP-TO-DATE
+> Task :feature:routines:api:allMetadataJar UP-TO-DATE
+> Task :feature:routines:api:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:routines:api:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :feature:routines:api:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:api:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:routines:api:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:routines:api:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :feature:routines:api:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:api:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:routines:api:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:routines:api:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :feature:routines:api:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:api:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:routines:api:metadataIosMainClasses UP-TO-DATE
+> Task :feature:routines:api:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :feature:routines:api:iosArm64MetadataElements UP-TO-DATE
+> Task :feature:routines:api:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :feature:routines:impl:kmpPartiallyResolvedDependenciesChecker
+> Task :feature:routines:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:routines:impl:generateComposeResClass SKIPPED
+> Task :feature:routines:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :feature:routines:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:routines:impl:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :feature:routines:impl:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :designsystem:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :core:presentation:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:routines:api:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:routines:impl:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:routines:impl:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:routines:impl:metadataCommonMainClasses UP-TO-DATE
+> Task :feature:routines:impl:allMetadataJar UP-TO-DATE
+> Task :feature:routines:impl:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:routines:impl:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForNativeMain SKIPPED
+> Task :feature:routines:impl:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :feature:routines:impl:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:impl:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForAppleMain SKIPPED
+> Task :feature:routines:impl:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:routines:impl:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:routines:impl:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :feature:routines:impl:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:impl:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForIosMain SKIPPED
+> Task :feature:routines:impl:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:routines:impl:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:routines:impl:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :feature:routines:impl:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:impl:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:routines:impl:metadataIosMainClasses UP-TO-DATE
+> Task :feature:routines:impl:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :feature:routines:impl:iosArm64MetadataElements UP-TO-DATE
+> Task :feature:routines:impl:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :feature:trainingplans:api:kmpPartiallyResolvedDependenciesChecker
+> Task :feature:trainingplans:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:trainingplans:api:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:metadataCommonMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:allMetadataJar UP-TO-DATE
+> Task :feature:trainingplans:api:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:trainingplans:api:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:api:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:api:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:api:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:metadataIosMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :feature:trainingplans:api:iosArm64MetadataElements UP-TO-DATE
+> Task :feature:trainingplans:api:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :feature:trainingplans:impl:kmpPartiallyResolvedDependenciesChecker
+> Task :feature:trainingplans:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:trainingplans:impl:generateComposeResClass SKIPPED
+> Task :feature:trainingplans:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:trainingplans:impl:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:trainingplans:impl:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:impl:metadataCommonMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:allMetadataJar UP-TO-DATE
+> Task :feature:trainingplans:impl:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForNativeMain SKIPPED
+> Task :feature:trainingplans:impl:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForAppleMain SKIPPED
+> Task :feature:trainingplans:impl:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:impl:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForIosMain SKIPPED
+> Task :feature:trainingplans:impl:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:impl:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:impl:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:impl:metadataIosMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :feature:trainingplans:impl:iosArm64MetadataElements UP-TO-DATE
+> Task :feature:trainingplans:impl:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :feature:workout:impl:kmpPartiallyResolvedDependenciesChecker
+> Task :feature:workout:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:workout:impl:generateComposeResClass SKIPPED
+> Task :feature:workout:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :feature:workout:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:workout:impl:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :feature:workout:impl:compileCommonMainKotlinMetadata
+> Task :feature:workout:impl:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:workout:impl:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:workout:impl:metadataCommonMainClasses
+> Task :feature:workout:impl:allMetadataJar UP-TO-DATE
+> Task :feature:workout:impl:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:workout:impl:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForNativeMain SKIPPED
+> Task :feature:workout:impl:transformNativeMainDependenciesMetadata UP-TO-DATE
+> Task :feature:workout:impl:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:impl:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForAppleMain SKIPPED
+> Task :feature:workout:impl:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:workout:impl:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:workout:impl:transformAppleMainDependenciesMetadata UP-TO-DATE
+> Task :feature:workout:impl:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:impl:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForIosMain SKIPPED
+> Task :feature:workout:impl:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:workout:impl:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:workout:impl:transformIosMainDependenciesMetadata UP-TO-DATE
+> Task :feature:workout:impl:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:impl:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:workout:impl:metadataIosMainClasses UP-TO-DATE
+> Task :feature:workout:impl:exportCommonSourceSetsMetadataLocationsForMetadataApiElements UP-TO-DATE
+> Task :feature:workout:impl:iosArm64MetadataElements UP-TO-DATE
+> Task :feature:workout:impl:iosSimulatorArm64MetadataElements UP-TO-DATE
+> Task :composeApp:transformCommonMainDependenciesMetadata UP-TO-DATE
+> Task :composeApp:kspCommonMainKotlinMetadata UP-TO-DATE
+> Task :composeApp:compileCommonMainKotlinMetadata UP-TO-DATE
+> Task :composeApp:checkDesktopMainComposeLibrariesCompatibility
+> Task :composeApp:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForDesktopMain NO-SOURCE
+> Task :composeApp:generateActualResourceCollectorsForDesktopMain UP-TO-DATE
+> Task :designsystem:checkDesktopMainComposeLibrariesCompatibility
+> Task :designsystem:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :designsystem:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :designsystem:compileKotlinDesktop
+> Task :designsystem:compileDesktopMainJava NO-SOURCE
+> Task :designsystem:assembleDesktopMainResources UP-TO-DATE
+> Task :designsystem:desktopProcessResources UP-TO-DATE
+> Task :designsystem:processDesktopMainResources SKIPPED
+> Task :designsystem:desktopMainClasses
+> Task :designsystem:desktopJar
+> Task :foundation:compileKotlinDesktop UP-TO-DATE
+> Task :foundation:compileDesktopMainJava NO-SOURCE
+> Task :foundation:desktopProcessResources NO-SOURCE
+> Task :foundation:processDesktopMainResources SKIPPED
+> Task :foundation:desktopMainClasses UP-TO-DATE
+> Task :foundation:desktopJar UP-TO-DATE
+> Task :core:presentation:checkDesktopMainComposeLibrariesCompatibility
+> Task :core:presentation:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :core:presentation:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :core:storage:compileKotlinDesktop UP-TO-DATE
+> Task :core:storage:compileDesktopMainJava NO-SOURCE
+> Task :core:storage:desktopProcessResources NO-SOURCE
+> Task :core:storage:processDesktopMainResources SKIPPED
+> Task :core:storage:desktopMainClasses UP-TO-DATE
+> Task :core:storage:desktopJar UP-TO-DATE
+> Task :core:presentation:compileKotlinDesktop UP-TO-DATE
+> Task :core:presentation:compileDesktopMainJava NO-SOURCE
+> Task :core:presentation:assembleDesktopMainResources UP-TO-DATE
+> Task :core:presentation:desktopProcessResources UP-TO-DATE
+> Task :core:presentation:processDesktopMainResources SKIPPED
+> Task :core:presentation:desktopMainClasses UP-TO-DATE
+> Task :core:presentation:desktopJar UP-TO-DATE
+> Task :feature:exercises:api:compileKotlinDesktop UP-TO-DATE
+> Task :feature:exercises:api:compileDesktopMainJava NO-SOURCE
+> Task :feature:exercises:api:desktopProcessResources NO-SOURCE
+> Task :feature:exercises:api:processDesktopMainResources SKIPPED
+> Task :feature:exercises:api:desktopMainClasses UP-TO-DATE
+> Task :feature:exercises:api:desktopJar UP-TO-DATE
+> Task :feature:exercises:impl:compileKotlinDesktop UP-TO-DATE
+> Task :feature:exercises:impl:compileDesktopMainJava NO-SOURCE
+> Task :feature:exercises:impl:desktopProcessResources NO-SOURCE
+> Task :feature:exercises:impl:processDesktopMainResources SKIPPED
+> Task :feature:exercises:impl:desktopMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:desktopJar UP-TO-DATE
+> Task :feature:workout:api:compileKotlinDesktop UP-TO-DATE
+> Task :feature:workout:api:compileDesktopMainJava NO-SOURCE
+> Task :feature:workout:api:desktopProcessResources NO-SOURCE
+> Task :feature:workout:api:processDesktopMainResources SKIPPED
+> Task :feature:workout:api:desktopMainClasses UP-TO-DATE
+> Task :feature:workout:api:desktopJar UP-TO-DATE
+> Task :feature:routines:api:compileKotlinDesktop UP-TO-DATE
+> Task :feature:routines:api:compileDesktopMainJava NO-SOURCE
+> Task :feature:routines:api:desktopProcessResources NO-SOURCE
+> Task :feature:routines:api:processDesktopMainResources SKIPPED
+> Task :feature:routines:api:desktopMainClasses UP-TO-DATE
+> Task :feature:routines:api:desktopJar UP-TO-DATE
+> Task :feature:routines:impl:checkDesktopMainComposeLibrariesCompatibility
+> Task :feature:routines:impl:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :feature:routines:impl:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :feature:routines:impl:compileKotlinDesktop UP-TO-DATE
+> Task :feature:routines:impl:compileDesktopMainJava NO-SOURCE
+> Task :feature:routines:impl:assembleDesktopMainResources UP-TO-DATE
+> Task :feature:routines:impl:desktopProcessResources UP-TO-DATE
+> Task :feature:routines:impl:processDesktopMainResources SKIPPED
+> Task :feature:routines:impl:desktopMainClasses UP-TO-DATE
+> Task :feature:routines:impl:desktopJar UP-TO-DATE
+> Task :feature:trainingplans:api:compileKotlinDesktop UP-TO-DATE
+> Task :feature:trainingplans:api:compileDesktopMainJava NO-SOURCE
+> Task :feature:trainingplans:api:desktopProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:processDesktopMainResources SKIPPED
+> Task :feature:trainingplans:api:desktopMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:desktopJar UP-TO-DATE
+> Task :feature:trainingplans:impl:checkDesktopMainComposeLibrariesCompatibility
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :feature:trainingplans:impl:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :feature:trainingplans:impl:compileKotlinDesktop UP-TO-DATE
+> Task :feature:trainingplans:impl:compileDesktopMainJava NO-SOURCE
+> Task :feature:trainingplans:impl:assembleDesktopMainResources UP-TO-DATE
+> Task :feature:trainingplans:impl:desktopProcessResources UP-TO-DATE
+> Task :feature:trainingplans:impl:processDesktopMainResources SKIPPED
+> Task :feature:trainingplans:impl:desktopMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:desktopJar UP-TO-DATE
+> Task :feature:workout:impl:checkDesktopMainComposeLibrariesCompatibility
+> Task :feature:workout:impl:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :feature:workout:impl:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :feature:workout:impl:compileKotlinDesktop
+> Task :feature:workout:impl:compileDesktopMainJava NO-SOURCE
+> Task :feature:workout:impl:assembleDesktopMainResources UP-TO-DATE
+> Task :feature:workout:impl:desktopProcessResources UP-TO-DATE
+> Task :feature:workout:impl:processDesktopMainResources SKIPPED
+> Task :feature:workout:impl:desktopMainClasses
+> Task :feature:workout:impl:desktopJar
+> Task :composeApp:kspKotlinDesktop
+> Task :composeApp:compileKotlinDesktop UP-TO-DATE
+> Task :verification:designsystem-consumer:checkDesktopMainComposeLibrariesCompatibility
+> Task :verification:designsystem-consumer:kmpPartiallyResolvedDependenciesChecker
+> Task :verification:designsystem-consumer:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :verification:designsystem-consumer:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :verification:designsystem-consumer:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :verification:designsystem-consumer:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :verification:designsystem-consumer:generateResourceAccessorsForCommonMain SKIPPED
+> Task :verification:designsystem-consumer:convertXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :verification:designsystem-consumer:copyNonXmlValueResourcesForDesktopMain NO-SOURCE
+> Task :verification:designsystem-consumer:prepareComposeResourcesTaskForDesktopMain NO-SOURCE
+> Task :verification:designsystem-consumer:generateResourceAccessorsForDesktopMain SKIPPED
+> Task :verification:designsystem-consumer:generateActualResourceCollectorsForDesktopMain SKIPPED
+> Task :verification:designsystem-consumer:generateComposeResClass SKIPPED
+> Task :verification:designsystem-consumer:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :verification:designsystem-consumer:compileKotlinDesktop UP-TO-DATE
+> Task :composeApp:checkDesktopTestComposeLibrariesCompatibility
+> Task :composeApp:compileDesktopMainJava NO-SOURCE
+> Task :composeApp:assembleDesktopMainResources UP-TO-DATE
+> Task :composeApp:desktopProcessResources UP-TO-DATE
+> Task :composeApp:processDesktopMainResources SKIPPED
+> Task :composeApp:desktopMainClasses UP-TO-DATE
+> Task :composeApp:desktopJar UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonTest NO-SOURCE
+> Task :composeApp:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForDesktopTest NO-SOURCE
+> Task :composeApp:kspTestKotlinDesktop
+> Task :composeApp:compileTestKotlinDesktop UP-TO-DATE
+> Task :designsystem:checkDesktopTestComposeLibrariesCompatibility
+> Task :designsystem:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForCommonTest SKIPPED
+> Task :designsystem:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForDesktopTest SKIPPED
+> Task :designsystem:compileTestKotlinDesktop UP-TO-DATE
+> Task :foundation:compileTestKotlinDesktop UP-TO-DATE
+> Task :core:presentation:checkDesktopTestComposeLibrariesCompatibility
+> Task :core:presentation:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForCommonTest SKIPPED
+> Task :core:presentation:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForDesktopTest SKIPPED
+> Task :core:presentation:compileTestKotlinDesktop UP-TO-DATE
+> Task :core:storage:compileTestKotlinDesktop UP-TO-DATE
+> Task :verification:designsystem-consumer:checkDesktopTestComposeLibrariesCompatibility
+> Task :verification:designsystem-consumer:compileDesktopMainJava NO-SOURCE
+> Task :verification:designsystem-consumer:assembleDesktopMainResources UP-TO-DATE
+> Task :verification:designsystem-consumer:desktopProcessResources UP-TO-DATE
+> Task :verification:designsystem-consumer:processDesktopMainResources SKIPPED
+> Task :verification:designsystem-consumer:desktopMainClasses UP-TO-DATE
+> Task :verification:designsystem-consumer:desktopJar UP-TO-DATE
+> Task :verification:designsystem-consumer:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :verification:designsystem-consumer:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :verification:designsystem-consumer:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :verification:designsystem-consumer:generateResourceAccessorsForCommonTest SKIPPED
+> Task :verification:designsystem-consumer:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :verification:designsystem-consumer:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :verification:designsystem-consumer:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :verification:designsystem-consumer:generateResourceAccessorsForDesktopTest SKIPPED
+> Task :verification:designsystem-consumer:compileTestKotlinDesktop NO-SOURCE
+> Task :feature:exercises:api:compileTestKotlinDesktop NO-SOURCE
+> Task :feature:exercises:impl:compileTestKotlinDesktop NO-SOURCE
+> Task :feature:routines:api:compileTestKotlinDesktop UP-TO-DATE
+> Task :feature:routines:impl:checkDesktopTestComposeLibrariesCompatibility
+> Task :feature:routines:impl:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForCommonTest SKIPPED
+> Task :feature:routines:impl:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForDesktopTest SKIPPED
+> Task :feature:routines:impl:compileTestKotlinDesktop UP-TO-DATE
+> Task :feature:trainingplans:api:compileTestKotlinDesktop UP-TO-DATE
+> Task :feature:trainingplans:impl:checkDesktopTestComposeLibrariesCompatibility
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForCommonTest SKIPPED
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForDesktopTest SKIPPED
+> Task :feature:trainingplans:impl:compileTestKotlinDesktop UP-TO-DATE
+> Task :feature:workout:api:compileTestKotlinDesktop UP-TO-DATE
+> Task :feature:workout:impl:checkDesktopTestComposeLibrariesCompatibility
+> Task :feature:workout:impl:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForCommonTest SKIPPED
+> Task :feature:workout:impl:convertXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForDesktopTest NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForDesktopTest NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForDesktopTest SKIPPED
+
+> Task :feature:workout:impl:compileTestKotlinDesktop
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/src/desktopTest/kotlin/features/workout/detail/WorkoutDetailAccessibilityTest.kt:30:43 'fun runDesktopComposeUiTest(width: Int = ..., height: Int = ..., effectContext: CoroutineContext = ..., runTestContext: CoroutineContext = ..., testTimeout: Duration = ..., block: suspend DesktopComposeUiTest.() -> Unit): Unit' is deprecated. Use `androidx.compose.ui.test.v2.runDesktopComposeUiTest` instead. The v2 APIs use `StandardTestDispatcher` by default to better simulate production behavior where coroutines are queued rather than executed immediately.
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/src/desktopTest/kotlin/features/workout/detail/WorkoutDetailAccessibilityTest.kt:50:43 'fun runDesktopComposeUiTest(width: Int = ..., height: Int = ..., effectContext: CoroutineContext = ..., runTestContext: CoroutineContext = ..., testTimeout: Duration = ..., block: suspend DesktopComposeUiTest.() -> Unit): Unit' is deprecated. Use `androidx.compose.ui.test.v2.runDesktopComposeUiTest` instead. The v2 APIs use `StandardTestDispatcher` by default to better simulate production behavior where coroutines are queued rather than executed immediately.
+
+> Task :composeApp:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForAndroidMain NO-SOURCE
+> Task :composeApp:generateActualResourceCollectorsForAndroidMain UP-TO-DATE
+> Task :composeApp:androidPreBuild UP-TO-DATE
+> Task :composeApp:preAndroidMainBuild UP-TO-DATE
+> Task :composeApp:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :composeApp:copyAndroidMainComposeResourcesToAndroidAssets UP-TO-DATE
+> Task :composeApp:packageAndroidMainResources UP-TO-DATE
+> Task :composeApp:parseAndroidMainLocalResources UP-TO-DATE
+> Task :composeApp:generateAndroidMainRFile UP-TO-DATE
+> Task :designsystem:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :designsystem:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :designsystem:androidPreBuild UP-TO-DATE
+> Task :designsystem:preAndroidMainBuild UP-TO-DATE
+> Task :designsystem:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :designsystem:copyAndroidMainComposeResourcesToAndroidAssets UP-TO-DATE
+> Task :designsystem:packageAndroidMainResources UP-TO-DATE
+> Task :designsystem:parseAndroidMainLocalResources UP-TO-DATE
+> Task :designsystem:generateAndroidMainRFile UP-TO-DATE
+> Task :designsystem:compileAndroidMain
+> Task :designsystem:bundleAndroidMainClassesToCompileJar
+> Task :foundation:compileAndroidMain UP-TO-DATE
+> Task :foundation:androidPreBuild UP-TO-DATE
+> Task :foundation:preAndroidMainBuild UP-TO-DATE
+> Task :foundation:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :core:presentation:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :core:presentation:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :core:presentation:androidPreBuild UP-TO-DATE
+> Task :core:presentation:preAndroidMainBuild UP-TO-DATE
+> Task :core:presentation:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :core:presentation:copyAndroidMainComposeResourcesToAndroidAssets UP-TO-DATE
+> Task :core:presentation:packageAndroidMainResources UP-TO-DATE
+> Task :core:presentation:parseAndroidMainLocalResources UP-TO-DATE
+> Task :core:presentation:generateAndroidMainRFile UP-TO-DATE
+> Task :core:storage:compileAndroidMain UP-TO-DATE
+> Task :core:storage:androidPreBuild UP-TO-DATE
+> Task :core:storage:preAndroidMainBuild UP-TO-DATE
+> Task :core:storage:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :core:presentation:compileAndroidMain UP-TO-DATE
+> Task :core:presentation:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :feature:exercises:api:compileAndroidMain UP-TO-DATE
+> Task :feature:exercises:api:androidPreBuild UP-TO-DATE
+> Task :feature:exercises:api:preAndroidMainBuild UP-TO-DATE
+> Task :feature:exercises:api:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :feature:exercises:impl:compileAndroidMain UP-TO-DATE
+> Task :feature:exercises:impl:androidPreBuild UP-TO-DATE
+> Task :feature:exercises:impl:preAndroidMainBuild UP-TO-DATE
+> Task :feature:exercises:impl:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :feature:workout:api:compileAndroidMain UP-TO-DATE
+> Task :feature:workout:api:androidPreBuild UP-TO-DATE
+> Task :feature:workout:api:preAndroidMainBuild UP-TO-DATE
+> Task :feature:workout:api:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :feature:routines:api:compileAndroidMain UP-TO-DATE
+> Task :feature:routines:api:androidPreBuild UP-TO-DATE
+> Task :feature:routines:api:preAndroidMainBuild UP-TO-DATE
+> Task :feature:routines:api:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :feature:routines:impl:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :feature:routines:impl:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :feature:routines:impl:androidPreBuild UP-TO-DATE
+> Task :feature:routines:impl:preAndroidMainBuild UP-TO-DATE
+> Task :feature:routines:impl:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :feature:routines:impl:copyAndroidMainComposeResourcesToAndroidAssets UP-TO-DATE
+> Task :feature:routines:impl:packageAndroidMainResources UP-TO-DATE
+> Task :feature:routines:impl:parseAndroidMainLocalResources UP-TO-DATE
+> Task :feature:routines:impl:generateAndroidMainRFile UP-TO-DATE
+> Task :feature:routines:impl:compileAndroidMain UP-TO-DATE
+> Task :feature:routines:impl:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :feature:trainingplans:api:compileAndroidMain UP-TO-DATE
+> Task :feature:trainingplans:api:androidPreBuild UP-TO-DATE
+> Task :feature:trainingplans:api:preAndroidMainBuild UP-TO-DATE
+> Task :feature:trainingplans:api:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :feature:trainingplans:impl:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :feature:trainingplans:impl:androidPreBuild UP-TO-DATE
+> Task :feature:trainingplans:impl:preAndroidMainBuild UP-TO-DATE
+> Task :feature:trainingplans:impl:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :feature:trainingplans:impl:copyAndroidMainComposeResourcesToAndroidAssets UP-TO-DATE
+> Task :feature:trainingplans:impl:packageAndroidMainResources UP-TO-DATE
+> Task :feature:trainingplans:impl:parseAndroidMainLocalResources UP-TO-DATE
+> Task :feature:trainingplans:impl:generateAndroidMainRFile UP-TO-DATE
+> Task :feature:trainingplans:impl:compileAndroidMain UP-TO-DATE
+> Task :feature:trainingplans:impl:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :feature:workout:impl:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForAndroidMain SKIPPED
+> Task :feature:workout:impl:generateActualResourceCollectorsForAndroidMain SKIPPED
+> Task :feature:workout:impl:androidPreBuild UP-TO-DATE
+> Task :feature:workout:impl:preAndroidMainBuild UP-TO-DATE
+> Task :feature:workout:impl:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :feature:workout:impl:copyAndroidMainComposeResourcesToAndroidAssets UP-TO-DATE
+> Task :feature:workout:impl:packageAndroidMainResources UP-TO-DATE
+> Task :feature:workout:impl:parseAndroidMainLocalResources UP-TO-DATE
+> Task :feature:workout:impl:generateAndroidMainRFile UP-TO-DATE
+> Task :feature:workout:impl:compileAndroidMain
+> Task :feature:workout:impl:bundleAndroidMainClassesToCompileJar
+> Task :composeApp:kspAndroidMain
+> Task :composeApp:compileAndroidMain UP-TO-DATE
+> Task :composeApp:androidJar UP-TO-DATE
+> Task :composeApp:bundleAndroidMainClassesToCompileJar UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForAndroidHostTest NO-SOURCE
+> Task :composeApp:kspAndroidHostTest NO-SOURCE
+> Task :composeApp:compileAndroidHostTest NO-SOURCE
+> Task :designsystem:androidJar UP-TO-DATE
+> Task :designsystem:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForAndroidHostTest SKIPPED
+> Task :designsystem:compileAndroidHostTest NO-SOURCE
+> Task :foundation:androidJar UP-TO-DATE
+> Task :foundation:compileAndroidHostTest UP-TO-DATE
+> Task :core:presentation:androidJar UP-TO-DATE
+> Task :core:presentation:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForAndroidHostTest SKIPPED
+> Task :core:presentation:compileAndroidHostTest UP-TO-DATE
+> Task :core:storage:androidJar UP-TO-DATE
+> Task :core:storage:compileAndroidHostTest UP-TO-DATE
+> Task :feature:exercises:api:androidJar UP-TO-DATE
+> Task :feature:exercises:api:compileAndroidHostTest NO-SOURCE
+> Task :feature:exercises:impl:androidJar UP-TO-DATE
+> Task :feature:exercises:impl:compileAndroidHostTest NO-SOURCE
+> Task :feature:routines:api:androidJar UP-TO-DATE
+> Task :feature:routines:api:compileAndroidHostTest UP-TO-DATE
+> Task :feature:routines:impl:androidJar UP-TO-DATE
+> Task :feature:routines:impl:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForAndroidHostTest SKIPPED
+> Task :feature:routines:impl:compileAndroidHostTest UP-TO-DATE
+> Task :feature:trainingplans:api:androidJar UP-TO-DATE
+> Task :feature:trainingplans:api:compileAndroidHostTest UP-TO-DATE
+> Task :feature:trainingplans:impl:androidJar UP-TO-DATE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForAndroidHostTest SKIPPED
+> Task :feature:trainingplans:impl:compileAndroidHostTest UP-TO-DATE
+> Task :feature:workout:api:androidJar UP-TO-DATE
+> Task :feature:workout:api:compileAndroidHostTest UP-TO-DATE
+> Task :feature:workout:impl:androidJar UP-TO-DATE
+> Task :feature:workout:impl:convertXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForAndroidHostTest NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForAndroidHostTest NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForAndroidHostTest SKIPPED
+> Task :feature:workout:impl:compileAndroidHostTest UP-TO-DATE
+> Task :androidApp:preBuild UP-TO-DATE
+> Task :androidApp:preDebugBuild UP-TO-DATE
+> Task :androidApp:generateDebugResources UP-TO-DATE
+> Task :androidApp:packageDebugResources UP-TO-DATE
+> Task :foundation:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :core:storage:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :feature:exercises:api:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :feature:exercises:impl:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :feature:routines:api:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :feature:trainingplans:api:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :feature:workout:api:generateAndroidMainEmptyResourceFiles UP-TO-DATE
+> Task :androidApp:processDebugNavigationResources UP-TO-DATE
+> Task :androidApp:parseDebugLocalResources UP-TO-DATE
+> Task :androidApp:generateDebugRFile UP-TO-DATE
+> Task :androidApp:compileDebugKotlin UP-TO-DATE
+> Task :androidApp:javaPreCompileDebug UP-TO-DATE
+> Task :androidApp:compileDebugJavaWithJavac NO-SOURCE
+> Task :composeApp:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :designsystem:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :foundation:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :core:presentation:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :core:storage:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:exercises:api:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:exercises:impl:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:routines:api:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:routines:impl:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:workout:api:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:workout:impl:writeAndroidMainAarMetadata UP-TO-DATE
+> Task :androidApp:checkDebugAarMetadata UP-TO-DATE
+> Task :androidApp:mapDebugSourceSetPaths UP-TO-DATE
+> Task :androidApp:compileDebugNavigationResources UP-TO-DATE
+> Task :androidApp:mergeDebugResources UP-TO-DATE
+> Task :androidApp:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :androidApp:extractDeepLinksDebug UP-TO-DATE
+> Task :composeApp:processAndroidMainManifest UP-TO-DATE
+> Task :designsystem:processAndroidMainManifest UP-TO-DATE
+> Task :foundation:processAndroidMainManifest UP-TO-DATE
+> Task :core:presentation:processAndroidMainManifest UP-TO-DATE
+> Task :core:storage:processAndroidMainManifest UP-TO-DATE
+> Task :feature:exercises:api:processAndroidMainManifest UP-TO-DATE
+> Task :feature:exercises:impl:processAndroidMainManifest UP-TO-DATE
+> Task :feature:routines:api:processAndroidMainManifest UP-TO-DATE
+> Task :feature:routines:impl:processAndroidMainManifest UP-TO-DATE
+> Task :feature:trainingplans:api:processAndroidMainManifest UP-TO-DATE
+> Task :feature:trainingplans:impl:processAndroidMainManifest UP-TO-DATE
+> Task :feature:workout:api:processAndroidMainManifest UP-TO-DATE
+> Task :feature:workout:impl:processAndroidMainManifest UP-TO-DATE
+> Task :androidApp:processDebugMainManifest UP-TO-DATE
+> Task :androidApp:processDebugManifest UP-TO-DATE
+> Task :androidApp:processDebugManifestForPackage UP-TO-DATE
+> Task :composeApp:mapAndroidMainSourceSetPaths UP-TO-DATE
+> Task :composeApp:compileAndroidMainLibraryResources UP-TO-DATE
+> Task :designsystem:mapAndroidMainSourceSetPaths UP-TO-DATE
+> Task :designsystem:compileAndroidMainLibraryResources UP-TO-DATE
+> Task :core:presentation:mapAndroidMainSourceSetPaths UP-TO-DATE
+> Task :core:presentation:compileAndroidMainLibraryResources UP-TO-DATE
+> Task :feature:routines:impl:mapAndroidMainSourceSetPaths UP-TO-DATE
+> Task :feature:routines:impl:compileAndroidMainLibraryResources UP-TO-DATE
+> Task :feature:trainingplans:impl:mapAndroidMainSourceSetPaths UP-TO-DATE
+> Task :feature:trainingplans:impl:compileAndroidMainLibraryResources UP-TO-DATE
+> Task :feature:workout:impl:mapAndroidMainSourceSetPaths UP-TO-DATE
+> Task :feature:workout:impl:compileAndroidMainLibraryResources UP-TO-DATE
+> Task :androidApp:processDebugResources UP-TO-DATE
+> Task :androidApp:bundleDebugClassesToCompileJar UP-TO-DATE
+> Task :androidApp:preDebugUnitTestBuild UP-TO-DATE
+> Task :androidApp:compileDebugUnitTestKotlin UP-TO-DATE
+> Task :androidApp:preDebugAndroidTestBuild SKIPPED
+> Task :androidApp:generateDebugAndroidTestResources UP-TO-DATE
+> Task :androidApp:packageDebugAndroidTestResources UP-TO-DATE
+> Task :androidApp:processDebugAndroidTestNavigationResources UP-TO-DATE
+> Task :androidApp:parseDebugAndroidTestLocalResources UP-TO-DATE
+> Task :androidApp:generateDebugAndroidTestRFile UP-TO-DATE
+> Task :androidApp:compileDebugAndroidTestKotlin UP-TO-DATE
+> Task :composeApp:checkIosArm64MainComposeLibrariesCompatibility
+> Task :composeApp:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForAppleMain NO-SOURCE
+> Task :composeApp:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForIosArm64Main NO-SOURCE
+> Task :composeApp:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForIosMain NO-SOURCE
+> Task :composeApp:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForNativeMain NO-SOURCE
+> Task :composeApp:generateActualResourceCollectorsForIosArm64Main
+> Task :designsystem:checkIosArm64MainComposeLibrariesCompatibility
+> Task :designsystem:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :designsystem:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForIosArm64Main SKIPPED
+> Task :designsystem:generateActualResourceCollectorsForIosArm64Main SKIPPED
+> Task :designsystem:compileKotlinIosArm64
+> Task :foundation:downloadKotlinNativeDistribution UP-TO-DATE
+
+> Task :foundation:compileKotlinIosArm64
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/foundation/src/iosMain/kotlin/core/common/IosAppClock.kt:12:58 Redundant call of conversion method.
+
+> Task :foundation:exportCrossCompilationMetadataForIosArm64ApiElements
+
+> Task :core:presentation:checkIosArm64MainComposeLibrariesCompatibility
+w: Compose Multiplatform runtime dependencies' versions don't match with plugin version.
+    expected: 'org.jetbrains.compose.foundation:foundation:1.12.2'
+    actual:   'org.jetbrains.compose.foundation:foundation:1.10.2'
+
+    expected: 'org.jetbrains.compose.ui:ui:1.12.2'
+    actual:   'org.jetbrains.compose.ui:ui:1.10.2'
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :core:presentation:dependencies  --configuration iosArm64CompileKlibraries`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Please update Compose Multiplatform Gradle plugin's version or align dependencies' versions to match the current plugin version.
+
+
+> Task :core:presentation:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :core:presentation:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForIosArm64Main SKIPPED
+> Task :core:presentation:generateActualResourceCollectorsForIosArm64Main SKIPPED
+> Task :core:storage:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :core:storage:compileKotlinIosArm64
+> Task :core:storage:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :core:presentation:compileKotlinIosArm64
+> Task :feature:exercises:api:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :feature:exercises:api:compileKotlinIosArm64
+> Task :feature:exercises:api:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :feature:exercises:impl:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :feature:exercises:impl:compileKotlinIosArm64
+> Task :feature:routines:api:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :feature:workout:api:downloadKotlinNativeDistribution UP-TO-DATE
+
+> Task :feature:workout:api:compileKotlinIosArm64
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/api/src/commonMain/kotlin/features/workout/domain/WorkoutDataExporter.kt:65:17 Redundant creation of Json format. Creating instances for each use can be slow.
+
+> Task :feature:workout:api:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :feature:routines:api:compileKotlinIosArm64
+> Task :designsystem:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :core:presentation:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :feature:routines:api:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :feature:routines:impl:checkIosArm64MainComposeLibrariesCompatibility
+> Task :feature:routines:impl:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :feature:routines:impl:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForIosArm64Main SKIPPED
+> Task :feature:routines:impl:generateActualResourceCollectorsForIosArm64Main SKIPPED
+> Task :feature:routines:impl:compileKotlinIosArm64
+> Task :feature:trainingplans:api:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :feature:trainingplans:api:compileKotlinIosArm64
+> Task :feature:trainingplans:api:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :feature:trainingplans:impl:checkIosArm64MainComposeLibrariesCompatibility
+> Task :feature:trainingplans:impl:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForIosArm64Main SKIPPED
+> Task :feature:trainingplans:impl:generateActualResourceCollectorsForIosArm64Main SKIPPED
+> Task :feature:trainingplans:impl:compileKotlinIosArm64
+> Task :feature:workout:impl:checkIosArm64MainComposeLibrariesCompatibility
+> Task :feature:workout:impl:downloadKotlinNativeDistribution UP-TO-DATE
+> Task :feature:workout:impl:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForIosArm64Main SKIPPED
+> Task :feature:workout:impl:generateActualResourceCollectorsForIosArm64Main SKIPPED
+> Task :feature:workout:impl:compileKotlinIosArm64
+> Task :composeApp:kspKotlinIosArm64
+> Task :feature:exercises:impl:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :feature:routines:impl:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :feature:trainingplans:impl:exportCrossCompilationMetadataForIosArm64ApiElements
+> Task :feature:workout:impl:exportCrossCompilationMetadataForIosArm64ApiElements
+
+> Task :composeApp:compileKotlinIosArm64
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/composeApp/build/generated/ksp/iosArm64/iosArm64Main/kotlin/app/database/AppDatabaseConstructor.kt:5:8 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/composeApp/src/commonMain/kotlin/app/database/AppDatabase.kt:55:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+
+> Task :composeApp:checkIosSimulatorArm64MainComposeLibrariesCompatibility
+> Task :composeApp:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForIosSimulatorArm64Main NO-SOURCE
+> Task :composeApp:generateActualResourceCollectorsForIosSimulatorArm64Main UP-TO-DATE
+> Task :designsystem:checkIosSimulatorArm64MainComposeLibrariesCompatibility
+> Task :designsystem:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForIosSimulatorArm64Main SKIPPED
+> Task :designsystem:generateActualResourceCollectorsForIosSimulatorArm64Main SKIPPED
+> Task :designsystem:compileKotlinIosSimulatorArm64
+> Task :foundation:compileKotlinIosSimulatorArm64 UP-TO-DATE
+> Task :foundation:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+
+> Task :core:presentation:checkIosSimulatorArm64MainComposeLibrariesCompatibility
+w: Compose Multiplatform runtime dependencies' versions don't match with plugin version.
+    expected: 'org.jetbrains.compose.foundation:foundation:1.12.2'
+    actual:   'org.jetbrains.compose.foundation:foundation:1.10.2'
+
+    expected: 'org.jetbrains.compose.ui:ui:1.12.2'
+    actual:   'org.jetbrains.compose.ui:ui:1.10.2'
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :core:presentation:dependencies  --configuration iosSimulatorArm64CompileKlibraries`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Please update Compose Multiplatform Gradle plugin's version or align dependencies' versions to match the current plugin version.
+
+
+> Task :core:presentation:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForIosSimulatorArm64Main SKIPPED
+> Task :core:presentation:generateActualResourceCollectorsForIosSimulatorArm64Main SKIPPED
+> Task :core:storage:compileKotlinIosSimulatorArm64 UP-TO-DATE
+> Task :core:storage:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :core:presentation:compileKotlinIosSimulatorArm64 UP-TO-DATE
+> Task :feature:exercises:api:compileKotlinIosSimulatorArm64 UP-TO-DATE
+> Task :feature:exercises:api:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :feature:exercises:impl:compileKotlinIosSimulatorArm64 UP-TO-DATE
+
+> Task :feature:workout:api:compileKotlinIosSimulatorArm64
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/api/src/commonMain/kotlin/features/workout/domain/WorkoutDataExporter.kt:65:17 Redundant creation of Json format. Creating instances for each use can be slow.
+
+> Task :feature:workout:api:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :feature:routines:api:compileKotlinIosSimulatorArm64
+> Task :designsystem:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :core:presentation:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :feature:routines:api:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :feature:routines:impl:checkIosSimulatorArm64MainComposeLibrariesCompatibility
+> Task :feature:routines:impl:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForIosSimulatorArm64Main SKIPPED
+> Task :feature:routines:impl:generateActualResourceCollectorsForIosSimulatorArm64Main SKIPPED
+> Task :feature:routines:impl:compileKotlinIosSimulatorArm64
+> Task :feature:trainingplans:api:compileKotlinIosSimulatorArm64
+> Task :feature:trainingplans:api:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :feature:trainingplans:impl:checkIosSimulatorArm64MainComposeLibrariesCompatibility
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForIosSimulatorArm64Main SKIPPED
+> Task :feature:trainingplans:impl:generateActualResourceCollectorsForIosSimulatorArm64Main SKIPPED
+> Task :feature:trainingplans:impl:compileKotlinIosSimulatorArm64
+> Task :feature:workout:impl:checkIosSimulatorArm64MainComposeLibrariesCompatibility
+> Task :feature:workout:impl:convertXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForIosSimulatorArm64Main NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForIosSimulatorArm64Main SKIPPED
+> Task :feature:workout:impl:generateActualResourceCollectorsForIosSimulatorArm64Main SKIPPED
+> Task :feature:workout:impl:compileKotlinIosSimulatorArm64
+> Task :composeApp:kspKotlinIosSimulatorArm64
+> Task :feature:exercises:impl:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :feature:routines:impl:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :feature:trainingplans:impl:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+> Task :feature:workout:impl:exportCrossCompilationMetadataForIosSimulatorArm64ApiElements UP-TO-DATE
+
+> Task :composeApp:compileKotlinIosSimulatorArm64
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/composeApp/build/generated/ksp/iosSimulatorArm64/iosSimulatorArm64Main/kotlin/app/database/AppDatabaseConstructor.kt:5:8 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+w: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/composeApp/src/commonMain/kotlin/app/database/AppDatabase.kt:55:1 'expect'/'actual' classes (including interfaces, objects, annotations, enums, and 'actual' typealiases) are in Beta. Consider using the '-Xexpect-actual-classes' flag to suppress this warning. Also see: https://youtrack.jetbrains.com/issue/KT-61573
+
+> Task :feature:workout:api:compileDesktopTestJava NO-SOURCE
+> Task :feature:workout:api:desktopTestProcessResources NO-SOURCE
+> Task :feature:workout:api:processDesktopTestResources SKIPPED
+> Task :feature:workout:api:desktopTestClasses UP-TO-DATE
+> Task :feature:workout:api:desktopTest
+> Task :foundation:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :foundation:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:exercises:api:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :feature:exercises:api:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:workout:api:bundleAndroidMainClassesToRuntimeJar
+> Task :feature:workout:api:preAndroidHostTestBuild UP-TO-DATE
+> Task :feature:workout:api:processAndroidHostTestJavaRes NO-SOURCE
+> Task :feature:workout:api:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:workout:api:testAndroidHostTest
+> Task :feature:workout:impl:compileDesktopTestJava NO-SOURCE
+> Task :feature:workout:impl:assembleDesktopTestResources UP-TO-DATE
+> Task :feature:workout:impl:desktopTestProcessResources UP-TO-DATE
+> Task :feature:workout:impl:processDesktopTestResources SKIPPED
+> Task :feature:workout:impl:desktopTestClasses
+
+> Task :feature:workout:impl:desktopTest FAILED
+
+WorkoutDetailAccessibilityTest[desktop] > doubleDigitBadgeFitsActualDetailAtDoubleFontScale[desktop] FAILED
+    java.lang.AssertionError at Assert.java:89
+        Caused by: java.lang.AssertionError at WorkoutDetailAccessibilityTest.kt:50
+
+44 tests completed, 1 failed
+
+> Task :designsystem:bundleAndroidMainClassesToRuntimeJar
+> Task :designsystem:processAndroidMainJavaRes UP-TO-DATE
+> Task :core:presentation:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :core:presentation:processAndroidMainJavaRes UP-TO-DATE
+> Task :core:storage:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :core:storage:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:workout:impl:bundleAndroidMainClassesToRuntimeJar
+> Task :feature:workout:impl:preAndroidHostTestBuild UP-TO-DATE
+> Task :feature:workout:impl:processAndroidHostTestJavaRes NO-SOURCE
+> Task :feature:workout:impl:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:workout:impl:testAndroidHostTest
+> Task :composeApp:compileDesktopTestJava NO-SOURCE
+> Task :composeApp:assembleDesktopTestResources UP-TO-DATE
+> Task :composeApp:desktopTestProcessResources UP-TO-DATE
+> Task :composeApp:processDesktopTestResources SKIPPED
+> Task :composeApp:desktopTestClasses UP-TO-DATE
+> Task :composeApp:desktopTest
+> Task :designsystem:compileDesktopTestJava NO-SOURCE
+> Task :designsystem:assembleDesktopTestResources UP-TO-DATE
+> Task :designsystem:desktopTestProcessResources UP-TO-DATE
+> Task :designsystem:processDesktopTestResources SKIPPED
+> Task :designsystem:desktopTestClasses UP-TO-DATE
+
+> Task :designsystem:desktopTest FAILED
+
+DesignSystemAccessibilityTest[desktop] > publicControlsRemainOperableAtLargeFont[desktop] FAILED
+    java.lang.AssertionError at SemanticsNodeInteraction.kt:101
+        Caused by: java.lang.AssertionError at DesignSystemAccessibilityTest.kt:53
+
+2 tests completed, 1 failed
+
+> Task :androidApp:bundleDebugClassesToRuntimeJar UP-TO-DATE
+> Task :androidApp:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :androidApp:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :androidApp:processDebugJavaRes UP-TO-DATE
+> Task :androidApp:processDebugUnitTestJavaRes UP-TO-DATE
+> Task :composeApp:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :composeApp:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:exercises:impl:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :feature:exercises:impl:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:routines:api:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :feature:routines:api:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:routines:impl:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :feature:routines:impl:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:trainingplans:api:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :feature:trainingplans:api:processAndroidMainJavaRes UP-TO-DATE
+> Task :feature:trainingplans:impl:bundleAndroidMainClassesToRuntimeJar UP-TO-DATE
+> Task :feature:trainingplans:impl:processAndroidMainJavaRes UP-TO-DATE
+> Task :androidApp:testDebugUnitTest
+> Task :architectureInventory UP-TO-DATE
+
+> Task :verifyArchitecture
+Architecture boundaries: PASS
+
+> Task :testArchitectureGuard
+test_actual_dependency_inventory_checks_catalog_alias (test_verify.ArchitectureFixtures) ... ok
+test_atomic_all_upward_edges_are_rejected (test_verify.ArchitectureFixtures) ... ok
+test_atomic_nucleus_cannot_call_atoms_through_imports_or_aliases (test_verify.ArchitectureFixtures) ... ok
+test_atomic_ownership_follows_physical_directories (test_verify.ArchitectureFixtures) ... ok
+test_atomic_same_lower_layers_and_ignored_literals_are_allowed (test_verify.ArchitectureFixtures) ... ok
+test_designsystem_domain_and_storage (test_verify.ArchitectureFixtures) ... ok
+test_foreign_feature_multiline_dependency (test_verify.ArchitectureFixtures) ... ok
+test_foundation_cannot_import_storage_through_neutral_package (test_verify.ArchitectureFixtures) ... ok
+test_foundation_framework_and_fitness (test_verify.ArchitectureFixtures) ... ok
+test_legitimate_boundaries_and_ignored_literals (test_verify.ArchitectureFixtures) ... ok
+test_material_import_alias_qualified_and_package_alias (test_verify.ArchitectureFixtures) ... ok
+test_physical_impl_ownership_even_with_api_package (test_verify.ArchitectureFixtures) ... ok
+test_platform_import_and_fully_qualified_reference (test_verify.ArchitectureFixtures) ... ok
+test_shared_platform_namespace_segments_are_allowed (test_verify.ArchitectureFixtures) ... ok
+test_ui_room_dao_and_network (test_verify.ArchitectureFixtures) ... ok
+test_ui_workflow_participants (test_verify.ArchitectureFixtures) ... ok
+test_viewmodel_publish_protocol (test_verify.ArchitectureFixtures) ... ok
+test_workflow_participants_are_owned_by_their_modules_and_app (test_verify.ArchitectureFixtures) ... ok
+test_workflow_participants_cannot_escape_to_foreign_ordinary_files (test_verify.ArchitectureFixtures) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 2.484s
+
+OK
+
+> Task :composeApp:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :composeApp:extractAndroidMainAnnotations
+> Task :composeApp:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :composeApp:syncAndroidMainLibJars UP-TO-DATE
+> Task :composeApp:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :feature:workout:impl:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:workout:impl:extractAndroidMainAnnotations
+> Task :feature:workout:impl:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :feature:workout:impl:syncAndroidMainLibJars
+> Task :feature:workout:impl:bundleAndroidMainLocalLintAar
+> Task :feature:routines:impl:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:routines:impl:extractAndroidMainAnnotations
+> Task :feature:routines:impl:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :feature:routines:impl:syncAndroidMainLibJars UP-TO-DATE
+> Task :feature:routines:impl:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :feature:trainingplans:impl:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:extractAndroidMainAnnotations
+> Task :feature:trainingplans:impl:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :feature:trainingplans:impl:syncAndroidMainLibJars UP-TO-DATE
+> Task :feature:trainingplans:impl:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :core:presentation:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :core:presentation:extractAndroidMainAnnotations UP-TO-DATE
+> Task :core:presentation:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :core:presentation:syncAndroidMainLibJars UP-TO-DATE
+> Task :core:presentation:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :feature:exercises:impl:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:exercises:impl:extractAndroidMainAnnotations UP-TO-DATE
+> Task :feature:exercises:impl:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :feature:exercises:impl:syncAndroidMainLibJars UP-TO-DATE
+> Task :feature:exercises:impl:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :core:storage:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :core:storage:extractAndroidMainAnnotations UP-TO-DATE
+> Task :core:storage:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :core:storage:syncAndroidMainLibJars UP-TO-DATE
+> Task :core:storage:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :feature:routines:api:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:routines:api:extractAndroidMainAnnotations
+> Task :feature:routines:api:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :feature:routines:api:syncAndroidMainLibJars UP-TO-DATE
+> Task :feature:routines:api:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :feature:trainingplans:api:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:extractAndroidMainAnnotations
+> Task :feature:trainingplans:api:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :feature:trainingplans:api:syncAndroidMainLibJars UP-TO-DATE
+> Task :feature:trainingplans:api:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :feature:workout:api:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:workout:api:extractAndroidMainAnnotations UP-TO-DATE
+> Task :feature:workout:api:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :feature:workout:api:syncAndroidMainLibJars
+> Task :feature:workout:api:bundleAndroidMainLocalLintAar
+> Task :feature:exercises:api:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :feature:exercises:api:extractAndroidMainAnnotations UP-TO-DATE
+> Task :feature:exercises:api:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :feature:exercises:api:syncAndroidMainLibJars UP-TO-DATE
+> Task :feature:exercises:api:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :foundation:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :foundation:extractAndroidMainAnnotations UP-TO-DATE
+> Task :foundation:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :foundation:syncAndroidMainLibJars UP-TO-DATE
+> Task :foundation:bundleAndroidMainLocalLintAar UP-TO-DATE
+> Task :designsystem:checkAndroidMainAarMetadata UP-TO-DATE
+> Task :designsystem:extractAndroidMainAnnotations UP-TO-DATE
+> Task :designsystem:mergeAndroidMainJavaResource UP-TO-DATE
+> Task :designsystem:syncAndroidMainLibJars
+> Task :designsystem:bundleAndroidMainLocalLintAar
+> Task :composeApp:createFullJarAndroidMain UP-TO-DATE
+> Task :composeApp:preAndroidHostTestBuild UP-TO-DATE
+> Task :composeApp:prepareLintJarForPublish UP-TO-DATE
+> Task :composeApp:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :designsystem:createFullJarAndroidMain
+> Task :designsystem:prepareLintJarForPublish UP-TO-DATE
+> Task :designsystem:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :foundation:createFullJarAndroidMain UP-TO-DATE
+> Task :foundation:prepareLintJarForPublish UP-TO-DATE
+> Task :foundation:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :core:presentation:createFullJarAndroidMain UP-TO-DATE
+> Task :core:presentation:prepareLintJarForPublish UP-TO-DATE
+> Task :core:presentation:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :core:storage:createFullJarAndroidMain UP-TO-DATE
+> Task :core:storage:prepareLintJarForPublish UP-TO-DATE
+> Task :core:storage:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :feature:exercises:api:createFullJarAndroidMain UP-TO-DATE
+> Task :feature:exercises:api:prepareLintJarForPublish UP-TO-DATE
+> Task :feature:exercises:api:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :feature:exercises:impl:createFullJarAndroidMain UP-TO-DATE
+> Task :feature:exercises:impl:prepareLintJarForPublish UP-TO-DATE
+> Task :feature:exercises:impl:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :feature:routines:api:createFullJarAndroidMain UP-TO-DATE
+> Task :feature:routines:api:prepareLintJarForPublish UP-TO-DATE
+> Task :feature:routines:api:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :feature:routines:impl:createFullJarAndroidMain UP-TO-DATE
+> Task :feature:routines:impl:prepareLintJarForPublish UP-TO-DATE
+> Task :feature:routines:impl:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:createFullJarAndroidMain UP-TO-DATE
+> Task :feature:trainingplans:api:prepareLintJarForPublish UP-TO-DATE
+> Task :feature:trainingplans:api:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:createFullJarAndroidMain UP-TO-DATE
+> Task :feature:trainingplans:impl:prepareLintJarForPublish UP-TO-DATE
+> Task :feature:trainingplans:impl:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :feature:workout:api:createFullJarAndroidMain
+> Task :feature:workout:api:prepareLintJarForPublish UP-TO-DATE
+> Task :feature:workout:api:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :feature:workout:impl:createFullJarAndroidMain
+> Task :feature:workout:impl:prepareLintJarForPublish UP-TO-DATE
+> Task :feature:workout:impl:writeAndroidMainLintModelMetadata UP-TO-DATE
+> Task :composeApp:generateAndroidHostTestLintModel
+> Task :composeApp:extractProguardFiles UP-TO-DATE
+> Task :designsystem:extractProguardFiles UP-TO-DATE
+> Task :designsystem:generateAndroidMainLintModel
+> Task :foundation:extractProguardFiles UP-TO-DATE
+> Task :foundation:generateAndroidMainLintModel UP-TO-DATE
+> Task :core:presentation:extractProguardFiles UP-TO-DATE
+> Task :core:storage:extractProguardFiles UP-TO-DATE
+> Task :core:storage:generateAndroidMainLintModel UP-TO-DATE
+> Task :core:presentation:generateAndroidMainLintModel UP-TO-DATE
+> Task :feature:exercises:api:extractProguardFiles UP-TO-DATE
+> Task :feature:exercises:api:generateAndroidMainLintModel UP-TO-DATE
+> Task :feature:exercises:impl:extractProguardFiles UP-TO-DATE
+> Task :feature:exercises:impl:generateAndroidMainLintModel UP-TO-DATE
+> Task :feature:routines:api:extractProguardFiles UP-TO-DATE
+> Task :feature:workout:api:extractProguardFiles UP-TO-DATE
+> Task :feature:workout:api:generateAndroidMainLintModel
+> Task :feature:routines:api:generateAndroidMainLintModel
+> Task :feature:routines:impl:extractProguardFiles UP-TO-DATE
+> Task :feature:routines:impl:generateAndroidMainLintModel
+> Task :feature:trainingplans:api:extractProguardFiles UP-TO-DATE
+> Task :feature:trainingplans:api:generateAndroidMainLintModel
+> Task :feature:trainingplans:impl:extractProguardFiles UP-TO-DATE
+> Task :feature:trainingplans:impl:generateAndroidMainLintModel
+> Task :feature:workout:impl:extractProguardFiles UP-TO-DATE
+> Task :feature:workout:impl:generateAndroidMainLintModel
+> Task :composeApp:generateAndroidMainLintReportModel
+> Task :composeApp:lintAnalyzeAndroidHostTest
+> Task :designsystem:lintAnalyzeAndroidMain
+> Task :foundation:lintAnalyzeAndroidMain UP-TO-DATE
+> Task :core:storage:lintAnalyzeAndroidMain UP-TO-DATE
+> Task :core:presentation:lintAnalyzeAndroidMain UP-TO-DATE
+> Task :feature:exercises:api:lintAnalyzeAndroidMain UP-TO-DATE
+> Task :feature:exercises:impl:lintAnalyzeAndroidMain UP-TO-DATE
+> Task :feature:workout:api:lintAnalyzeAndroidMain
+> Task :feature:routines:api:lintAnalyzeAndroidMain
+> Task :feature:routines:impl:lintAnalyzeAndroidMain
+> Task :feature:trainingplans:api:lintAnalyzeAndroidMain
+> Task :feature:trainingplans:impl:lintAnalyzeAndroidMain
+> Task :feature:workout:impl:lintAnalyzeAndroidMain
+> Task :composeApp:lintAnalyzeAndroidMain
+> Task :designsystem:preAndroidHostTestBuild UP-TO-DATE
+> Task :designsystem:generateAndroidHostTestLintModel
+> Task :designsystem:lintAnalyzeAndroidHostTest
+> Task :foundation:preAndroidHostTestBuild UP-TO-DATE
+> Task :foundation:generateAndroidHostTestLintModel UP-TO-DATE
+> Task :foundation:lintAnalyzeAndroidHostTest UP-TO-DATE
+> Task :core:presentation:preAndroidHostTestBuild UP-TO-DATE
+> Task :core:presentation:generateAndroidHostTestLintModel UP-TO-DATE
+> Task :core:presentation:lintAnalyzeAndroidHostTest UP-TO-DATE
+> Task :core:storage:preAndroidHostTestBuild UP-TO-DATE
+> Task :core:storage:generateAndroidHostTestLintModel UP-TO-DATE
+> Task :core:storage:lintAnalyzeAndroidHostTest UP-TO-DATE
+> Task :feature:exercises:api:preAndroidHostTestBuild UP-TO-DATE
+> Task :feature:exercises:api:generateAndroidHostTestLintModel UP-TO-DATE
+> Task :feature:exercises:api:lintAnalyzeAndroidHostTest UP-TO-DATE
+> Task :feature:exercises:impl:preAndroidHostTestBuild UP-TO-DATE
+> Task :feature:exercises:impl:generateAndroidHostTestLintModel UP-TO-DATE
+> Task :feature:exercises:impl:lintAnalyzeAndroidHostTest UP-TO-DATE
+> Task :feature:routines:api:preAndroidHostTestBuild UP-TO-DATE
+> Task :feature:routines:api:generateAndroidHostTestLintModel
+> Task :feature:routines:api:lintAnalyzeAndroidHostTest
+> Task :feature:routines:impl:preAndroidHostTestBuild UP-TO-DATE
+> Task :feature:routines:impl:generateAndroidHostTestLintModel
+> Task :feature:routines:impl:lintAnalyzeAndroidHostTest
+> Task :feature:trainingplans:api:preAndroidHostTestBuild UP-TO-DATE
+> Task :feature:trainingplans:api:generateAndroidHostTestLintModel
+> Task :feature:trainingplans:api:lintAnalyzeAndroidHostTest
+> Task :feature:trainingplans:impl:preAndroidHostTestBuild UP-TO-DATE
+> Task :feature:trainingplans:impl:generateAndroidHostTestLintModel
+> Task :feature:trainingplans:impl:lintAnalyzeAndroidHostTest
+> Task :feature:workout:api:generateAndroidHostTestLintModel
+> Task :feature:workout:api:lintAnalyzeAndroidHostTest
+> Task :feature:workout:impl:generateAndroidHostTestLintModel
+> Task :feature:workout:impl:lintAnalyzeAndroidHostTest
+> Task :composeApp:lintReportAndroidMain
+> Task :composeApp:lintAndroidMain
+> Task :designsystem:generateAndroidMainLintReportModel
+> Task :designsystem:lintReportAndroidMain
+> Task :designsystem:lintAndroidMain
+> Task :foundation:generateAndroidMainLintReportModel UP-TO-DATE
+> Task :foundation:lintReportAndroidMain UP-TO-DATE
+> Task :foundation:lintAndroidMain
+> Task :core:presentation:generateAndroidMainLintReportModel UP-TO-DATE
+> Task :core:presentation:lintReportAndroidMain UP-TO-DATE
+> Task :core:presentation:lintAndroidMain
+> Task :core:storage:generateAndroidMainLintReportModel UP-TO-DATE
+> Task :core:storage:lintReportAndroidMain UP-TO-DATE
+> Task :core:storage:lintAndroidMain
+> Task :feature:exercises:api:generateAndroidMainLintReportModel UP-TO-DATE
+> Task :feature:exercises:api:lintReportAndroidMain UP-TO-DATE
+> Task :feature:exercises:api:lintAndroidMain
+> Task :feature:exercises:impl:generateAndroidMainLintReportModel UP-TO-DATE
+> Task :feature:exercises:impl:lintReportAndroidMain UP-TO-DATE
+> Task :feature:exercises:impl:lintAndroidMain
+> Task :feature:routines:api:generateAndroidMainLintReportModel
+> Task :feature:routines:api:lintReportAndroidMain
+> Task :feature:routines:api:lintAndroidMain
+> Task :feature:routines:impl:generateAndroidMainLintReportModel
+> Task :feature:routines:impl:lintReportAndroidMain
+> Task :feature:routines:impl:lintAndroidMain
+> Task :feature:trainingplans:api:generateAndroidMainLintReportModel
+> Task :feature:trainingplans:api:lintReportAndroidMain
+> Task :feature:trainingplans:api:lintAndroidMain
+> Task :feature:trainingplans:impl:generateAndroidMainLintReportModel
+> Task :feature:trainingplans:impl:lintReportAndroidMain
+> Task :feature:trainingplans:impl:lintAndroidMain
+> Task :feature:workout:api:generateAndroidMainLintReportModel
+> Task :feature:workout:api:lintReportAndroidMain
+> Task :feature:workout:api:lintAndroidMain
+> Task :feature:workout:impl:generateAndroidMainLintReportModel
+
+> Task :feature:workout:impl:lintReportAndroidMain
+Wrote HTML report to file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/build/reports/lint-results-androidMain.html
+Wrote SARIF report to file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/build/reports/lint-results-androidMain.sarif
+
+> Task :feature:workout:impl:lintAndroidMain
+> Task :androidApp:generateDebugAndroidTestLintModel UP-TO-DATE
+> Task :androidApp:extractProguardFiles UP-TO-DATE
+> Task :composeApp:generateAndroidMainLintModel
+> Task :androidApp:generateDebugLintReportModel
+> Task :androidApp:generateDebugUnitTestLintModel
+> Task :androidApp:lintAnalyzeDebug
+> Task :androidApp:lintAnalyzeDebugAndroidTest UP-TO-DATE
+> Task :androidApp:lintAnalyzeDebugUnitTest
+
+> Task :androidApp:lintReportDebug
+Wrote HTML report to file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/androidApp/build/reports/lint-results-debug.html
+Wrote SARIF report to file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/androidApp/build/reports/lint-results-debug.sarif
+
+> Task :androidApp:lintDebug
+> Task :androidApp:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :androidApp:generateDebugAssets UP-TO-DATE
+> Task :composeApp:generateAndroidMainAssets UP-TO-DATE
+> Task :composeApp:mergeAndroidMainAssets UP-TO-DATE
+> Task :designsystem:generateAndroidMainAssets UP-TO-DATE
+> Task :designsystem:mergeAndroidMainAssets UP-TO-DATE
+> Task :core:presentation:generateAndroidMainAssets UP-TO-DATE
+> Task :core:presentation:mergeAndroidMainAssets UP-TO-DATE
+> Task :feature:routines:impl:generateAndroidMainAssets UP-TO-DATE
+> Task :feature:routines:impl:mergeAndroidMainAssets UP-TO-DATE
+> Task :feature:trainingplans:impl:generateAndroidMainAssets UP-TO-DATE
+> Task :feature:trainingplans:impl:mergeAndroidMainAssets UP-TO-DATE
+> Task :feature:workout:impl:generateAndroidMainAssets UP-TO-DATE
+> Task :feature:workout:impl:mergeAndroidMainAssets UP-TO-DATE
+> Task :androidApp:mergeDebugAssets UP-TO-DATE
+> Task :androidApp:compressDebugAssets UP-TO-DATE
+> Task :androidApp:generateDebugGlobalSynthetics UP-TO-DATE
+> Task :androidApp:mergeDebugJavaResource UP-TO-DATE
+> Task :androidApp:checkDebugDuplicateClasses UP-TO-DATE
+> Task :androidApp:desugarDebugFileDependencies UP-TO-DATE
+> Task :androidApp:mergeExtDexDebug UP-TO-DATE
+> Task :composeApp:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :feature:workout:impl:bundleLibRuntimeToDirAndroidMain
+> Task :feature:routines:impl:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :feature:trainingplans:impl:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :core:presentation:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :feature:exercises:impl:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :core:storage:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :feature:routines:api:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :feature:trainingplans:api:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :feature:workout:api:bundleLibRuntimeToDirAndroidMain
+> Task :feature:exercises:api:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :foundation:bundleLibRuntimeToDirAndroidMain UP-TO-DATE
+> Task :designsystem:bundleLibRuntimeToDirAndroidMain
+> Task :androidApp:mergeLibDexDebug
+> Task :androidApp:dexBuilderDebug UP-TO-DATE
+> Task :androidApp:mergeProjectDexDebug UP-TO-DATE
+> Task :androidApp:mergeDebugJniLibFolders UP-TO-DATE
+> Task :composeApp:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :composeApp:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :composeApp:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :designsystem:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :designsystem:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :designsystem:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :foundation:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :foundation:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :foundation:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :core:presentation:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :core:presentation:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :core:presentation:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :core:storage:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :core:storage:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :core:storage:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :feature:exercises:api:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :feature:exercises:api:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :feature:exercises:api:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :feature:exercises:impl:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :feature:exercises:impl:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :feature:exercises:impl:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :feature:routines:api:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :feature:routines:api:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :feature:routines:api:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :feature:routines:impl:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :feature:routines:impl:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :feature:routines:impl:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :feature:trainingplans:api:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :feature:trainingplans:api:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :feature:trainingplans:api:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :feature:trainingplans:impl:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :feature:trainingplans:impl:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :feature:trainingplans:impl:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :feature:workout:api:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :feature:workout:api:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :feature:workout:api:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :feature:workout:impl:mergeAndroidMainJniLibFolders UP-TO-DATE
+> Task :feature:workout:impl:mergeAndroidMainNativeLibs NO-SOURCE
+> Task :feature:workout:impl:copyAndroidMainJniLibsProjectOnly UP-TO-DATE
+> Task :androidApp:mergeDebugNativeLibs UP-TO-DATE
+> Task :androidApp:stripDebugDebugSymbols UP-TO-DATE
+> Task :androidApp:validateSigningDebug UP-TO-DATE
+> Task :androidApp:writeDebugAppMetadata UP-TO-DATE
+> Task :androidApp:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :androidApp:packageDebug
+> Task :androidApp:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :androidApp:assembleDebug
+
+[Incubating] Problems report is available at: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/build/reports/problems/problems-report.html
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':feature:workout:impl:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/build/reports/tests/desktopTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':designsystem:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/designsystem/build/reports/tests/desktopTest/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+==============================================================================
+
+BUILD FAILED in 1m 24s
+793 actionable tasks: 189 executed, 604 up-to-date
+Configuration cache entry stored.

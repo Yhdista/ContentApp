@@ -1,0 +1,480 @@
+Calculating task graph as no cached configuration is available for tasks: :feature:workout:api:compileCommonMainKotlinMetadata :feature:workout:impl:compileCommonMainKotlinMetadata :feature:routines:api:compileCommonMainKotlinMetadata :feature:routines:impl:compileCommonMainKotlinMetadata :feature:trainingplans:api:compileCommonMainKotlinMetadata :feature:trainingplans:impl:compileCommonMainKotlinMetadata :composeApp:compileCommonMainKotlinMetadata :feature:workout:api:compileTestKotlinDesktop :feature:workout:impl:compileTestKotlinDesktop :feature:routines:api:compileTestKotlinDesktop :feature:routines:impl:compileTestKotlinDesktop :feature:trainingplans:api:compileTestKotlinDesktop :feature:trainingplans:impl:compileTestKotlinDesktop :composeApp:compileTestKotlinDesktop :feature:workout:api:compileDebugUnitTestKotlinAndroid :feature:workout:impl:compileDebugUnitTestKotlinAndroid :feature:routines:api:compileDebugUnitTestKotlinAndroid :feature:routines:impl:compileDebugUnitTestKotlinAndroid :feature:trainingplans:api:compileDebugUnitTestKotlinAndroid :feature:trainingplans:impl:compileDebugUnitTestKotlinAndroid :composeApp:compileDebugUnitTestKotlinAndroid :composeApp:compileKotlinDesktop :composeApp:compileDebugKotlinAndroid
+
+> Configure project :composeApp
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+Add android.sync.suppressAgpWarnings=UNSUPPORTED_PROJECT_OPTION_USE to the gradle.properties file to suppress this warning.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+Add android.sync.suppressAgpWarnings=UNSUPPORTED_PROJECT_OPTION_USE to the gradle.properties file to suppress this warning.
+WARNING: API 'applicationVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding
+    android.newDsl=false
+to this project's gradle.properties file.
+For more information, see http://developer.android.com/build/r/new-dsl.
+
+To determine what is calling applicationVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+Add android.sync.suppressAgpWarnings=DEPRECATED_DSL to the gradle.properties file to suppress this warning.
+WARNING: API 'testVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding
+    android.newDsl=false
+to this project's gradle.properties file.
+For more information, see http://developer.android.com/build/r/new-dsl.
+
+To determine what is calling testVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+Add android.sync.suppressAgpWarnings=DEPRECATED_DSL to the gradle.properties file to suppress this warning.
+WARNING: API 'unitTestVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding
+    android.newDsl=false
+to this project's gradle.properties file.
+For more information, see http://developer.android.com/build/r/new-dsl.
+
+To determine what is calling unitTestVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+Add android.sync.suppressAgpWarnings=DEPRECATED_DSL to the gradle.properties file to suppress this warning.
+
+> Configure project :designsystem
+WARNING: API 'libraryVariants' is obsolete and has been replaced with 'AndroidComponentsExtension'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+The legacy variant API is disabled by default in AGP 9.0, but can be re-enabled by adding
+    android.newDsl=false
+to this project's gradle.properties file.
+For more information, see http://developer.android.com/build/r/new-dsl.
+
+To determine what is calling libraryVariants, use -Pandroid.debug.obsoleteApi=true on the command line to display more information.
+Add android.sync.suppressAgpWarnings=DEPRECATED_DSL to the gradle.properties file to suppress this warning.
+
+> Task :foundation:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :foundation:transformCommonMainDependenciesMetadata
+> Task :foundation:compileCommonMainKotlinMetadata
+> Task :foundation:generateProjectStructureMetadata UP-TO-DATE
+> Task :foundation:metadataCommonMainProcessResources NO-SOURCE
+> Task :foundation:metadataCommonMainClasses
+> Task :foundation:allMetadataJar
+> Task :feature:exercises:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :foundation:commonizeNativeDistribution UP-TO-DATE
+> Task :foundation:transformNativeMainDependenciesMetadata
+> Task :foundation:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :foundation:metadataNativeMainProcessResources NO-SOURCE
+> Task :foundation:metadataNativeMainClasses UP-TO-DATE
+> Task :foundation:transformAppleMainDependenciesMetadata
+> Task :foundation:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :foundation:metadataAppleMainProcessResources NO-SOURCE
+> Task :foundation:metadataAppleMainClasses UP-TO-DATE
+> Task :foundation:transformIosMainDependenciesMetadata
+> Task :foundation:compileIosMainKotlinMetadata
+> Task :foundation:metadataIosMainProcessResources NO-SOURCE
+> Task :foundation:metadataIosMainClasses
+> Task :foundation:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :foundation:iosArm64MetadataElements
+> Task :foundation:iosSimulatorArm64MetadataElements
+> Task :foundation:iosX64MetadataElements
+> Task :feature:exercises:api:transformCommonMainDependenciesMetadata
+> Task :feature:exercises:api:compileCommonMainKotlinMetadata
+> Task :foundation:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:exercises:api:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:exercises:api:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:exercises:api:metadataCommonMainClasses
+> Task :feature:exercises:api:allMetadataJar
+> Task :feature:workout:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:exercises:api:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:exercises:api:transformNativeMainDependenciesMetadata
+> Task :feature:exercises:api:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:api:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:exercises:api:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:exercises:api:transformAppleMainDependenciesMetadata
+> Task :feature:exercises:api:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:api:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:exercises:api:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:exercises:api:transformIosMainDependenciesMetadata
+> Task :feature:exercises:api:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:api:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:exercises:api:metadataIosMainClasses UP-TO-DATE
+> Task :feature:exercises:api:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :feature:exercises:api:iosArm64MetadataElements
+> Task :feature:exercises:api:iosSimulatorArm64MetadataElements
+> Task :feature:exercises:api:iosX64MetadataElements
+> Task :feature:workout:api:transformCommonMainDependenciesMetadata
+
+> Task :feature:workout:api:compileCommonMainKotlinMetadata
+w: file:///Users/yhdista/AndroidApps/ContentApp/feature/workout/api/src/commonMain/kotlin/features/workout/domain/WorkoutDataExporter.kt:65:17 Redundant creation of Json format. Creating instances for each usage can be slow.
+
+> Task :designsystem:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :designsystem:generateComposeResClass SKIPPED
+> Task :designsystem:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :designsystem:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForCommonMain SKIPPED
+> Task :designsystem:transformCommonMainDependenciesMetadata
+> Task :designsystem:compileCommonMainKotlinMetadata
+> Task :designsystem:generateProjectStructureMetadata UP-TO-DATE
+> Task :designsystem:metadataCommonMainProcessResources NO-SOURCE
+> Task :designsystem:metadataCommonMainClasses
+> Task :designsystem:allMetadataJar
+> Task :core:presentation:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:presentation:generateComposeResClass SKIPPED
+> Task :core:presentation:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :core:presentation:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForCommonMain SKIPPED
+> Task :core:presentation:transformCommonMainDependenciesMetadata
+> Task :core:presentation:compileCommonMainKotlinMetadata
+> Task :core:presentation:generateProjectStructureMetadata UP-TO-DATE
+> Task :core:presentation:metadataCommonMainProcessResources NO-SOURCE
+> Task :core:presentation:metadataCommonMainClasses
+> Task :core:presentation:allMetadataJar
+> Task :core:storage:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:storage:transformCommonMainDependenciesMetadata
+> Task :core:storage:compileCommonMainKotlinMetadata
+> Task :core:storage:generateProjectStructureMetadata UP-TO-DATE
+> Task :core:storage:metadataCommonMainProcessResources NO-SOURCE
+> Task :core:storage:metadataCommonMainClasses
+> Task :core:storage:allMetadataJar
+> Task :feature:exercises:api:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:workout:api:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:workout:api:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:workout:api:metadataCommonMainClasses
+> Task :feature:workout:api:allMetadataJar
+> Task :feature:workout:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:workout:impl:generateComposeResClass SKIPPED
+> Task :feature:workout:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :feature:workout:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :designsystem:commonizeNativeDistribution UP-TO-DATE
+> Task :designsystem:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForNativeMain SKIPPED
+> Task :designsystem:transformNativeMainDependenciesMetadata
+> Task :designsystem:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :designsystem:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForAppleMain SKIPPED
+> Task :designsystem:metadataNativeMainProcessResources NO-SOURCE
+> Task :designsystem:metadataNativeMainClasses UP-TO-DATE
+> Task :designsystem:transformAppleMainDependenciesMetadata
+> Task :designsystem:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :designsystem:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :designsystem:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :designsystem:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :designsystem:generateResourceAccessorsForIosMain SKIPPED
+> Task :designsystem:metadataAppleMainProcessResources NO-SOURCE
+> Task :designsystem:metadataAppleMainClasses UP-TO-DATE
+> Task :designsystem:transformIosMainDependenciesMetadata
+> Task :designsystem:compileIosMainKotlinMetadata NO-SOURCE
+> Task :designsystem:metadataIosMainProcessResources NO-SOURCE
+> Task :designsystem:metadataIosMainClasses UP-TO-DATE
+> Task :designsystem:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :designsystem:iosArm64MetadataElements
+> Task :designsystem:iosSimulatorArm64MetadataElements
+> Task :designsystem:iosX64MetadataElements
+> Task :core:presentation:commonizeNativeDistribution UP-TO-DATE
+> Task :core:presentation:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForNativeMain SKIPPED
+> Task :core:presentation:transformNativeMainDependenciesMetadata
+> Task :core:presentation:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :core:presentation:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForAppleMain SKIPPED
+> Task :core:presentation:metadataNativeMainProcessResources NO-SOURCE
+> Task :core:presentation:metadataNativeMainClasses UP-TO-DATE
+> Task :core:presentation:transformAppleMainDependenciesMetadata
+> Task :core:presentation:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :core:presentation:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :core:presentation:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :core:presentation:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :core:presentation:generateResourceAccessorsForIosMain SKIPPED
+> Task :core:presentation:metadataAppleMainProcessResources NO-SOURCE
+> Task :core:presentation:metadataAppleMainClasses UP-TO-DATE
+> Task :core:presentation:transformIosMainDependenciesMetadata
+
+> Task :core:presentation:compileIosMainKotlinMetadata
+w: KLIB resolver: The same 'unique_name=annotation_commonMain' found in more than one library: /Users/yhdista/AndroidApps/ContentApp/core/presentation/build/kotlinTransformedMetadataLibraries/commonMain/androidx.annotation-annotation-1.8.1-commonMain-VdfbRA.klib, /Users/yhdista/AndroidApps/ContentApp/core/presentation/build/kotlinTransformedMetadataLibraries/commonMain/org.jetbrains.compose.annotation-internal-annotation-1.7.0-commonMain-BD0V2w.klib
+w: KLIB resolver: The same 'unique_name=lifecycle-viewmodel_commonMain' found in more than one library: /Users/yhdista/AndroidApps/ContentApp/core/presentation/build/kotlinTransformedMetadataLibraries/commonMain/androidx.lifecycle-lifecycle-viewmodel-2.8.7-commonMain-vv0pmw.klib, /Users/yhdista/AndroidApps/ContentApp/core/presentation/build/kotlinTransformedMetadataLibraries/commonMain/org.jetbrains.androidx.lifecycle-lifecycle-viewmodel-2.8.3-commonMain-I44vqw.klib
+
+> Task :core:presentation:metadataIosMainProcessResources NO-SOURCE
+> Task :core:presentation:metadataIosMainClasses
+> Task :core:presentation:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :core:presentation:iosArm64MetadataElements
+> Task :core:presentation:iosSimulatorArm64MetadataElements
+> Task :core:presentation:iosX64MetadataElements
+> Task :core:storage:commonizeNativeDistribution UP-TO-DATE
+> Task :core:storage:transformNativeMainDependenciesMetadata
+> Task :core:storage:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :core:storage:metadataNativeMainProcessResources NO-SOURCE
+> Task :core:storage:metadataNativeMainClasses UP-TO-DATE
+> Task :core:storage:transformAppleMainDependenciesMetadata
+> Task :core:storage:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :core:storage:metadataAppleMainProcessResources NO-SOURCE
+> Task :core:storage:metadataAppleMainClasses UP-TO-DATE
+> Task :core:storage:transformIosMainDependenciesMetadata
+> Task :core:storage:compileIosMainKotlinMetadata NO-SOURCE
+> Task :core:storage:metadataIosMainProcessResources NO-SOURCE
+> Task :core:storage:metadataIosMainClasses UP-TO-DATE
+> Task :core:storage:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :core:storage:iosArm64MetadataElements
+> Task :core:storage:iosSimulatorArm64MetadataElements
+> Task :core:storage:iosX64MetadataElements
+> Task :feature:workout:api:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:workout:api:transformNativeMainDependenciesMetadata
+> Task :feature:workout:api:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:api:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:workout:api:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:workout:api:transformAppleMainDependenciesMetadata
+> Task :feature:workout:api:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:api:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:workout:api:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:workout:api:transformIosMainDependenciesMetadata
+> Task :feature:workout:api:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:api:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:workout:api:metadataIosMainClasses UP-TO-DATE
+> Task :feature:workout:api:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :feature:workout:api:iosArm64MetadataElements
+> Task :feature:workout:api:iosSimulatorArm64MetadataElements
+> Task :feature:workout:api:iosX64MetadataElements
+> Task :feature:workout:impl:transformCommonMainDependenciesMetadata
+> Task :feature:workout:impl:compileCommonMainKotlinMetadata
+> Task :feature:routines:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:routines:api:transformCommonMainDependenciesMetadata
+> Task :feature:routines:api:compileCommonMainKotlinMetadata
+> Task :feature:workout:api:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:routines:api:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:routines:api:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:routines:api:metadataCommonMainClasses
+> Task :feature:routines:api:allMetadataJar
+> Task :feature:routines:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:routines:impl:generateComposeResClass SKIPPED
+> Task :feature:routines:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :feature:routines:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:routines:api:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:routines:api:transformNativeMainDependenciesMetadata
+> Task :feature:routines:api:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:api:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:routines:api:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:routines:api:transformAppleMainDependenciesMetadata
+> Task :feature:routines:api:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:api:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:routines:api:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:routines:api:transformIosMainDependenciesMetadata
+> Task :feature:routines:api:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:api:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:routines:api:metadataIosMainClasses UP-TO-DATE
+> Task :feature:routines:api:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :feature:routines:api:iosArm64MetadataElements
+> Task :feature:routines:api:iosSimulatorArm64MetadataElements
+> Task :feature:routines:api:iosX64MetadataElements
+> Task :feature:routines:impl:transformCommonMainDependenciesMetadata
+> Task :feature:routines:impl:compileCommonMainKotlinMetadata
+> Task :feature:trainingplans:api:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:trainingplans:api:transformCommonMainDependenciesMetadata
+> Task :feature:trainingplans:api:compileCommonMainKotlinMetadata
+> Task :feature:trainingplans:api:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:trainingplans:api:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:metadataCommonMainClasses
+> Task :feature:trainingplans:api:allMetadataJar
+> Task :feature:trainingplans:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:trainingplans:impl:generateComposeResClass SKIPPED
+> Task :feature:trainingplans:impl:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForCommonMain SKIPPED
+> Task :feature:trainingplans:api:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:trainingplans:api:transformNativeMainDependenciesMetadata
+> Task :feature:trainingplans:api:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:api:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:transformAppleMainDependenciesMetadata
+> Task :feature:trainingplans:api:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:api:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:transformIosMainDependenciesMetadata
+> Task :feature:trainingplans:api:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:api:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:api:metadataIosMainClasses UP-TO-DATE
+> Task :feature:trainingplans:api:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :feature:trainingplans:api:iosArm64MetadataElements
+> Task :feature:trainingplans:api:iosSimulatorArm64MetadataElements
+> Task :feature:trainingplans:api:iosX64MetadataElements
+> Task :feature:trainingplans:impl:transformCommonMainDependenciesMetadata
+> Task :feature:trainingplans:impl:compileCommonMainKotlinMetadata
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:generateComposeResClass UP-TO-DATE
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonMain NO-SOURCE
+> Task :feature:exercises:impl:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :feature:exercises:impl:transformCommonMainDependenciesMetadata
+> Task :feature:exercises:impl:compileCommonMainKotlinMetadata
+> Task :core:storage:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:exercises:impl:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:exercises:impl:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:exercises:impl:metadataCommonMainClasses
+> Task :feature:exercises:impl:allMetadataJar
+> Task :feature:exercises:impl:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:exercises:impl:transformNativeMainDependenciesMetadata
+> Task :feature:exercises:impl:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:impl:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:exercises:impl:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:transformAppleMainDependenciesMetadata
+> Task :feature:exercises:impl:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:impl:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:exercises:impl:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:transformIosMainDependenciesMetadata
+> Task :feature:exercises:impl:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:exercises:impl:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:exercises:impl:metadataIosMainClasses UP-TO-DATE
+> Task :feature:exercises:impl:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :feature:exercises:impl:iosArm64MetadataElements
+> Task :feature:exercises:impl:iosSimulatorArm64MetadataElements
+> Task :feature:exercises:impl:iosX64MetadataElements
+> Task :designsystem:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :core:presentation:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:routines:api:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:routines:impl:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:routines:impl:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:routines:impl:metadataCommonMainClasses
+> Task :feature:routines:impl:allMetadataJar
+> Task :feature:routines:impl:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:routines:impl:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForNativeMain SKIPPED
+> Task :feature:routines:impl:transformNativeMainDependenciesMetadata
+> Task :feature:routines:impl:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:impl:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForAppleMain SKIPPED
+> Task :feature:routines:impl:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:routines:impl:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:routines:impl:transformAppleMainDependenciesMetadata
+> Task :feature:routines:impl:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:impl:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:routines:impl:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:routines:impl:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :feature:routines:impl:generateResourceAccessorsForIosMain SKIPPED
+> Task :feature:routines:impl:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:routines:impl:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:routines:impl:transformIosMainDependenciesMetadata
+> Task :feature:routines:impl:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:routines:impl:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:routines:impl:metadataIosMainClasses UP-TO-DATE
+> Task :feature:routines:impl:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :feature:routines:impl:iosArm64MetadataElements
+> Task :feature:routines:impl:iosSimulatorArm64MetadataElements
+> Task :feature:routines:impl:iosX64MetadataElements
+> Task :feature:trainingplans:api:exportRootPublicationCoordinatesForMetadataApiElements UP-TO-DATE
+> Task :feature:trainingplans:impl:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:trainingplans:impl:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:impl:metadataCommonMainClasses
+> Task :feature:trainingplans:impl:allMetadataJar
+> Task :feature:trainingplans:impl:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForNativeMain SKIPPED
+> Task :feature:trainingplans:impl:transformNativeMainDependenciesMetadata
+> Task :feature:trainingplans:impl:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForAppleMain SKIPPED
+> Task :feature:trainingplans:impl:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:impl:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:transformAppleMainDependenciesMetadata
+> Task :feature:trainingplans:impl:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:impl:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:trainingplans:impl:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:trainingplans:impl:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :feature:trainingplans:impl:generateResourceAccessorsForIosMain SKIPPED
+> Task :feature:trainingplans:impl:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:impl:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:transformIosMainDependenciesMetadata
+> Task :feature:trainingplans:impl:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:trainingplans:impl:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:trainingplans:impl:metadataIosMainClasses UP-TO-DATE
+> Task :feature:trainingplans:impl:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :feature:trainingplans:impl:iosArm64MetadataElements
+> Task :feature:trainingplans:impl:iosSimulatorArm64MetadataElements
+> Task :feature:trainingplans:impl:iosX64MetadataElements
+> Task :feature:workout:impl:generateProjectStructureMetadata UP-TO-DATE
+> Task :feature:workout:impl:metadataCommonMainProcessResources NO-SOURCE
+> Task :feature:workout:impl:metadataCommonMainClasses
+> Task :feature:workout:impl:allMetadataJar
+> Task :feature:workout:impl:commonizeNativeDistribution UP-TO-DATE
+> Task :feature:workout:impl:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForNativeMain SKIPPED
+> Task :feature:workout:impl:transformNativeMainDependenciesMetadata
+> Task :feature:workout:impl:compileNativeMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:impl:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForAppleMain SKIPPED
+> Task :feature:workout:impl:metadataNativeMainProcessResources NO-SOURCE
+> Task :feature:workout:impl:metadataNativeMainClasses UP-TO-DATE
+> Task :feature:workout:impl:transformAppleMainDependenciesMetadata
+> Task :feature:workout:impl:compileAppleMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:impl:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:workout:impl:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :feature:workout:impl:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :feature:workout:impl:generateResourceAccessorsForIosMain SKIPPED
+> Task :feature:workout:impl:metadataAppleMainProcessResources NO-SOURCE
+> Task :feature:workout:impl:metadataAppleMainClasses UP-TO-DATE
+> Task :feature:workout:impl:transformIosMainDependenciesMetadata
+> Task :feature:workout:impl:compileIosMainKotlinMetadata NO-SOURCE
+> Task :feature:workout:impl:metadataIosMainProcessResources NO-SOURCE
+> Task :feature:workout:impl:metadataIosMainClasses UP-TO-DATE
+> Task :feature:workout:impl:exportCommonSourceSetsMetadataLocationsForMetadataApiElements
+> Task :feature:workout:impl:iosArm64MetadataElements
+> Task :feature:workout:impl:iosSimulatorArm64MetadataElements
+> Task :feature:workout:impl:iosX64MetadataElements
+> Task :composeApp:transformCommonMainDependenciesMetadata
+> Task :composeApp:kspCommonMainKotlinMetadata SKIPPED
+
+> Task :composeApp:compileCommonMainKotlinMetadata FAILED
+e: file:///Users/yhdista/AndroidApps/ContentApp/composeApp/src/commonMain/kotlin/app/navigation/AppNavHost.kt:70:39 Unresolved reference 'startDestinationId'.
+
+[Incubating] Problems report is available at: file:///Users/yhdista/AndroidApps/ContentApp/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':composeApp:compileCommonMainKotlinMetadata' (registered by plugin 'org.jetbrains.kotlin.multiplatform').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 31s
+158 actionable tasks: 124 executed, 34 up-to-date
+Configuration cache entry stored.

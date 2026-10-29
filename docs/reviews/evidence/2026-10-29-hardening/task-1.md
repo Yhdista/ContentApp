@@ -91,3 +91,5 @@ Použito rootem nastavené `.yhdista/gw.env`: Gradle2g/Kotlin1g/1worker. Status:
 ## ➡️ Předání
 
 Task1 implementace a K jsou dokončeny. Žádná známá otevřená funkční závada v rozsahu A1–A4. Root pokračuje Task2; full G a nezávislé review jsou vědomě odložené podle aktualizované orchestrace, nejsou deklarované jako hotové.
+
+📎 Archivní kopie logů v této složce doplňují původně chybějící odkazované soubory. Odstraněné koncové mezery řádků nemění výstup ani výsledky; původní lokální logy zůstávají v `.superpowers/sdd/2026-10-29-atomic-architecture-hardening/`.

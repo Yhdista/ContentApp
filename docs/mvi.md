@@ -89,7 +89,7 @@ onWeightChange = { set, newWeight ->
 
 🆔 Zdejší editovací intenty stále nesou `WorkoutSet`. ViewModel ale pro zápis využije jeho ID a novou hodnotu pole; neukládá znovu celou starou kopii z UI. Pro nové podobné kontrakty preferuj ID a hodnotu změny, pokud zbytek objektu k rozhodnutí nepotřebuješ.
 
-🔒 Během `isSaving` aktivní ViewModel všechny další intenty ignoruje a spodní akční tlačítka jsou vypnutá. Nejde o univerzální vlastnost BaseViewModelu: tuto politiku má konkrétní obrazovka. Další obrazovka musí určit, zda operace během ukládání odmítne, zruší, nebo zpracuje později.
+🔒 Během `isSaving` aktivní ViewModel všechny další intenty ignoruje a spodní akční tlačítka jsou vypnutá. Úspěšné dokončení nebo zrušení navíc nastaví `isTerminated`: tato nav entry už nepřijme další intent ani v době, kdy navigační efekt teprve čeká na odběratele. `isSaving` skončí s příkazem, `isTerminated` zůstává do zániku ViewModelu. Neúspěšný příkaz terminální stav nenastaví a lze jej opakovat. Nejde o univerzální vlastnost BaseViewModelu: tuto politiku má konkrétní obrazovka.
 
 ## ⚡ Effect: jednorázová reakce Rootu
 
@@ -200,6 +200,7 @@ private fun finishWorkout() {
         when (completeWorkout.complete(session.id)) {
             is Result.Error -> onOperationFailure(DataError.Local.UNKNOWN)
             is Result.Success -> {
+                updateState { copy(isTerminated = true) }
                 cancelTimers()
                 sendEffect(ActiveWorkoutContract.Effect.WorkoutFinished)
             }
@@ -207,12 +208,15 @@ private fun finishWorkout() {
     }
 }
 // terminalCommand nastaví isSaving synchronně a uvolní jej ve vlastním finally.
+// isTerminated blokuje další vstupy i po uvolnění isSaving a před spotřebou efektu.
 // onOperationFailure mění chybu, ale nikdy neuvolňuje zámek cizího příkazu.
 ```
 
-🔐 `WorkoutRepository` dokončení nenabízí. Jediný aplikační vstup `CompleteWorkout` spojuje idempotentní `WorkoutStore.completeOnce` a postup plánu ve společné transakci. Nízkourovňový `WorkoutStore` je integrační účastník workflow; UI jej nepoužívá.
+🔐 `WorkoutRepository` dokončení nenabízí. Jediný aplikační vstup `CompleteWorkout` spojuje idempotentní `WorkoutStore.completeOnce` a postup plánu ve společné transakci. Nízkourovňový `WorkoutStore` je integrační účastník workflow; smí jej používat workout api/impl a `composeApp`. Guard odmítá cizí feature i vlastní Screen/Root/ViewModel — přejmenování volajícího na UseCase tuto modulární hranici neobchází.
 
 🏋️ `addExerciseWithInitialSet` ukládá nový výskyt cviku, první sérii a oba outbox řádky v jediném přijatém příkazu. Vytvoření vlastního katalogového cviku je samostatný příkaz. „Předchozí výkon“ pochází z poslední dokončené série poslední dokončené session, podle času session a pořadí výskytu/série, nikdy podle časů odhadnutých z UUID.
+
+🆔 `addSetToEntry` a `removeWorkoutExercise` vyžadují ID konkrétního výskytu cviku ve workoutu. Katalogové ID se nepřekládá na první výskyt; stejný cvik může být zařazen vícekrát. Staré nejednoznačné `addSet` a `removeExerciseFromWorkout` už nejsou veřejné příkazy repository.
 
 | ⚙️ Práce | Vlastník | Co se stane při odstranění obrazovky |
 | --- | --- | --- |

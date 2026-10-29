@@ -1,0 +1,10 @@
+gw: FAIL exit=1 86s log=/Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/.gradle/yhdista-logs/gw-20261029T012333Z-4113.log
+> Task :feature:workout:impl:desktopTest FAILED
+WorkoutDetailAccessibilityTest[desktop] > doubleDigitBadgeFitsActualDetailAtDoubleFontScale[desktop] FAILED
+> Task :designsystem:desktopTest FAILED
+DesignSystemAccessibilityTest[desktop] > publicControlsRemainOperableAtLargeFont[desktop] FAILED
+* What went wrong:
+Execution failed for task ':feature:workout:impl:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/build/reports/tests/desktopTest/index.html
+Execution failed for task ':designsystem:desktopTest'.
+> There were failing tests. See the report at: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/designsystem/build/reports/tests/desktopTest/index.html

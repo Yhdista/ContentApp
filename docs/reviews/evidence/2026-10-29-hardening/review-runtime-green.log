@@ -1,0 +1,13 @@
+gw: FAIL exit=1 20s log=/Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/.gradle/yhdista-logs/gw-20261029T011922Z-3616.log
+> Task :feature:workout:impl:compileTestKotlinDesktop FAILED
+e: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/src/commonTest/kotlin/features/workout/WorkoutDetailViewModelTest.kt:188:131 Unresolved reference 'addSet'.
+e: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/src/commonTest/kotlin/features/workout/WorkoutDetailViewModelTest.kt:189:96 Unresolved reference 'removeExerciseFromWorkout'.
+e: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/src/commonTest/kotlin/features/workout/WorkoutHistoryViewModelTest.kt:256:131 Unresolved reference 'addSet'.
+e: file:///Users/yhdista/.yhdi-mesh/worktrees/contentapp-atomic-build/feature/workout/impl/src/commonTest/kotlin/features/workout/WorkoutHistoryViewModelTest.kt:257:96 Unresolved reference 'removeExerciseFromWorkout'.
+> Task :feature:workout:impl:compileAndroidHostTest FAILED
+* What went wrong:
+Execution failed for task ':feature:workout:impl:compileTestKotlinDesktop' (registered by plugin 'contentapp.multiplatform').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler: UNRESOLVED_REFERENCE
+       Kotlin compiler error
+Execution failed for task ':feature:workout:impl:compileAndroidHostTest' (registered by plugin 'contentapp.multiplatform').

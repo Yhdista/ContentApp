@@ -1,0 +1,25 @@
+{
+  "revision": "a8e1cc0",
+  "command": "review-ui-red-command.sh",
+  "elapsed_s": 6,
+  "cases": [
+    {
+      "suite": "WorkoutDetailAccessibilityTest[desktop]",
+      "name": "doubleDigitBadgeFitsActualDetailAtDoubleFontScale[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: Two-digit badge must remain whole: size=24 x 24 constraints=Constraints(minWidth = 0, maxWidth = 24, minHeight = 0, maxHeight = 24) bounds=Rect.fromLTRB(40.0, 710.0, 64.0, 734.0) lines=2 line0=[0.0,0.0,14.8359375,28.0] overflowHeight=true expected:<1> but was:<2>"
+    },
+    {
+      "suite": "WorkoutDetailAccessibilityTest[desktop]",
+      "name": "featureBadgePairsMeetContrastOnActualDetailLayers[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: dark=true type=DROPSET checked=false foreground=Color(0.5058824, 0.54901963, 0.972549, 1.0, sRGB IEC61966-2.1) background=Color(0.15686275, 0.1882353, 0.35686275, 1.0, sRGB IEC61966-2.1) contrast=4.2306633"
+    },
+    {
+      "suite": "DesignSystemAccessibilityTest[desktop]",
+      "name": "publicControlsRemainOperableAtLargeFont[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: Failed: assertDoesNotExist.\nReason: Did not expect any node but found '1' node that satisfies: (ContentDescription = 'decorative-workouts' (ignoreCase: false))\nNode found:\nNode #41 at (l=36.0, t=127.0, r=62.0, b=160.0)px\nContentDescription = '[decorative-workouts]'\nText = '[\u25c9]'\nActions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]\nHas 1 sibling\n"
+    }
+  ]
+}

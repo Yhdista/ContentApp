@@ -19,4 +19,6 @@
 
 📏 Dvě pomocné read-only kontroly layoutu se zpřesnily podle pozorovaného UI: timer posunul bounds checkboxu, weekly badge po dokončení zobrazuje streak namísto původního počtu. CHECKED se páruje přes bounds s konkrétním content-desc; historie přes název, dokončení a oddělený počet1. Nezměnily se žádné produktové assertions.
 
-⚠️ Toto je ruční smoke konkrétní cesty, nikoli všechny Android instrumented testy. Plán byl ověřen otevřením tabu; plné vytváření/progress plánu pokrývají JVM/Skia/Room testy. iOS runtime se zde netestoval. QA aplikace zůstává odděleně nainstalovaná. Pokus o následný úklid přes strojový gate skončil GATE_BUSY před spuštěním uninstall; cizí práce nebyla přerušena.
+⚠️ Toto je ruční smoke konkrétní cesty, nikoli všechny Android instrumented testy. Plán byl ověřen otevřením tabu; plné vytváření/progress plánu pokrývají JVM/Skia/Room testy. iOS runtime se zde netestoval.
+
+🧹 QA aplikace byla po ověření úspěšně odinstalována (`adb uninstall com.yhdista.contentapp.atomicqa` → `Success`). První pokus čekal na obsazený strojový gate; úklid proběhl až po jeho uvolnění. Běžný package zůstal beze změny a cizí práce nebyla přerušena.

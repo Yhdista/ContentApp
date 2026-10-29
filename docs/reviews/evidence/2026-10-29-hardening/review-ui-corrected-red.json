@@ -1,0 +1,31 @@
+{
+  "test_revision": "8b21c1e",
+  "production_ui_source": "a8e1cc0",
+  "overlay_files": [
+    "designsystem/src/commonMain/kotlin/ui/designsystem/organisms/Navigation.kt",
+    "feature/workout/impl/src/commonMain/kotlin/features/workout/detail/WorkoutDetailScreen.kt",
+    "feature/workout/impl/src/commonMain/kotlin/features/workout/ui/components/SetTypeBadgeStyle.kt"
+  ],
+  "other_files": "8b21c1e unchanged; own isolated Air build copy only; restored HEAD before GREEN",
+  "elapsed_s": 9,
+  "cases": [
+    {
+      "suite": "WorkoutDetailAccessibilityTest[desktop]",
+      "name": "doubleDigitBadgeFitsActualDetailAtDoubleFontScale[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: Two-digit badge must remain whole: size=24 x 24 paragraphHeight=61.0 constraints=Constraints(minWidth = 0, maxWidth = 24, minHeight = 0, maxHeight = 24) bounds=Rect.fromLTRB(40.0, 710.0, 64.0, 734.0) lines=2 line0=[0.0,0.0,14.8359375,28.0] overflowHeight=true expected:<1> but was:<2>"
+    },
+    {
+      "suite": "WorkoutDetailAccessibilityTest[desktop]",
+      "name": "featureBadgePairsMeetContrastOnActualDetailLayers[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: dark=true type=DROPSET checked=false foreground=Color(0.5058824, 0.54901963, 0.972549, 1.0, sRGB IEC61966-2.1) background=Color(0.15686275, 0.1882353, 0.35686275, 1.0, sRGB IEC61966-2.1) contrast=4.2306633"
+    },
+    {
+      "suite": "DesignSystemAccessibilityTest[desktop]",
+      "name": "publicControlsRemainOperableAtLargeFont[desktop]",
+      "result": "FAIL",
+      "message": "java.lang.AssertionError: Failed: assertDoesNotExist.\nReason: Did not expect any node but found '1' node that satisfies: (ContentDescription = 'decorative-workouts' (ignoreCase: false))\nNode found:\nNode #38 at (l=12.0, t=119.0, r=308.0, b=168.0)px\nContentDescription = '[decorative-workouts]'\nFocused = 'false'\nRole = 'Button'\nSelected = 'true'\nShape = 'RoundedCornerShape(topStart = CornerSize(size = 50.0%), topEnd = CornerSize(size = 50.0%), bottomEnd = CornerSize(size = 50.0%), bottomStart = CornerSize(size = 50.0%))'\nText = '[\u25c9, Tr\u00e9ninky]'\nActions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]\nMergeDescendants = 'true'\nHas 2 siblings\n"
+    }
+  ]
+}
